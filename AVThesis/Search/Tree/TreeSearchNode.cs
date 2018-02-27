@@ -14,13 +14,7 @@ namespace AVThesis.Search.Tree {
     /// <typeparam name="S">A Type representing a state in the search.</typeparam>
     /// <typeparam name="A">A Type representing an action in the search.</typeparam>
 		public class TreeSearchNode<S, A> : SearchNode<S, A> where S : class where A : class {
-
-        //public static explicit operator TreeSearchNode<S, A, N>(SearchNode<S, A, N> v) {
-        //    TreeSearchNode<S, A, N> node = new TreeSearchNode<S, A, N>(v.State, v.Payload);
-        //    //TODO correctly implement explicit conversion operator.
-        //    return node;
-        //}
-
+        
         #region Fields
 
         private int _visits = 0;

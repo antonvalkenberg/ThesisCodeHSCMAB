@@ -36,16 +36,41 @@ namespace AVThesis.Bots {
         private ISabberStoneBot _playoutBot;
         private IGoalStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> _goal;
         private IGameLogic<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction, SabberStoneAction> _gameLogic;
+        private IPlayoutStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> _playout;
         private MCTSBuilder<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> _builder;
 
         #endregion
 
         #region Properties
 
+        /// <summary>
+        /// The player this bot is representing in a game of SabberStone.
+        /// </summary>
         public Controller Player { get => _player; set => _player = value; }
+
+        /// <summary>
+        /// The bot that is used during the playouts.
+        /// </summary>
         public ISabberStoneBot PlayoutBot { get => _playoutBot; set => _playoutBot = value; }
+
+        /// <summary>
+        /// The strategy used to determine if a playout has reached its goal state.
+        /// </summary>
         public IGoalStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Goal { get => _goal; set => _goal = value; }
+
+        /// <summary>
+        /// The game specific logic required for searching through SabberStoneStates and SabberStoneActions
+        /// </summary>
         public IGameLogic<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction, SabberStoneAction> GameLogic { get => _gameLogic; set => _gameLogic = value; }
+
+        /// <summary>
+        /// The strategy used to play out a game in simulation.
+        /// </summary>
+        public IPlayoutStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Playout { get => _playout; set => _playout = value; }
+
+        /// <summary>
+        /// The Monte Carlo Tree Search builder that creates a search-setup ready to use.
+        /// </summary>
         public MCTSBuilder<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Builder { get => _builder; set => _builder = value; }
 
         #endregion
@@ -71,11 +96,11 @@ namespace AVThesis.Bots {
             // We'll be cutting off the simulations after X turns, using a GoalStrategy.
             Goal = new GoalStrategyTurnCutoff(PLAYOUT_TURN_CUTOFF);
 
-            //GameLogic
-            //TODO GameLogic
+            // Expansion and Application will be handled by the GameLogic.
+            GameLogic = new SabberStoneGameLogic();
 
-            //Playout
-            //TODO PlayoutStrategy
+            // Simulation will be handled by the Playout.
+            Playout = new PlayoutStrategySabberStone(PlayoutBot);
 
             // Create the INodeEvaluation strategy used in the selection phase.
             var nodeEvaluation = new ScoreUCB<SabberStoneState, SabberStoneAction>(UCT_C_CONSTANT_DEFAULT);
@@ -86,14 +111,23 @@ namespace AVThesis.Bots {
             Builder.SelectionStrategy = new BestNodeSelection<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>(SELECTION_VISIT_MINIMUM_FOR_EVALUATION, nodeEvaluation);
             Builder.EvaluationStrategy = new HearthStoneStateEvaluation();
             Builder.Iterations = MCTS_NUMBER_OF_ITERATIONS;
+            Builder.BackPropagationStrategy = new EvaluateOnceAndColorBackPropagation<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>();
+            //TODO implement solution strategy
+            //Builder.SolutionStrategy
+            Builder.PlayoutStrategy = Playout;
         }
 
         #endregion
 
         #region Public Methods
-        
+
         #region ISabberStoneBot
 
+        /// <summary>
+        /// Requests the bot to return a SabberStoneAction based on the current SabberStoneState.
+        /// </summary>
+        /// <param name="state">The current game state.</param>
+        /// <returns>SabberStoneAction.</returns>
         public SabberStoneAction Act(SabberStoneState state) {
 
             Console.WriteLine(Name());
@@ -114,14 +148,26 @@ namespace AVThesis.Bots {
             return context.Solution;
         }
 
+        /// <summary>
+        /// Returns the bot's name.
+        /// </summary>
+        /// <returns>String representing the bot's name.</returns>
         public string Name() {
             return _botName;
         }
 
+        /// <summary>
+        /// Returns the player's ID.
+        /// </summary>
+        /// <returns>Integer representing the player's ID.</returns>
         public int PlayerID() {
             return Player.Id;
         }
 
+        /// <summary>
+        /// Sets the Controller that the bot represents within a SabberStone Game.
+        /// </summary>
+        /// <param name="controller">This bot's Controller.</param>
         public void SetController(Controller controller) {
             Player = controller;
         }
@@ -129,5 +175,6 @@ namespace AVThesis.Bots {
         #endregion
 
         #endregion
+
     }
 }

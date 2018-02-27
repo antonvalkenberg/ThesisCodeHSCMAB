@@ -25,7 +25,7 @@ namespace AVThesis.Game {
         /// <param name="context">The context of the search.</param>
         /// <param name="position">The Position to which the Action should be applied.</param>
         /// <param name="action">The Action to apply.</param>
-        /// <returns>Position that is the result of apply the Action.</returns>
+        /// <returns>Position that is the result of applying the Action.</returns>
         new P Apply(SearchContext<D, P, A, S, Sol> context, P position, A action);
 
         /// <summary>

@@ -151,8 +151,8 @@ namespace AVThesis.Tournament {
         /// Plays out a player's turn.
         /// Note: this method continously asks the bot to Act and stops when 'null' is returned.
         /// </summary>
-        /// <param name="game"></param>
-        /// <param name="bot"></param>
+        /// <param name="game">The current game state.</param>
+        /// <param name="bot">The bot that should play the turn.</param>
         private void PlayPlayerTurn(SabberStoneState game, ISabberStoneBot bot) {
             int playerID = bot.PlayerID();
             // Handle all of the player's turn
