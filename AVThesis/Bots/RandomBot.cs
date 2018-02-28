@@ -1,6 +1,7 @@
 ﻿using AVThesis.SabberStone;
 using SabberStoneCore.Model.Entities;
 using AVThesis.Datastructures;
+using SabberStoneCore.Tasks;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -63,10 +64,35 @@ namespace AVThesis.Bots {
             }
 
             // Check if there are any options.
-            if (Player.Options().IsNullOrEmpty()) return null;
+            if (Player.Options().IsNullOrEmpty()) return SabberStoneAction.CreateNullMove(Player);
 
-            // Select and return a random option.
-            return new SabberStoneAction(Player.Options().RandomElementOrDefault());
+            // Clone game so that we can process the selected tasks and get an updated options list.
+            var clonedGame = state.Game.Clone();
+            var clonedPlayer = clonedGame.CurrentPlayer;
+
+            // Create an action to store the selected tasks.
+            var action = new SabberStoneAction();
+
+            // Keep selecting random actions until the 'end turn' task is selected, then stop.
+            var selectedTask = clonedPlayer.Options().RandomElementOrDefault();
+            do {
+                // Add the task to the action.
+                action.AddTask(selectedTask);
+
+                // Process the task on the cloned game state.
+                clonedGame.Process(selectedTask);
+
+                // select another random option.
+                selectedTask = clonedPlayer.Options().RandomElementOrDefault();
+
+            // Keep selecting tasks while we're still the active player, there is something to choose and we haven't chosen to pass the turn.
+            } while (clonedGame.CurrentPlayer.Id == clonedPlayer.Id && selectedTask != null && selectedTask.PlayerTaskType != PlayerTaskType.END_TURN);
+
+            // Add the last selected task, if it is not null
+            if (selectedTask != null) action.AddTask(selectedTask);
+
+            // Return the created action.
+            return action;
         }
 
         /// <summary>
@@ -94,5 +120,6 @@ namespace AVThesis.Bots {
         }
 
         #endregion
+
     }
 }

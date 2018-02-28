@@ -69,18 +69,18 @@ namespace AVThesis.SabberStone.Strategies {
             // Set the correct Controller for the playout bot.
             PlayoutBot.SetController(game.CurrentPlayer() == game.Player1.Id ? game.Player1 : game.Player2);
 
-            // Handle all of the player's turn
-            while (game.Game.State == SabberStoneCore.Enums.State.RUNNING && game.CurrentPlayer() == PlayoutBot.PlayerID()) {
+            // Ask the bot to act.
+            var action = PlayoutBot.Act(game);
 
-                // Ask the bot to act.
-                var action = PlayoutBot.Act(game);
+            // Check if the action is valid.
+            if (action.IsValid()) {
 
-                // Stop if there is nothing more to do
-                if (action == null) break;
-
-                // Process the task
-                game.Game.Process(action.Action);
+                // Process each task.
+                foreach (var item in action.Tasks) {
+                    game.Game.Process(item);
+                }
             }
+            
         }
 
         #endregion

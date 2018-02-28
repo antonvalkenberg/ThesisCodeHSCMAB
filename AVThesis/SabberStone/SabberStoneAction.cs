@@ -1,4 +1,8 @@
-﻿using AVThesis.Game;
+﻿using System.Collections.Generic;
+using System.Linq;
+using AVThesis.Datastructures;
+using AVThesis.Game;
+using SabberStoneCore.Model.Entities;
 using SabberStoneCore.Tasks;
 
 /// <summary>
@@ -14,16 +18,16 @@ namespace AVThesis.SabberStone {
 
         #region Fields
 
-        private PlayerTask _action;
+        private List<PlayerTask> _tasks;
 
         #endregion
 
         #region Properties
 
         /// <summary>
-        /// The PlayerTask that this SabberStoneAction represents.
+        /// The PlayerTasks that this SabberStoneAction represents.
         /// </summary>
-        public PlayerTask Action { get => _action; set => _action = value; }
+        public List<PlayerTask> Tasks { get => _tasks; set => _tasks = value; }
 
         #endregion
 
@@ -32,9 +36,16 @@ namespace AVThesis.SabberStone {
         /// <summary>
         /// Constructs a new instance of a SabberStoneAction.
         /// </summary>
-        /// <param name="action">The PlayerTaks that the SabberStoneAction represents.</param>
-        public SabberStoneAction(PlayerTask action) {
-            Action = action;
+        /// <param name="action">The PlayerTasks that the SabberStoneAction represents.</param>
+        public SabberStoneAction(List<PlayerTask> action) {
+            Tasks = action;
+        }
+
+        /// <summary>
+        /// Constructs a new instance of a SabberStoneAction with an empty action.
+        /// </summary>
+        public SabberStoneAction() {
+            Tasks = new List<PlayerTask>();
         }
 
         #endregion
@@ -43,10 +54,43 @@ namespace AVThesis.SabberStone {
 
         /// <summary>
         /// Returns the unique identifier of the player that this SabberStoneAction belongs to.
+        /// Note: if this action is invalid, -1 will be returned.
         /// </summary>
         /// <returns>Integer representing the unique identifier of the player that plays this SabberStoneAction.</returns>
         public int Player() {
-            return Action.Controller.Id;
+            if (!IsValid()) return -1;
+            return Tasks.First().Controller.Id;
+        }
+
+        /// <summary>
+        /// Add a PlayerTask to this SabberStoneAction's action.
+        /// </summary>
+        /// <param name="task">The task to be added.</param>
+        public void AddTask(PlayerTask task) {
+            Tasks.Add(task);
+        }
+
+        /// <summary>
+        /// Checks whether or not this SabberStoneAction is valid.
+        /// Currently checks for: non-empty, ending with END_TURN.
+        /// </summary>
+        /// <returns></returns>
+        public bool IsValid() {
+            // An action is valid if it's not empty.
+            if (Tasks.IsNullOrEmpty()) return false;
+            // An action is valid if it ends with passing the turn.
+            return Tasks.Last().PlayerTaskType == PlayerTaskType.END_TURN;
+        }
+
+        /// <summary>
+        /// Creates a 'null' move, i.e. a move that passes without any action.
+        /// </summary>
+        /// <param name="player">The player to create the move for.</param>
+        /// <returns>SabberStoneAction containing only an <see cref="SabberStoneCore.Tasks.PlayerTasks.EndTurnTask"/>.</returns>
+        public static SabberStoneAction CreateNullMove(Controller player) {
+            var nullMove = new SabberStoneAction();
+            nullMove.AddTask(SabberStoneCore.Tasks.PlayerTasks.EndTurnTask.Any(player));
+            return nullMove;
         }
 
         #endregion

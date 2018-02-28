@@ -154,20 +154,26 @@ namespace AVThesis.Tournament {
         /// <param name="game">The current game state.</param>
         /// <param name="bot">The bot that should play the turn.</param>
         private void PlayPlayerTurn(SabberStoneState game, ISabberStoneBot bot) {
-            int playerID = bot.PlayerID();
             // Handle all of the player's turn
             if (_printToConsole) Console.WriteLine($"- <{game.Game.CurrentPlayer.Name}> ---------------------------");
-            while (game.Game.State == State.RUNNING && game.Game.CurrentPlayer.Id == playerID) {
+
+            // Check if the bot is for the current player
+            if (game.Game.CurrentPlayer.Id == bot.PlayerID()) {
 
                 // Ask the bot to act.
                 var action = bot.Act(game);
+                
+                // Check if the action is valid
+                if (action.IsValid()) {
 
-                // Stop if there is nothing more to do
-                if (action == null) break;
+                    // Process the tasks in the action
+                    foreach (var item in action.Tasks) {
 
-                // Process the task
-                if (_printToConsole) Console.WriteLine(action.Action.FullPrint());
-                game.Game.Process(action.Action);
+                        // Process the task
+                        if (_printToConsole) Console.WriteLine(item.FullPrint());
+                        game.Game.Process(item);
+                    }
+                }
             }
         }
 

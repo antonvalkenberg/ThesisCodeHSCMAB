@@ -13,8 +13,9 @@ namespace AVThesis {
     class Program {
 
 				static void Main(string[] args) {
-            RunTournamentMatch();
-
+            //RunTournamentMatch();
+            RunQuickMatch();
+            
             string catcher = null;
         }
 
@@ -59,49 +60,55 @@ namespace AVThesis {
             var bot1 = new RandomBot(game.Player1);
             var bot2 = new RandomBot(game.Player2);
 
-
             game.Game.StartGame();
 
             // Mulligan stuff can happen in between here.
-
-            game.Game.MainReady();
-
+            
             while (game.Game.State != State.COMPLETE) {
-                // Some info
                 Console.WriteLine("");
-                Console.WriteLine($"Player1: {game.Player1.PlayState} / Player2: {game.Player2.PlayState} - " +
-                          $"ROUND {(game.Game.Turn + 1) / 2} - {game.Game.CurrentPlayer.Name}");
-                Console.WriteLine($"Hero[P1]: {game.Player1.Hero.Health} / Hero[P2]: {game.Player2.Hero.Health}");
-                Console.WriteLine("");
+                Console.WriteLine($"Player1: {game.Player1.PlayState} / Player2: {game.Player2.PlayState} - " + $"TURN {(game.Game.Turn + 1) / 2} - {game.Game.CurrentPlayer.Name}");
+                Console.WriteLine($"Hero[P1] {game.Player1.Hero} HP: {game.Player1.Hero.Health} / Hero[P2] {game.Player2.Hero} HP: {game.Player2.Hero.Health}");
 
-                // Handle all of player 1's turn
-                Console.WriteLine($"- Player 1 - <{game.Game.CurrentPlayer.Name}> ---------------------------");
-                while (game.Game.State == State.RUNNING && game.Game.CurrentPlayer == game.Player1) {
+                // Check if the current player is Player1
+                if (game.Game.CurrentPlayer.Id == game.Player1.Id) {
+                    // Handle all of player 1's turn
+                    Console.WriteLine($"- Player 1 - <{game.Game.CurrentPlayer.Name}> ---------------------------");
 
                     // Ask the bot to act.
                     var action = bot1.Act(game);
 
-                    // Stop if there is nothing more to do
-                    if (action == null) break;
+                    // Check if the action is valid
+                    if (action != null && action.IsValid()) {
 
-                    // Process the task
-                    Console.WriteLine(action.Action.FullPrint());
-                    game.Game.Process(action.Action);
+                        // Process the tasks in the action
+                        foreach (var item in action.Tasks) {
+
+                            // Process the task
+                            Console.WriteLine(item.FullPrint());
+                            game.Game.Process(item);
+                        }
+                    }
                 }
 
-                // Handle all of player 2's turn
-                Console.WriteLine($"- Player 2 - <{game.Game.CurrentPlayer.Name}> ---------------------------");
-                while (game.Game.State == State.RUNNING && game.Game.CurrentPlayer == game.Player2) {
+                // Check if the current player is Player2
+                if (game.Game.CurrentPlayer.Id == game.Player2.Id) {
+                    // Handle all of player 2's turn
+                    Console.WriteLine($"- Player 2 - <{game.Game.CurrentPlayer.Name}> ---------------------------");
 
                     // Ask the bot to act.
                     var action = bot2.Act(game);
 
-                    // Stop if there is nothing more to do
-                    if (action == null) break;
+                    // Check if the action is valid
+                    if (action != null && action.IsValid()) {
 
-                    // Process the task
-                    Console.WriteLine(action.Action.FullPrint());
-                    game.Game.Process(action.Action);
+                        // Process the tasks in the action
+                        foreach (var item in action.Tasks) {
+
+                            // Process the task
+                            Console.WriteLine(item.FullPrint());
+                            game.Game.Process(item);
+                        }
+                    }
                 }
             }
 
