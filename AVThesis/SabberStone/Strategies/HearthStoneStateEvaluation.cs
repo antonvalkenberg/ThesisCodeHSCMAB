@@ -1,4 +1,5 @@
-﻿using AVThesis.Search;
+﻿using System;
+using AVThesis.Search;
 using AVThesis.Search.Tree;
 
 /// <summary>
@@ -11,6 +12,12 @@ namespace AVThesis.SabberStone.Strategies {
     /// Represents a way of evaluating a board state in HearthStone.
     /// </summary>
     public class HearthStoneStateEvaluation : IStateEvaluation<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction, TreeSearchNode<SabberStoneState, SabberStoneAction>> {
+
+        #region Fields
+
+        private Random _r = new Random();
+
+        #endregion
 
         #region Constructor
 
@@ -32,8 +39,8 @@ namespace AVThesis.SabberStone.Strategies {
         /// <param name="state">The state that should be evaluated.</param>
         /// <returns>Double representing the value of the state with respect to the node.</returns>
         public double Evaluate(SearchContext<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, TreeSearchNode<SabberStoneState, SabberStoneAction> node, SabberStoneState state) {
-            //TODO implement
-            return 0.0;
+            //TODO implement Hearthstone state evaluation
+            return _r.NextDouble();
         }
 
         #endregion

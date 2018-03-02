@@ -38,7 +38,7 @@ namespace AVThesis.SabberStone {
         /// </summary>
         /// <param name="action">The PlayerTasks that the SabberStoneAction represents.</param>
         public SabberStoneAction(List<PlayerTask> action) {
-            Tasks = action;
+            Tasks = new List<PlayerTask>(action);
         }
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace AVThesis.SabberStone {
         }
 
         /// <summary>
-        /// Add a PlayerTask to this SabberStoneAction's action.
+        /// Add a PlayerTask to the end of this SabberStoneAction's action list.
         /// </summary>
         /// <param name="task">The task to be added.</param>
         public void AddTask(PlayerTask task) {
