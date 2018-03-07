@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using AVThesis.Datastructures;
 using AVThesis.Game;
 using SabberStoneCore.Model.Entities;
@@ -91,6 +92,19 @@ namespace AVThesis.SabberStone {
             var nullMove = new SabberStoneAction();
             nullMove.AddTask(SabberStoneCore.Tasks.PlayerTasks.EndTurnTask.Any(player));
             return nullMove;
+        }
+
+        /// <summary>
+        /// Returns a string representation of this SabberStoneAction.
+        /// </summary>
+        /// <returns>String representing this SabberStoneAction.</returns>
+        public override string ToString() {
+            var sb = new StringBuilder();
+            sb.AppendLine(string.Format("SabberStoneAction for player with ID {0}, containing {1} task(s).", Player(), Tasks.Count));
+            foreach (var item in Tasks) {
+                sb.AppendLine(item.FullPrint());
+            }
+            return sb.ToString();
         }
 
         #endregion

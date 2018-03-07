@@ -57,10 +57,12 @@ namespace AVThesis {
             }));
 
             // Create two bots to play
-            var bot1 = new RandomBot(game.Player1);
+            var bot1 = new MCTSBot(game.Player1);
             var bot2 = new RandomBot(game.Player2);
 
             game.Game.StartGame();
+
+            game.Obfuscate(game.Player2.Id, new System.Collections.Generic.List<int>());
 
             // Mulligan stuff can happen in between here.
             

@@ -59,7 +59,6 @@ namespace AVThesis.Bots {
         public SabberStoneAction Act(SabberStoneState state) {
             // Check to make sure the player to act in the gamestate matches our player.
             if (state.CurrentPlayer() != Player.Id) {
-                //TODO throw an exception?
                 return null;
             }
 

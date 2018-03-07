@@ -207,7 +207,7 @@ namespace AVThesis.Search.Tree {
         }
 
         public override int GetHashCode() {
-						//TODO do we need this? If so -> do correctly
+						//TODO calculate correct HashCode for TreeSearchNode
 						return base.GetHashCode();
 				}
 

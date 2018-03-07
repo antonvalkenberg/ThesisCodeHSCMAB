@@ -77,22 +77,19 @@ namespace AVThesis.SabberStone {
             // Hand
             foreach (var item in obfuscatePlayer.HandZone) {
                 if (!knownCards.Contains(item.Id)) {
-                    // TODO replace with a hidden card
-                    obfuscatePlayer.HandZone.Replace(item, null);
+                    obfuscatePlayer.HandZone.Replace(item, Entity.FromCard(obfuscatePlayer, Util.HiddenCard));
                 }
             }
             // Deck
             foreach (var item in obfuscatePlayer.DeckZone) {
                 if (!knownCards.Contains(item.Id)) {
-                    // TODO replace with a hidden card
-                    obfuscatePlayer.DeckZone.Replace(item, null);
+                    obfuscatePlayer.DeckZone.Replace(item, Entity.FromCard(obfuscatePlayer, Util.HiddenCard));
                 }
             }
             // Secrets
             foreach (var item in obfuscatePlayer.SecretZone) {
                 if (!knownCards.Contains(item.Id)) {
-                    // TODO replace with a hidden card
-                    obfuscatePlayer.SecretZone.Replace(item, null);
+                    obfuscatePlayer.SecretZone.Replace(item, Entity.FromCard(obfuscatePlayer, Util.HiddenCard));
                 }
             }
 

@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using SabberStoneCore.Enums;
+using SabberStoneCore.Model;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -20,10 +23,26 @@ namespace AVThesis {
         /// <param name="C">A constant. Should be tuned experimentally.</param>
         /// <returns>Double representing the UCB value.</returns>
         public static double UCB(double score, int visits, int parentVisits, double C) {
-            //TODO why not return 0 (or int.MAX) in the case of no visits to avoid the use of 'double.Epsilon'?
+            //TODO for UCB: why not return 0 (or int.MAX) in the case of no visits to avoid the use of 'double.Epsilon'?
             // perhaps add a small random value to avoid super greedy behaviour, two percent points
             return (score / (visits + double.Epsilon)) + 2 * C * Math.Sqrt(Math.Log(parentVisits) / (visits + double.Epsilon));
         }
-        
+
+        /// <summary>
+        /// Represents a HiddenCard; an opponent's card of which the identity is not known.
+        /// </summary>
+        public static Card HiddenCard => new Card() {
+            AssetId = -1,
+            Id = "HD_001",
+            Name = "Hidden Card",
+            Text = "Shhh, it's hidden.",
+            Entourage = new List<string>(),
+            Tags = new Dictionary<GameTag, int>() {
+                { GameTag.CARDTYPE, (int)CardType.SPELL }
+            },
+            RefTags = new Dictionary<GameTag, int>(),
+            PlayRequirements = new Dictionary<PlayReq, int>()
+        };
+
     }
 }

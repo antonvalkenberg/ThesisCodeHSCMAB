@@ -151,7 +151,7 @@ namespace AVThesis.Datastructures {
 				#region Overridden Methods
 
 				public override int GetHashCode() {
-						//TODO do we need this? If so -> do correctly
+						//TODO calculate correct HashCode for Node
 						return base.GetHashCode();
 				}
 

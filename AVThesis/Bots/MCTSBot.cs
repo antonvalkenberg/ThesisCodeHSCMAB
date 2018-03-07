@@ -112,8 +112,7 @@ namespace AVThesis.Bots {
             Builder.EvaluationStrategy = new HearthStoneStateEvaluation();
             Builder.Iterations = MCTS_NUMBER_OF_ITERATIONS;
             Builder.BackPropagationStrategy = new EvaluateOnceAndColorBackPropagation<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>();
-            //TODO implement solution strategy
-            //Builder.SolutionStrategy
+            Builder.SolutionStrategy = new ActionSolution<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction, TreeSearchNode<SabberStoneState, SabberStoneAction>>();
             Builder.PlayoutStrategy = Playout;
         }
 
@@ -129,9 +128,10 @@ namespace AVThesis.Bots {
         /// <param name="state">The current game state.</param>
         /// <returns>SabberStoneAction.</returns>
         public SabberStoneAction Act(SabberStoneState state) {
+            var timer = System.Diagnostics.Stopwatch.StartNew();
 
             Console.WriteLine(Name());
-            Console.WriteLine("Starting an MCTS-search in turn " + state.Game.Turn);
+            Console.WriteLine("Starting an MCTS-search in turn " + (state.Game.Turn + 1) / 2);
 
             // Setup a new search with the current state as source.
             SearchContext<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context = GameSearchSetup(GameLogic, null, state.Copy(), null, Builder.Build());
@@ -144,8 +144,14 @@ namespace AVThesis.Bots {
                 // TODO throw exception, or print error.
                 // TODO return random action.
             }
-            
-            return context.Solution;
+
+            var solution = context.Solution;
+            var time = timer.ElapsedMilliseconds;
+            Console.WriteLine(string.Format("MCTS returned with solution: {0}", solution.ToString()));
+            Console.WriteLine(string.Format("My action calculation time was: {0} ms.", time));
+            Console.WriteLine();
+
+            return solution;
         }
 
         /// <summary>

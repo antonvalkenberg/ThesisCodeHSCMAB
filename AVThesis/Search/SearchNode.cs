@@ -215,7 +215,7 @@ namespace AVThesis.Search {
 				}
 
 				public override int GetHashCode() {
-						//TODO do we need this? If so -> do correctly
+						//TODO calculate correct HashCode for SearchNode
 						return base.GetHashCode();
 				}
 
