@@ -36,7 +36,7 @@ namespace AVThesis {
             Id = "HD_001",
             Name = "Hidden Card",
             Text = "Shhh, it's hidden.",
-            Entourage = new List<string>(),
+            Entourage = new string[0],
             Tags = new Dictionary<GameTag, int>() {
                 { GameTag.CARDTYPE, (int)CardType.SPELL }
             },

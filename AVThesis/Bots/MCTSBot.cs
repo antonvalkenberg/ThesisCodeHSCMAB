@@ -1,10 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using AVThesis.Datastructures;
 using AVThesis.Game;
 using AVThesis.SabberStone;
 using AVThesis.SabberStone.Strategies;
 using AVThesis.Search;
 using AVThesis.Search.Tree;
 using AVThesis.Search.Tree.MCTS;
+using SabberStoneCore.Model;
 using SabberStoneCore.Model.Entities;
 using static AVThesis.Search.SearchContext<object, AVThesis.SabberStone.SabberStoneState, AVThesis.SabberStone.SabberStoneAction, object, AVThesis.SabberStone.SabberStoneAction>;
 
@@ -32,6 +36,7 @@ namespace AVThesis.Bots {
         #region Fields
 
         private const string _botName = "MCTSBot";
+        private Random _rng = new Random();
         private Controller _player;
         private ISabberStoneBot _playoutBot;
         private IGoalStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> _goal;
@@ -130,19 +135,69 @@ namespace AVThesis.Bots {
         public SabberStoneAction Act(SabberStoneState state) {
             var timer = System.Diagnostics.Stopwatch.StartNew();
 
+            // Set some variables that we will use
+            var stateCopy = (SabberStoneState)state.Copy();
+            var opponent = stateCopy.Game.CurrentOpponent;
+
+            // TODO Before starting a search, create a determinisation of the opponnent's cards in hand
+
+            //In case we need to obfuscate the state ourselves:
+            //
+            //what we want to do is first check if we know of any cards in the opponent's deck/hand/secret-zone (e.g. quests)
+            //those should not be replaced by random things
+
+            // If we are the starting player, we know the opponent has a Coin
+            var knownCards = new List<string>();
+            if (stateCopy.Game.FirstPlayer.Id == stateCopy.CurrentPlayer()) {
+                knownCards.Add("GAME_005");
+            }
+
+            stateCopy.Obfuscate(opponent.Id, knownCards);
+
+            // We can get the play history of our opponent
+            var opponentHistory = opponent.PlayHistory;
+            //create a list of the IDs of those known cards and then obfuscate the state while supplying our list of known cards
+            var playedIds = opponentHistory.Select(i => i.SourceCard.Id);
+            // TODO try to use these played cards to determine if anything was revealed so we know about it
+
+            //Once the state is correctly obfuscated:
+            //
+            //try to predict / select what deck the opponent is playing
+            var deckDictionary = Decks.AllDecks();
+            var possibleDecks = new List<List<Card>>();
+            foreach (var item in deckDictionary) {
+                var deckIds = Decks.CardIDs(item.Value);
+                // A deck can match if all of the cards we have seen played are present
+                if (playedIds.All(i => deckIds.Contains(i))) {
+                    possibleDecks.Add(item.Value);
+                }
+            }
+
+            List<Card> selectedDeck = null;
+            // If one deck matches, assume that is the correct deck
+            if (possibleDecks.Count == 1)
+                selectedDeck = possibleDecks.First();
+            //if we can't,
+            //either just assume the opponent is playing a pre-set dummy deck
+            //or select one of the possible decks at random
+            else selectedDeck = possibleDecks.RandomElementOrDefault();
+
+            // Determinise the opponent's cards.
+            stateCopy.Determinise(opponent, knownCards, selectedDeck, _rng);
+
             Console.WriteLine(Name());
-            Console.WriteLine("Starting an MCTS-search in turn " + (state.Game.Turn + 1) / 2);
+            Console.WriteLine("Starting an MCTS-search in turn " + (stateCopy.Game.Turn + 1) / 2);
 
             // Setup a new search with the current state as source.
-            SearchContext<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context = GameSearchSetup(GameLogic, null, state.Copy(), null, Builder.Build());
+            SearchContext<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context = GameSearchSetup(GameLogic, null, stateCopy, null, Builder.Build());
             
             // Execute the search
             context.Execute();
 
             // Check if the search was successful
             if (context.Status != SearchStatus.Success) {
-                // TODO throw exception, or print error.
-                // TODO return random action.
+                // TODO in case of search failure: throw exception, or print error.
+                return SabberStoneAction.CreateNullMove(state.Game.CurrentPlayer);
             }
 
             var solution = context.Solution;

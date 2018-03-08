@@ -62,8 +62,6 @@ namespace AVThesis {
 
             game.Game.StartGame();
 
-            game.Obfuscate(game.Player2.Id, new System.Collections.Generic.List<int>());
-
             // Mulligan stuff can happen in between here.
             
             while (game.Game.State != State.COMPLETE) {
