@@ -22,10 +22,36 @@ namespace AVThesis.SabberStone {
         /// A deck for testing purposes.
         /// </summary>
         public static List<Card> TestDeck => new List<Card>() {
+            Cards.FromName("Alleycat"),
+            Cards.FromName("Alleycat"),
             Cards.FromName("Arcane Shot"),
             Cards.FromName("Arcane Shot"),
             Cards.FromName("Stonetusk Boar"),
-            Cards.FromName("Stonetusk Boar")
+            Cards.FromName("Stonetusk Boar"),
+            Cards.FromName("Timber Wolf"),
+            Cards.FromName("Timber Wolf"),
+            Cards.FromName("Bloodfen Raptor"),
+            Cards.FromName("Bloodfen Raptor"),
+            Cards.FromName("Dire Wolf Alpha"),
+            Cards.FromName("Dire Wolf Alpha"),
+            Cards.FromName("Scavenging Hyena"),
+            Cards.FromName("Scavenging Hyena"),
+            Cards.FromName("Ironfur Grizzly"),
+            Cards.FromName("Ironfur Grizzly"),
+            Cards.FromName("Kill Command"),
+            Cards.FromName("Kill Command"),
+            //Cards.FromName("Unleash the Hounds"),
+            //Cards.FromName("Unleash the Hounds"),
+            Cards.FromName("Houndmaster"),
+            Cards.FromName("Houndmaster"),
+            Cards.FromName("Oasis Snapjaw"),
+            Cards.FromName("Oasis Snapjaw"),
+            Cards.FromName("Starving Buzzard"),
+            Cards.FromName("Starving Buzzard"),
+            Cards.FromName("Savannah Highmane"),
+            Cards.FromName("Savannah Highmane"),
+            Cards.FromName("Core Hound"),
+            Cards.FromName("Core Hound")
         };
 
         /// <summary>

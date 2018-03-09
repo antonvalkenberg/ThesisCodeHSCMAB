@@ -145,6 +145,7 @@ namespace AVThesis.Bots {
             //
             //what we want to do is first check if we know of any cards in the opponent's deck/hand/secret-zone (e.g. quests)
             //those should not be replaced by random things
+            //create a list of the IDs of those known cards and then obfuscate the state while supplying our list of known cards
 
             // If we are the starting player, we know the opponent has a Coin
             var knownCards = new List<string>();
@@ -154,10 +155,9 @@ namespace AVThesis.Bots {
 
             stateCopy.Obfuscate(opponent.Id, knownCards);
 
-            // We can get the play history of our opponent
+            // We can get the play history of our opponent (filter out Coin because it never starts in a deck).
             var opponentHistory = opponent.PlayHistory;
-            //create a list of the IDs of those known cards and then obfuscate the state while supplying our list of known cards
-            var playedIds = opponentHistory.Select(i => i.SourceCard.Id);
+            var playedIds = opponentHistory.Where(i => i.SourceCard.Id != "GAME_005").Select(i => i.SourceCard.Id);
             // TODO try to use these played cards to determine if anything was revealed so we know about it
 
             //Once the state is correctly obfuscated:
