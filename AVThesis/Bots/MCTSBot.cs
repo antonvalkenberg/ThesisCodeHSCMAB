@@ -157,7 +157,7 @@ namespace AVThesis.Bots {
 
             // We can get the play history of our opponent (filter out Coin because it never starts in a deck).
             var opponentHistory = opponent.PlayHistory;
-            var playedIds = opponentHistory.Where(i => i.SourceCard.Id != "GAME_005").Select(i => i.SourceCard.Id);
+            var playedIds = opponentHistory.Where(i => i.SourceCard.Id != "GAME_005").Select(i => i.SourceCard.Id).ToList();
             // TODO try to use these played cards to determine if anything was revealed so we know about it
 
             //Once the state is correctly obfuscated:
@@ -173,7 +173,7 @@ namespace AVThesis.Bots {
                 }
             }
 
-            List<Card> selectedDeck = null;
+            List<Card> selectedDeck;
             // If one deck matches, assume that is the correct deck
             if (possibleDecks.Count == 1)
                 selectedDeck = possibleDecks.First();
@@ -185,6 +185,7 @@ namespace AVThesis.Bots {
             // Determinise the opponent's cards.
             stateCopy.Determinise(opponent, knownCards, selectedDeck, _rng);
 
+            Console.WriteLine();
             Console.WriteLine(Name());
             Console.WriteLine("Starting an MCTS-search in turn " + (stateCopy.Game.Turn + 1) / 2);
 

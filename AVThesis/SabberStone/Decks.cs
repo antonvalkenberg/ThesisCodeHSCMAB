@@ -12,6 +12,10 @@ namespace AVThesis.SabberStone {
     /// </summary>
     public class Decks {
 
+        /// <summary>
+        /// All decks indexed by name.
+        /// </summary>
+        /// <returns>Dictionary containing all decks indexed by name.</returns>
         public static Dictionary<string, List<Card>> AllDecks() {
             return new Dictionary<string, List<Card>>() {
                 { "TestDeck", new List<Card>(TestDeck) }
@@ -40,8 +44,8 @@ namespace AVThesis.SabberStone {
             Cards.FromName("Ironfur Grizzly"),
             Cards.FromName("Kill Command"),
             Cards.FromName("Kill Command"),
-            //Cards.FromName("Unleash the Hounds"),
-            //Cards.FromName("Unleash the Hounds"),
+            Cards.FromName("Bearshark"),
+            Cards.FromName("Bearshark"),
             Cards.FromName("Houndmaster"),
             Cards.FromName("Houndmaster"),
             Cards.FromName("Oasis Snapjaw"),

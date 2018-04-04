@@ -53,7 +53,7 @@ namespace AVThesis {
                 FillDecks = false,
                 Shuffle = true,
                 SkipMulligan = true,
-                History = true
+                History = false
             }));
 
             // Create two bots to play

@@ -28,7 +28,7 @@ namespace AVThesis.SabberStone {
         /// <summary>
         /// The PlayerTasks that this SabberStoneAction represents.
         /// </summary>
-        public List<PlayerTask> Tasks { get => _tasks; set => _tasks = value; }
+        public List<PlayerTask> Tasks { get => _tasks; private set => _tasks = value; }
 
         #endregion
 
@@ -100,7 +100,7 @@ namespace AVThesis.SabberStone {
         /// <returns>String representing this SabberStoneAction.</returns>
         public override string ToString() {
             var sb = new StringBuilder();
-            sb.AppendLine(string.Format("SabberStoneAction for player with ID {0}, containing {1} task(s).", Player(), Tasks.Count));
+            sb.AppendLine($"SabberStoneAction for player with ID {Player()}, containing {Tasks.Count} task(s).");
             foreach (var item in Tasks) {
                 sb.AppendLine(item.FullPrint());
             }
