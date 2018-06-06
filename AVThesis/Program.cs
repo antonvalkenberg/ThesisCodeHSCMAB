@@ -3,6 +3,7 @@ using AVThesis.SabberStone;
 using SabberStoneCore.Config;
 using SabberStoneCore.Enums;
 using AVThesis.Bots;
+using AVThesis.Datastructures;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -14,8 +15,8 @@ namespace AVThesis {
 
 				static void Main(string[] args) {
             //RunTournamentMatch();
-            RunQuickMatch();
-            
+            //RunQuickMatch();
+
             string catcher = null;
         }
 

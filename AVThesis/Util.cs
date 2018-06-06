@@ -44,5 +44,32 @@ namespace AVThesis {
             PlayRequirements = new Dictionary<PlayReq, int>()
         };
 
+        /// <summary>
+        /// Required for the Deque class.
+        /// Source: https://github.com/tejacques/Deque/blob/master/src/Deque/Utility.cs
+        /// </summary>
+        /// <param name="x"></param>
+        /// <returns></returns>
+        public static int ClosestPowerOfTwoGreaterThan(int x) {
+            x--;
+            x |= (x >> 1);
+            x |= (x >> 2);
+            x |= (x >> 4);
+            x |= (x >> 8);
+            x |= (x >> 16);
+            return (x + 1);
+        }
+
+        /// <summary>
+        /// Normalizes a value in the range of [min .. max] to the range of [0.0 .. 1.0].
+        /// </summary>
+        /// <param name="x">The value to be normalized.</param>
+        /// <param name="min">The minimum value.</param>
+        /// <param name="max">The maximum value.</param>
+        /// <returns>Normalized value of x.</returns>
+        public static float Normalize(float x, float min, float max) {
+            return (x - min) / (max - min);
+        }
+
     }
 }
