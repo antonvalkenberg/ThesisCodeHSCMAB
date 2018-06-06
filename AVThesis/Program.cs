@@ -57,7 +57,7 @@ namespace AVThesis {
             }));
 
             // Create two bots to play
-            var bot1 = new MCTSBot(game.Player1);
+            var bot1 = new MCTSBot(game.Player1, hierarchicalExpansion: true);
             var bot2 = new RandomBot(game.Player2);
 
             game.Game.StartGame();
@@ -78,7 +78,7 @@ namespace AVThesis {
                     var action = bot1.Act(game);
 
                     // Check if the action is valid
-                    if (action != null && action.IsValid()) {
+                    if (action != null && action.IsComplete()) {
 
                         // Process the tasks in the action
                         foreach (var item in action.Tasks) {
@@ -99,7 +99,7 @@ namespace AVThesis {
                     var action = bot2.Act(game);
 
                     // Check if the action is valid
-                    if (action != null && action.IsValid()) {
+                    if (action != null && action.IsComplete()) {
 
                         // Process the tasks in the action
                         foreach (var item in action.Tasks) {

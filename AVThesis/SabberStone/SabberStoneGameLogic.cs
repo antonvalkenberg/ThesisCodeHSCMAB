@@ -20,7 +20,7 @@ namespace AVThesis.SabberStone {
     /// Handles the game specific logic required for search in SabberStone.
     /// </summary>
     public class SabberStoneGameLogic : IGameLogic<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction, SabberStoneAction> {
-
+        
         #region SabberStoneMoveGenerator
 
         /// <summary>
@@ -146,6 +146,27 @@ namespace AVThesis.SabberStone {
 
         #endregion
 
+        #region Properties
+
+        public bool HierarchicalExpansion { get; }
+        public IGoalStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Goal { get; }
+
+        #endregion
+
+        #region Constructor
+
+        /// <summary>
+        /// Constructs a new instance of SabberStoneGameLogic.
+        /// </summary>
+        /// <param name="hierarchicalExpansion">Whether or not expansion should be handled hierarchically.</param>
+        /// <param name="goal">The goal strategy.</param>
+        public SabberStoneGameLogic(bool hierarchicalExpansion, IGoalStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> goal) {
+            HierarchicalExpansion = hierarchicalExpansion;
+            Goal = goal;
+        }
+
+        #endregion
+
         #region Public Methods
 
         /// <summary>
@@ -156,8 +177,12 @@ namespace AVThesis.SabberStone {
         /// <param name="action">The action to apply.</param>
         /// <returns>SabberStoneState that is the result of applying the action.</returns>
         public SabberStoneState Apply(SearchContext<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, SabberStoneState position, SabberStoneAction action) {
-            // Check if the action is valid.
-            if (action.IsValid()) {
+
+            // In case of hierarchical expansion, we'll arrive here with incomplete actions, i.e. actions that might not have end-turn tasks.
+            // We'll still have to process these actions to move the state into a new state, ready for further expansion.
+
+            // Check if the action is complete, or if we are applying Hierarchical Expansion (in that case the action will be incomplete).
+            if (action.IsComplete() || HierarchicalExpansion) {
 
                 // Process each task.
                 foreach (var item in action.Tasks) {
@@ -165,7 +190,7 @@ namespace AVThesis.SabberStone {
                 }
             } else {
 
-                // In the case of an invalid action, just pass the turn.
+                // In the case of an incomplete action, just pass the turn.
                 position.Game.Process(EndTurnTask.Any(position.Game.CurrentPlayer));
             }
 
@@ -180,7 +205,7 @@ namespace AVThesis.SabberStone {
         /// <param name="position">The game state.</param>
         /// <returns>Whether or not the game is completed.</returns>
         public bool Done(SearchContext<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, SabberStoneState position) {
-            return position.Game.State == SabberStoneCore.Enums.State.COMPLETE;
+            return Goal.Done(context, position);
         }
 
         /// <summary>
@@ -201,21 +226,33 @@ namespace AVThesis.SabberStone {
 
             // So one thing we can do is make an action that has each of the currently available tasks as its first task.
             var topLevelActions = new List<SabberStoneAction>();
-            foreach (var item in activePlayer.Options()) {
+            var availableOptions = activePlayer.Options();
+            availableOptions = availableOptions.Where(i => i.ZonePosition <= 0).ToList();
+            foreach (var item in availableOptions) {
                 var action = new SabberStoneAction();
                 action.AddTask(item);
                 topLevelActions.Add(action);
             }
-            // Then recursively expand these actions.
+
+            // If we are expanding hierarchically we can just return the top level actions.
+            if (HierarchicalExpansion) return new SabberStoneMoveGenerator(topLevelActions);
+
+            // If we are not expanding hierarchically, we'll need to generate all action sequences at once.
+
+            // Recursively expand the available actions.
             foreach (var action in topLevelActions) {
                 ExpandAction(position, action, activePlayerId, ref availableActionSequences);
             }
-            
-            // Return a move generator based on the list of available actions.
+
+            // Return a move generator based on the list of available action sequences.
             return new SabberStoneMoveGenerator(availableActionSequences);
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Calculate the scores of a SabberStoneState.
+        /// </summary>
+        /// <param name="position">The SabberStoneState.</param>
+        /// <returns>Array of Double containing the scores per player, indexed by player ID.</returns>
         public double[] Scores(SabberStoneState position) => new[] {
             position.PlayerWon == position.Player1.Id ? PLAYER_WIN_SCORE : PLAYER_LOSS_SCORE,
             position.PlayerWon == position.Player2.Id ? PLAYER_WIN_SCORE : PLAYER_LOSS_SCORE
@@ -235,9 +272,8 @@ namespace AVThesis.SabberStone {
         private void ExpandAction(SabberStoneState rootState, SabberStoneAction action, int playerId, ref List<SabberStoneAction> completeActions) {
 
             // If the latest option added was the end-turn task, return
-            if (!action.Tasks.IsNullOrEmpty() && action.Tasks.Last().PlayerTaskType == PlayerTaskType.END_TURN) {
-                // Add current action to a list of completed actions, if it is valid
-                if (action.IsValid()) completeActions.Add(action);
+            if (action.IsComplete()) {
+                completeActions.Add(action);
                 return;
             }
 

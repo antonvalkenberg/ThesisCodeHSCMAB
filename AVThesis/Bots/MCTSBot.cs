@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Configuration;
 using AVThesis.Datastructures;
 using AVThesis.Game;
 using AVThesis.SabberStone;
@@ -10,6 +11,7 @@ using AVThesis.Search.Tree;
 using AVThesis.Search.Tree.MCTS;
 using SabberStoneCore.Model;
 using SabberStoneCore.Model.Entities;
+using SabberStoneCore.Tasks.PlayerTasks;
 using static AVThesis.Search.SearchContext<object, AVThesis.SabberStone.SabberStoneState, AVThesis.SabberStone.SabberStoneAction, object, AVThesis.SabberStone.SabberStoneAction>;
 
 /// <summary>
@@ -25,11 +27,11 @@ namespace AVThesis.Bots {
 
         #region Constants
 
-        private const int MCTS_NUMBER_OF_ITERATIONS = 1000;
+        private const int MCTS_NUMBER_OF_ITERATIONS = 10000;
         private const int MIN_T_VISIT_THRESHOLD_FOR_EXPANSION = 20;
         private const int SELECTION_VISIT_MINIMUM_FOR_EVALUATION = 50;
         private const double UCT_C_CONSTANT_DEFAULT = 0.1;
-        private const int PLAYOUT_TURN_CUTOFF = 10;
+        private const int PLAYOUT_TURN_CUTOFF = 2;
 
         #endregion
 
@@ -43,6 +45,7 @@ namespace AVThesis.Bots {
         private IGameLogic<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction, SabberStoneAction> _gameLogic;
         private IPlayoutStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> _playout;
         private MCTSBuilder<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> _builder;
+        private bool _hierarchicalExpansion;
 
         #endregion
 
@@ -78,6 +81,11 @@ namespace AVThesis.Bots {
         /// </summary>
         public MCTSBuilder<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Builder { get => _builder; set => _builder = value; }
 
+        /// <summary>
+        /// Whether or not to use Hierarchical Expansion during the search.
+        /// </summary>
+        public bool HierarchicalExpansion { get => _hierarchicalExpansion; set => _hierarchicalExpansion = value; }
+
         #endregion
 
         #region Constructor
@@ -86,14 +94,17 @@ namespace AVThesis.Bots {
         /// Constructs a new instance of MCTSBot with a <see cref="Controller"/> representing the player.
         /// </summary>
         /// <param name="player">The player.</param>
-        public MCTSBot(Controller player) : this() {
+        /// <param name="hierarchicalExpansion">[Optional] Whether or not to use Hierarchical Expansion. Default value is false.</param>
+        public MCTSBot(Controller player, bool hierarchicalExpansion = false) : this(hierarchicalExpansion) {
             Player = player;
         }
 
         /// <summary>
         /// Constructs a new instance of MCTSBot with default strategies.
         /// </summary>
-        public MCTSBot() {
+        /// <param name="hierarchicalExpansion">[Optional] Whether or not to use Hierarchical Expansion. Default value is false.</param>
+        public MCTSBot(bool hierarchicalExpansion = false) {
+            HierarchicalExpansion = hierarchicalExpansion;
 
             // Note: we're not setting the Controller here, because we want to clone the current one when doing a playout.
             PlayoutBot = new RandomBot();
@@ -101,8 +112,8 @@ namespace AVThesis.Bots {
             // We'll be cutting off the simulations after X turns, using a GoalStrategy.
             Goal = new GoalStrategyTurnCutoff(PLAYOUT_TURN_CUTOFF);
 
-            // Expansion and Application will be handled by the GameLogic.
-            GameLogic = new SabberStoneGameLogic();
+            // Expansion, Application and Goal will be handled by the GameLogic.
+            GameLogic = new SabberStoneGameLogic(HierarchicalExpansion, Goal);
 
             // Simulation will be handled by the Playout.
             Playout = new PlayoutStrategySabberStone(PlayoutBot);
@@ -114,10 +125,11 @@ namespace AVThesis.Bots {
             Builder = MCTS<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>.Builder();
             Builder.ExpansionStrategy = new MinimumTExpansion<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>(MIN_T_VISIT_THRESHOLD_FOR_EXPANSION);
             Builder.SelectionStrategy = new BestNodeSelection<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>(SELECTION_VISIT_MINIMUM_FOR_EVALUATION, nodeEvaluation);
-            Builder.EvaluationStrategy = new HearthStoneStateEvaluation();
+            Builder.EvaluationStrategy = new EvaluationStrategyHearthStone();
             Builder.Iterations = MCTS_NUMBER_OF_ITERATIONS;
             Builder.BackPropagationStrategy = new EvaluateOnceAndColorBackPropagation<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>();
-            Builder.SolutionStrategy = new ActionSolution<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction, TreeSearchNode<SabberStoneState, SabberStoneAction>>();
+            Builder.FinalNodeSelectionStrategy = new BestRatioFinalNodeSelection<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>();
+            Builder.SolutionStrategy = new SolutionStrategySabberStone(HierarchicalExpansion);
             Builder.PlayoutStrategy = Playout;
         }
 
@@ -203,10 +215,15 @@ namespace AVThesis.Bots {
 
             var solution = context.Solution;
             var time = timer.ElapsedMilliseconds;
-            Console.WriteLine(string.Format("MCTS returned with solution: {0}", solution.ToString()));
-            Console.WriteLine(string.Format("My action calculation time was: {0} ms.", time));
+            Console.WriteLine($"MCTS returned with solution: {solution}");
+            Console.WriteLine($"My action calculation time was: {time} ms.");
             Console.WriteLine();
 
+            // Check if the solution is a complete action.
+            if (solution.IsComplete()) return solution;
+            // Otherwise add an End-Turn task before returning.
+            Console.WriteLine("Solution was an incomplete action; adding End-Turn task.");
+            solution.Tasks.Add(EndTurnTask.Any(Player));
             return solution;
         }
 

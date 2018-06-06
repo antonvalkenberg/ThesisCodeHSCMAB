@@ -1,5 +1,6 @@
 ﻿using AVThesis.Bots;
 using AVThesis.Search;
+using SabberStoneCore.Tasks.PlayerTasks;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -73,12 +74,16 @@ namespace AVThesis.SabberStone.Strategies {
             var action = PlayoutBot.Act(game);
 
             // Check if the action is valid.
-            if (action.IsValid()) {
+            if (action.IsComplete()) {
 
                 // Process each task.
                 foreach (var item in action.Tasks) {
                     game.Game.Process(item);
                 }
+            }
+            // If not, just pass the turn.
+            else {
+                game.Game.Process(EndTurnTask.Any(game.Game.CurrentPlayer));
             }
             
         }

@@ -55,32 +55,32 @@ namespace AVThesis.SabberStone {
 
         /// <summary>
         /// Returns the unique identifier of the player that this SabberStoneAction belongs to.
-        /// Note: if this action is invalid, -1 will be returned.
+        /// Note: if this action is empty, -1 will be returned.
         /// </summary>
         /// <returns>Integer representing the unique identifier of the player that plays this SabberStoneAction.</returns>
         public int Player() {
-            if (!IsValid()) return -1;
+            if (Tasks.IsNullOrEmpty()) return -1;
             return Tasks.First().Controller.Id;
         }
 
         /// <summary>
-        /// Add a PlayerTask to the end of this SabberStoneAction's action list.
+        /// Add a PlayerTask to this SabberStoneAction's action list.
         /// </summary>
         /// <param name="task">The task to be added.</param>
-        public void AddTask(PlayerTask task) {
-            Tasks.Add(task);
+        /// <param name="index">[Optional] The index to add the task at. Default value is -1.</param>
+        public void AddTask(PlayerTask task, int index = -1) {
+            if (index > -1) Tasks.Insert(index, task);
+            else Tasks.Add(task);
         }
 
         /// <summary>
-        /// Checks whether or not this SabberStoneAction is valid.
+        /// Checks whether or not this SabberStoneAction is complete.
         /// Currently checks for: non-empty, ending with END_TURN.
         /// </summary>
-        /// <returns></returns>
-        public bool IsValid() {
-            // An action is valid if it's not empty.
-            if (Tasks.IsNullOrEmpty()) return false;
-            // An action is valid if it ends with passing the turn.
-            return Tasks.Last().PlayerTaskType == PlayerTaskType.END_TURN;
+        /// <returns>Whether or not this SabberStoneAction is complete.</returns>
+        public bool IsComplete() {
+            // An action is complete if it's not empty and ends with an END_TURN task.
+            return !Tasks.IsNullOrEmpty() && Tasks.Last().PlayerTaskType == PlayerTaskType.END_TURN;
         }
 
         /// <summary>

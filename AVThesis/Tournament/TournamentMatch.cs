@@ -4,6 +4,7 @@ using AVThesis.SabberStone;
 using SabberStoneCore.Config;
 using SabberStoneCore.Enums;
 using System.Linq;
+using SabberStoneCore.Tasks.PlayerTasks;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -163,8 +164,8 @@ namespace AVThesis.Tournament {
                 // Ask the bot to act.
                 var action = bot.Act(game);
                 
-                // Check if the action is valid
-                if (action.IsValid()) {
+                // Check if the action is complete
+                if (action.IsComplete()) {
 
                     // Process the tasks in the action
                     foreach (var item in action.Tasks) {
@@ -173,6 +174,11 @@ namespace AVThesis.Tournament {
                         if (_printToConsole) Console.WriteLine(item.FullPrint());
                         game.Game.Process(item);
                     }
+                }
+                // In the case where an incomplete action was returned, return a null-move
+                else {
+                    Console.WriteLine("WARNING: Incomplete move received. Replacing with null-move.");
+                    game.Game.Process(EndTurnTask.Any(game.Game.CurrentPlayer));
                 }
             }
         }
