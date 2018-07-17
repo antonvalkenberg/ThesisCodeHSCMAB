@@ -67,7 +67,7 @@ namespace AVThesis {
         /// <param name="min">The minimum value.</param>
         /// <param name="max">The maximum value.</param>
         /// <returns>Normalized value of x.</returns>
-        public static float Normalize(float x, float min, float max) {
+        public static double Normalize(double x, double min, double max) {
             return (x - min) / (max - min);
         }
 

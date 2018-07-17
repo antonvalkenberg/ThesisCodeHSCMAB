@@ -27,12 +27,12 @@ namespace AVThesis.Datastructures {
         /// <summary>
         /// The probability table used in the `AliasMethod'.
         /// </summary>
-        private float[] _probability;
+        private double[] _probability;
 
         /// <summary>
         /// The collection of options contained in this table.
         /// </summary>
-        protected List<Tuple<float, T>> Options = new List<Tuple<float, T>>();
+        protected List<Tuple<double, T>> Options = new List<Tuple<double, T>>();
 
         /// <summary>
         /// RandomNumberGenerator (RNG).
@@ -48,7 +48,7 @@ namespace AVThesis.Datastructures {
         /// </summary>
         /// <param name="random">The RNG to use.</param>
         /// <param name="options">The options that should be contained in the table.</param>
-        public OddmentTable(Random random, List<Tuple<float, T>> options) {
+        public OddmentTable(Random random, List<Tuple<double, T>> options) {
             Random = random;
             Recalculate(options);
         }
@@ -83,21 +83,21 @@ namespace AVThesis.Datastructures {
         /// Recalculates the tables using the provided Options.
         /// </summary>
         /// <param name="allOptions">The new options to use for this OddmentTable.</param>
-        public void Recalculate(List<Tuple<float, T>> allOptions) {
+        public void Recalculate(List<Tuple<double, T>> allOptions) {
 
             // Save the options and get a summation that we'll need for normalizing.
             Options = allOptions;
-            float sum = 0;
+            double sum = 0;
             foreach (var option in Options) {
                 sum += option.Item1;
             }
 
             _alias = new int[Options.Count];
-            _probability = new float[Options.Count];
-            float average = 1.0f / Options.Count;
+            _probability = new double[Options.Count];
+            double average = 1.0 / Options.Count;
 
             // Normalize the probabilities.
-            List<float> newProbabilities = new List<float>();
+            List<double> newProbabilities = new List<double>();
             foreach (var option in Options) {
                 newProbabilities.Add(Util.Normalize(option.Item1, 0, sum));
             }
@@ -143,8 +143,8 @@ namespace AVThesis.Datastructures {
             // At this point, everything is in one list, which means that the remaining probabilities should all be 1/n.
             // Based on this, set them appropriately.
             // Due to numerical issues, we can't be sure which stack will hold the entries, so we empty both.
-            while (!small.IsEmpty) _probability[small.RemoveBack()] = 1.0f;
-            while (!large.IsEmpty) _probability[large.RemoveBack()] = 1.0f;
+            while (!small.IsEmpty) _probability[small.RemoveBack()] = 1.0;
+            while (!large.IsEmpty) _probability[large.RemoveBack()] = 1.0;
         }
 
         /// <summary>
@@ -168,7 +168,7 @@ namespace AVThesis.Datastructures {
         /// </summary>
         /// <param name="option">The option to add.</param>
         /// <param name="recalculate">[Optional] Whether or not to recalculate the table. Default value is true.</param>
-        public void Add(Tuple<float, T> option, bool recalculate = true) {
+        public void Add(Tuple<double, T> option, bool recalculate = true) {
             Options.Add(option);
             if (recalculate) Recalculate();
         }
@@ -180,8 +180,8 @@ namespace AVThesis.Datastructures {
         /// <param name="value">The value to add.</param>
         /// <param name="chance">The chance of selection for the value.</param>
         /// <param name="recalculate">[Optional] Whether or not to recalculate the table. Default value is true.</param>
-        public void Add(T value, float chance, bool recalculate = true) {
-            Options.Add(new Tuple<float, T>(chance, value));
+        public void Add(T value, double chance, bool recalculate = true) {
+            Options.Add(new Tuple<double, T>(chance, value));
             if (recalculate) Recalculate();
         }
 
@@ -189,7 +189,7 @@ namespace AVThesis.Datastructures {
         /// Adds a collection of options to this OddmentTable and recalculates the table.
         /// </summary>
         /// <param name="collection">The collection to add.</param>
-        public void AddAll(List<Tuple<float, T>> collection) {
+        public void AddAll(List<Tuple<double, T>> collection) {
             Options.AddRange(collection);
             Recalculate();
         }
@@ -199,7 +199,7 @@ namespace AVThesis.Datastructures {
         /// </summary>
         /// <param name="value">The value to check.</param>
         /// <returns>Whether or not this OddmentTable contains the specified value.</returns>
-        public bool Contains(Tuple<float, T> value) {
+        public bool Contains(Tuple<double, T> value) {
             return Options.Contains(value);
         }
 
@@ -208,7 +208,7 @@ namespace AVThesis.Datastructures {
         /// </summary>
         /// <param name="value">The value to remove.</param>
         /// <returns>Whether or not the value was successfully removed.</returns>
-        public bool RemoveValue(Tuple<float, T> value) {
+        public bool RemoveValue(Tuple<double, T> value) {
             bool success = Options.Remove(value);
             Recalculate();
             return success;
