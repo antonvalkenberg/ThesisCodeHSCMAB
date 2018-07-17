@@ -51,19 +51,11 @@ namespace AVThesis.Bots {
         #region Public Methods
 
         /// <summary>
-        /// Returns a SabberStoneAction for the current state.
-        /// Note: If this player has no available options, null is returned.
+        /// Creates a SabberStoneAction by randomly selecting one of the available PlayerTasks until the End_Turn task is selected.
         /// </summary>
-        /// <param name="state">The current game state.</param>
-        /// <returns>SabberStoneAction or null in the case of no available options.</returns>
-        public SabberStoneAction Act(SabberStoneState state) {
-            // Check to make sure the player to act in the gamestate matches our player.
-            if (state.CurrentPlayer() != Player.Id) {
-                return null;
-            }
-
-            // Check if there are any options.
-            if (Player.Options().IsNullOrEmpty()) return SabberStoneAction.CreateNullMove(Player);
+        /// <param name="state">The game state for which an action should be created. Note: </param>
+        /// <returns>SabberStoneAction</returns>
+        public SabberStoneAction CreateRandomAction(SabberStoneState state) {
 
             // Clone game so that we can process the selected tasks and get an updated options list.
             var clonedGame = state.Game.Clone();
@@ -84,14 +76,32 @@ namespace AVThesis.Bots {
                 // select another random option.
                 selectedTask = clonedPlayer.Options().RandomElementOrDefault();
 
-            // Keep selecting tasks while we're still the active player, there is something to choose and we haven't chosen to pass the turn.
+                // Keep selecting tasks while we're still the active player, there is something to choose and we haven't chosen to pass the turn.
             } while (clonedGame.CurrentPlayer.Id == clonedPlayer.Id && selectedTask != null && selectedTask.PlayerTaskType != PlayerTaskType.END_TURN);
 
             // Add the last selected task, if it is not null
             if (selectedTask != null) action.AddTask(selectedTask);
 
-            // Return the created action.
             return action;
+        }
+
+        /// <summary>
+        /// Returns a SabberStoneAction for the current state.
+        /// Note: If this player has no available options, null is returned.
+        /// </summary>
+        /// <param name="state">The current game state.</param>
+        /// <returns>SabberStoneAction or null in the case of no available options.</returns>
+        public SabberStoneAction Act(SabberStoneState state) {
+            // Check to make sure the player to act in the gamestate matches our player.
+            if (state.CurrentPlayer() != Player.Id) {
+                return null;
+            }
+
+            // Check if there are any options.
+            if (Player.Options().IsNullOrEmpty()) return SabberStoneAction.CreateNullMove(Player);
+
+            // Return a randomly created action.
+            return CreateRandomAction(state);
         }
 
         /// <summary>
