@@ -151,8 +151,15 @@ namespace AVThesis.Datastructures {
         #region Overridden Methods
 
         public override int GetHashCode() {
-            //TODO calculate correct HashCode for Node
-            return base.GetHashCode();
+            unchecked { // overflow is fine, the number just wraps
+                var hash = 23;
+                hash = hash * 47 + (Payload != null ? Payload.GetHashCode() : 0);
+                hash = hash * 47 + (Parent != null ? Parent.GetHashCode() : 0);
+                foreach (var child in Children) {
+                    hash = hash * 47 + (child.GetHashCode());
+                }
+                return hash;
+            }
         }
 
         #endregion

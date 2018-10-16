@@ -211,7 +211,7 @@ namespace AVThesis.Search {
         /// <param name="other">The SearchNode to equate this one to.</param>
         /// <returns>Whether or not the hashcodes of these two objects are equal.</returns>
         public bool Equals(SearchNode<S, A> other) {
-            return GetHashCode() == other.GetHashCode();
+            return other != null && GetHashCode() == other.GetHashCode();
         }
 
         public override int GetHashCode() {

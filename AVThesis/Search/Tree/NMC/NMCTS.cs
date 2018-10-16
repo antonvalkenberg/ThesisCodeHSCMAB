@@ -211,8 +211,7 @@ namespace AVThesis.Search.Tree.NMC {
         }
 
         #endregion
-
-
+        
     }
 
 }

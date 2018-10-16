@@ -61,10 +61,12 @@ namespace AVThesis.Test {
         }
 
         public override long HashMethod() {
-            int hash = 43;
-            hash = hash * 13 + State.GetHashCode();
-            hash = hash * 13 + (ActivePlayerID + 1);
-            return hash;
+            unchecked { // overflow is fine, the number just wraps
+                int hash = 43;
+                hash = hash * 13 + State.GetHashCode();
+                hash = hash * 13 + (ActivePlayerID + 1);
+                return hash;
+            }
         }
 
         public override int NumberOfPlayers() {

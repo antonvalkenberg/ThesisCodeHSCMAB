@@ -111,6 +111,7 @@ namespace AVThesis.SabberStone {
         }
 
         public override int GetHashCode() {
+            //TODO: calculate SSA hashcode better
             return (Tasks != null ? Tasks.GetHashCode() : 0);
         }
 
