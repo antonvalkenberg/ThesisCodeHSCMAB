@@ -38,7 +38,7 @@ namespace AVThesis.Bots {
         #region Fields
 
         private const string _botName = "MCTSBot";
-        private Random _rng = new Random();
+        private readonly Random _rng = new Random();
         private Controller _player;
         private ISabberStoneBot _playoutBot;
         private IGoalStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> _goal;

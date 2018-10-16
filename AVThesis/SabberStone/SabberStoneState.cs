@@ -16,26 +16,23 @@ namespace AVThesis.SabberStone {
     /// </summary>
     public class SabberStoneState : State {
 
-        #region Fields
-
-        private SabberStoneCore.Model.Game _game;
-
-        #endregion
-
         #region Properties
 
         /// <summary>
         /// The SabberStone Game.
         /// </summary>
-        public SabberStoneCore.Model.Game Game { get => _game; set => _game = value; }
+        public SabberStoneCore.Model.Game Game { get; set; }
+
         /// <summary>
         /// The 1st player in the SabberStone Game.
         /// </summary>
         public Controller Player1 => Game.Player1;
+
         /// <summary>
         /// The 2nd player in the SabberStone Game.
         /// </summary>
         public Controller Player2 => Game.Player2;
+
         /// <summary>
         /// The ID of the player that has won. Note: defaults to <see cref="State.DRAW"/>.
         /// </summary>
@@ -215,6 +212,15 @@ namespace AVThesis.SabberStone {
         /// <returns>The unique identifier of the currently active player.</returns>
         public override int CurrentPlayer() {
             return Game.CurrentPlayer.Id;
+        }
+
+        /// <summary>
+        /// Whether or not this SabberStoneState is equal to the argument SabberStoneState.
+        /// </summary>
+        /// <param name="otherState">The SabberStoneState to check with this SabberStoneState for equality.</param>
+        /// <returns>Boolean indicating whether or not the argument SabberStoneState is equal to this SabberStoneState.
+        public override bool Equals(State otherState) {
+            return this.HashMethod() == otherState.HashMethod();
         }
 
         /// <summary>

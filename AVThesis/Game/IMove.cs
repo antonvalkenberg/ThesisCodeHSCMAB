@@ -13,8 +13,8 @@ namespace AVThesis.Game {
         /// Returns the unique identifier of the player that this move belongs to.
         /// </summary>
         /// <returns>Integer representing the unique identifier of the player that plays this move.</returns>
-				int Player();
+        int Player();
 
-		}
+    }
 
 }

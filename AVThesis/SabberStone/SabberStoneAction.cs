@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using AVThesis.Datastructures;
@@ -15,20 +16,14 @@ namespace AVThesis.SabberStone {
     /// <summary>
     /// Implementation of the IMove interface for using a PlayerTask from a SabberStone Game as an action in the search framework.
     /// </summary>
-    public class SabberStoneAction : IMove {
-
-        #region Fields
-
-        private List<PlayerTask> _tasks;
-
-        #endregion
+    public class SabberStoneAction : IMove, IEquatable<SabberStoneAction> {
 
         #region Properties
 
         /// <summary>
         /// The PlayerTasks that this SabberStoneAction represents.
         /// </summary>
-        public List<PlayerTask> Tasks { get => _tasks; private set => _tasks = value; }
+        public List<PlayerTask> Tasks { get; }
 
         #endregion
 
@@ -92,6 +87,31 @@ namespace AVThesis.SabberStone {
             var nullMove = new SabberStoneAction();
             nullMove.AddTask(SabberStoneCore.Tasks.PlayerTasks.EndTurnTask.Any(player));
             return nullMove;
+        }
+
+        #endregion
+
+        #region Overridden Methods
+
+        public static bool operator ==(SabberStoneAction left, SabberStoneAction right) {
+            return Equals(left, right);
+        }
+
+        public static bool operator !=(SabberStoneAction left, SabberStoneAction right) {
+            return !Equals(left, right);
+        }
+
+        /// <inheritdoc />
+        public override bool Equals(object obj) {
+            return Equals((SabberStoneAction)obj);
+        }
+
+        public bool Equals(SabberStoneAction otherAction) {
+            return otherAction != null && GetHashCode() == otherAction.GetHashCode();
+        }
+
+        public override int GetHashCode() {
+            return (Tasks != null ? Tasks.GetHashCode() : 0);
         }
 
         /// <summary>

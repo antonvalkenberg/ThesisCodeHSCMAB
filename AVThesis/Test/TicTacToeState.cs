@@ -14,13 +14,9 @@ namespace AVThesis.Test {
         public const char PLAYER_TWO_MOVE = 'O';
         public const char OPEN_SPACE = '-';
 
-        private string _state;
-        private int _activePlayerID = 0;
-        private bool _done = false;
-
-        public string State { get => _state; set => _state = value; }
-        public int ActivePlayerID { get => _activePlayerID; set => _activePlayerID = value; }
-        public bool Done { get => _done; set => _done = value; }
+        public string State { get; set; }
+        public int ActivePlayerID { get; set; } = 0;
+        public bool Done { get; set; } = false;
 
         public TicTacToeState() {
             State = new string(OPEN_SPACE, 9);
@@ -56,8 +52,19 @@ namespace AVThesis.Test {
             return ActivePlayerID;
         }
 
+        public override bool Equals(State otherState) {
+            return otherState is TicTacToeState && Equals(otherState);
+        }
+
+        public bool Equals(TicTacToeState otherState) {
+            return HashMethod() == otherState.HashMethod();
+        }
+
         public override long HashMethod() {
-            return State.GetHashCode();
+            int hash = 43;
+            hash = hash * 13 + State.GetHashCode();
+            hash = hash * 13 + (ActivePlayerID + 1);
+            return hash;
         }
 
         public override int NumberOfPlayers() {

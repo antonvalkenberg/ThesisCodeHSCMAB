@@ -53,6 +53,13 @@ namespace AVThesis.Search {
         public abstract int CurrentPlayer();
 
         /// <summary>
+        /// Whether or not this State is equal to the argument State.
+        /// </summary>
+        /// <param name="otherState">The State to check with this State for equality.</param>
+        /// <returns>Boolean indicating whether or not the argument State is equal to this State.</returns>
+        public abstract bool Equals(State otherState);
+
+        /// <summary>
         /// Returns the State's hash code.
         /// </summary>
         /// <returns>The State's hash code.</returns>

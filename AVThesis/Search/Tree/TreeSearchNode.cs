@@ -212,10 +212,11 @@ namespace AVThesis.Search.Tree {
         }
 
         public override string ToString() {
-            return string.Format("[TSN, Children: {0}, Depth: {1}, Payload: {2}, Visits: {3}, Score: {4}, EvaluatedScore: {5}]", Children.Count, CalculateDepth(), Payload, Visits, Score, EvaluatedScore);
+            return $"[TSN, Children: {Children.Count}, Depth: {CalculateDepth()}, Payload: {Payload}, Visits: {Visits}, Score: {Score}, EvaluatedScore: {EvaluatedScore}]";
         }
 
         #endregion
+
     }
 
 }
