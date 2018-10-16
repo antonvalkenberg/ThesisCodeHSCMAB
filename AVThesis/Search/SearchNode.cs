@@ -14,13 +14,13 @@ namespace AVThesis.Search {
     /// </summary>
     /// <typeparam name="S">A Type representing a state in the search.</typeparam>
     /// <typeparam name="A">A Type representing an action in the search.</typeparam>
-		public class SearchNode<S, A> : Node<A>, IEquatable<SearchNode<S, A>> where S : class where A : class {
-        
+    public class SearchNode<S, A> : Node<A>, IEquatable<SearchNode<S, A>> where S : class where A : class {
+
         #region Fields
 
         private S _state;
-				private double _score;
-				private IPositionGenerator<A> _positionGenerator;
+        private double _score;
+        private IPositionGenerator<A> _positionGenerator;
         private SearchNode<S, A> _parent;
         private List<SearchNode<S, A>> _children;
 
@@ -32,16 +32,16 @@ namespace AVThesis.Search {
         /// The state that this SearchNode represents.
         /// </summary>
         public S State { get => _state; set => _state = value; }
-        
-				/// <summary>
-				/// The score for this SearchNode.
-				/// </summary>
-				public double Score { get => _score; set => _score = value; }
 
-				/// <summary>
-				/// The PositionGenerator for the actions possible from this SearchNode's state.
-				/// </summary>
-				public IPositionGenerator<A> PositionGenerator { get => _positionGenerator; set => _positionGenerator = value; }
+        /// <summary>
+        /// The score for this SearchNode.
+        /// </summary>
+        public double Score { get => _score; set => _score = value; }
+
+        /// <summary>
+        /// The PositionGenerator for the actions possible from this SearchNode's state.
+        /// </summary>
+        public IPositionGenerator<A> PositionGenerator { get => _positionGenerator; set => _positionGenerator = value; }
 
         /// <summary>
         /// The SearchNode that this is a child of.
@@ -61,74 +61,74 @@ namespace AVThesis.Search {
         /// Default Constructor.
         /// </summary>
         public SearchNode() : base() {
-						State = null;
-            Parent = null;
-            Children = new List<SearchNode<S, A>>();
-				}
-
-				/// <summary>
-				/// Constructor that sets the argument State as this SearchNode's State.
-				/// </summary>
-				/// <param name="state">The State that this SearchNode represents.</param>
-				public SearchNode(S state) : base() {
-						State = state;
+            State = null;
             Parent = null;
             Children = new List<SearchNode<S, A>>();
         }
 
-				/// <summary>
-				/// Constructor that sets the argument Node as the Parent of this SearchNode.
-				/// </summary>
-				/// <param name="parent">The parent Node (i.e. the Node that is above the SearchNode to be constructed).</param>
-				/// <param name="state">See <see cref="SearchNode{S, A, N}.SearchNode(S)"/></param>
-				public SearchNode(SearchNode<S, A> parent, S state) : base() {
-						State = state;
+        /// <summary>
+        /// Constructor that sets the argument State as this SearchNode's State.
+        /// </summary>
+        /// <param name="state">The State that this SearchNode represents.</param>
+        public SearchNode(S state) : base() {
+            State = state;
+            Parent = null;
+            Children = new List<SearchNode<S, A>>();
+        }
+
+        /// <summary>
+        /// Constructor that sets the argument Node as the Parent of this SearchNode.
+        /// </summary>
+        /// <param name="parent">The parent Node (i.e. the Node that is above the SearchNode to be constructed).</param>
+        /// <param name="state">See <see cref="SearchNode{S, A, N}.SearchNode(S)"/></param>
+        public SearchNode(SearchNode<S, A> parent, S state) : base() {
+            State = state;
             Parent = parent;
             Children = new List<SearchNode<S, A>>();
         }
 
-				/// <summary>
-				/// Constructor that sets the argument Action as this SearchNode's action.
-				/// </summary>
-				/// <param name="state">See <see cref="SearchNode{S, A, N}.SearchNode(S)"/></param>
-				/// <param name="action">The Action that this SearchNode holds.</param>
-				public SearchNode(S state, A action) : base(action, null) {
-						State = state;
+        /// <summary>
+        /// Constructor that sets the argument Action as this SearchNode's action.
+        /// </summary>
+        /// <param name="state">See <see cref="SearchNode{S, A, N}.SearchNode(S)"/></param>
+        /// <param name="action">The Action that this SearchNode holds.</param>
+        public SearchNode(S state, A action) : base(action, null) {
+            State = state;
             Parent = null;
             Children = new List<SearchNode<S, A>>();
         }
 
-				/// <summary>
-				/// Constructor that sets an Action as well as a parent Node.
-				/// </summary>
-				/// <param name="parent">See <see cref="SearchNode{S, A, N}.SearchNode(N, S)"/></param>
-				/// <param name="state">See <see cref="SearchNode{S, A, N}.SearchNode(S)"/></param>
-				/// <param name="action">See <see cref="SearchNode{S, A, N}.SearchNode(S, A)"/></param>
-				public SearchNode(SearchNode<S, A> parent, S state, A action) : base(action, null) {
-						State = state;
+        /// <summary>
+        /// Constructor that sets an Action as well as a parent Node.
+        /// </summary>
+        /// <param name="parent">See <see cref="SearchNode{S, A, N}.SearchNode(N, S)"/></param>
+        /// <param name="state">See <see cref="SearchNode{S, A, N}.SearchNode(S)"/></param>
+        /// <param name="action">See <see cref="SearchNode{S, A, N}.SearchNode(S, A)"/></param>
+        public SearchNode(SearchNode<S, A> parent, S state, A action) : base(action, null) {
+            State = state;
             Parent = parent;
             Children = new List<SearchNode<S, A>>();
         }
 
-				#endregion
+        #endregion
 
-				#region Public Methods
+        #region Public Methods
 
-				/// <summary>
-				/// Determines if this SearchNode's PositionGenerator exists and cannot advance to the next element.
-				/// </summary>
-				/// <returns>Whether or not this SearchNode is fully expanded.</returns>
-				public bool IsFullyExpanded() {
-						return PositionGenerator != null && !PositionGenerator.HasNext();
+        /// <summary>
+        /// Determines if this SearchNode's PositionGenerator exists and cannot advance to the next element.
+        /// </summary>
+        /// <returns>Whether or not this SearchNode is fully expanded.</returns>
+        public bool IsFullyExpanded() {
+            return PositionGenerator != null && !PositionGenerator.HasNext();
         }
 
-				/// <summary>
-				/// Adds the argument's value to this SearchNode's Score.
-				/// </summary>
-				/// <param name="value">The value to add.</param>
-				public void AddToScore(double value) {
-						Score += value;
-				}
+        /// <summary>
+        /// Adds the argument's value to this SearchNode's Score.
+        /// </summary>
+        /// <param name="value">The value to add.</param>
+        public void AddToScore(double value) {
+            Score += value;
+        }
 
         /// <summary>
         /// Determines if this SearchNode is the Root node (i.e. it has no parent).
@@ -211,56 +211,56 @@ namespace AVThesis.Search {
         /// <param name="other">The SearchNode to equate this one to.</param>
         /// <returns>Whether or not the hashcodes of these two objects are equal.</returns>
         public bool Equals(SearchNode<S, A> other) {
-						return GetHashCode() == other.GetHashCode();
-				}
+            return GetHashCode() == other.GetHashCode();
+        }
 
-				public override int GetHashCode() {
-						//TODO calculate correct HashCode for SearchNode
-						return base.GetHashCode();
-				}
+        public override int GetHashCode() {
+            //TODO calculate correct HashCode for SearchNode
+            return base.GetHashCode();
+        }
 
-				#endregion
+        #endregion
 
-				#region Comparers
+        #region Comparers
 
-				/// <summary>
-				/// Compares SearchNode objects based on their score.
-				/// </summary>
-				public class ScoreComparer : IComparer<SearchNode<S, A>> {
+        /// <summary>
+        /// Compares SearchNode objects based on their score.
+        /// </summary>
+        public class ScoreComparer : IComparer<SearchNode<S, A>> {
 
-						/// <summary>
-						/// Can be used to order SearchNode's by descending score.
-						/// </summary>
-						/// <param name="x"><see cref="ScoreComparer.Compare(SearchNode{S, A}, SearchNode{S, A})"/></param>
-						/// <param name="y"><see cref="ScoreComparer.Compare(SearchNode{S, A}, SearchNode{S, A})"/></param>
-						/// <returns>An integer indicating whether the score of y is less than, equal to or greater than x's score.</returns>
-						public int CompareDescending(SearchNode<S, A> x, SearchNode<S, A> y) {
-								return Compare(y, x);
-						}
+            /// <summary>
+            /// Can be used to order SearchNode's by descending score.
+            /// </summary>
+            /// <param name="x"><see cref="ScoreComparer.Compare(SearchNode{S, A}, SearchNode{S, A})"/></param>
+            /// <param name="y"><see cref="ScoreComparer.Compare(SearchNode{S, A}, SearchNode{S, A})"/></param>
+            /// <returns>An integer indicating whether the score of y is less than, equal to or greater than x's score.</returns>
+            public int CompareDescending(SearchNode<S, A> x, SearchNode<S, A> y) {
+                return Compare(y, x);
+            }
 
-						/// <summary>
-						/// Can be used to order SearchNode's by ascending score.
-						/// </summary>
-						/// <param name="x"><see cref="ScoreComparer.Compare(SearchNode{S, A}, SearchNode{S, A})"/></param>
-						/// <param name="y"><see cref="ScoreComparer.Compare(SearchNode{S, A}, SearchNode{S, A})"/></param>
-						/// <returns>An integer indicating whether the score of x is less than, equal to or greater than y's score.</returns>
-						public int CompareAscending(SearchNode<S, A> x, SearchNode<S, A> y) {
-								return Compare(x, y);
-						}
+            /// <summary>
+            /// Can be used to order SearchNode's by ascending score.
+            /// </summary>
+            /// <param name="x"><see cref="ScoreComparer.Compare(SearchNode{S, A}, SearchNode{S, A})"/></param>
+            /// <param name="y"><see cref="ScoreComparer.Compare(SearchNode{S, A}, SearchNode{S, A})"/></param>
+            /// <returns>An integer indicating whether the score of x is less than, equal to or greater than y's score.</returns>
+            public int CompareAscending(SearchNode<S, A> x, SearchNode<S, A> y) {
+                return Compare(x, y);
+            }
 
-						/// <summary>
-						/// Returns a positive integer when <paramref name="x"/>'s score is greater than that of <paramref name="y"/>.
-						/// Returns zero when the scores of <paramref name="x"/> and <paramref name="y"/> are equal.
-						/// Returns a negative integer when <paramref name="x"/>'s score is less than that of <paramref name="y"/>.
-						/// </summary>
-						/// <param name="x">A SearchNode.</param>
-						/// <param name="y">Another SearchNode.</param>
-						/// <returns>An integer indicating whether the score of x is less than, equal to or greater than y's score.</returns>
-						public int Compare(SearchNode<S, A> x, SearchNode<S, A> y) {
-								return x.Score.CompareTo(y.Score);
-						}
+            /// <summary>
+            /// Returns a positive integer when <paramref name="x"/>'s score is greater than that of <paramref name="y"/>.
+            /// Returns zero when the scores of <paramref name="x"/> and <paramref name="y"/> are equal.
+            /// Returns a negative integer when <paramref name="x"/>'s score is less than that of <paramref name="y"/>.
+            /// </summary>
+            /// <param name="x">A SearchNode.</param>
+            /// <param name="y">Another SearchNode.</param>
+            /// <returns>An integer indicating whether the score of x is less than, equal to or greater than y's score.</returns>
+            public int Compare(SearchNode<S, A> x, SearchNode<S, A> y) {
+                return x.Score.CompareTo(y.Score);
+            }
 
-				}
+        }
 
         #endregion
 

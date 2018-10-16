@@ -16,23 +16,17 @@ namespace AVThesis.Search.Tree.MCTS {
     /// <typeparam name="Sol"><see cref="SearchContext{Sol}"/></typeparam>
     public class MCTSBuilder<D, P, A, S, Sol> : TreeSearchBuilder<D, P, A, S, Sol> where D : class where P : State where A : class, IMove where S : class where Sol : class {
 
-        #region Fields
-
-        private IPlayoutStrategy<D, P, A, S, Sol> _playoutStrategy;
-        private ISolutionStrategy<D, P, A, S, Sol, TreeSearchNode<P, A>> _solutionStrategy;
-
-        #endregion
-
         #region Properties
 
         /// <summary>
         /// A strategy for playing out a game during the Simulation phase of MCTS.
         /// </summary>
-        public new IPlayoutStrategy<D, P, A, S, Sol> PlayoutStrategy { get => _playoutStrategy; set => _playoutStrategy = value; }
+        public new IPlayoutStrategy<D, P, A, S, Sol> PlayoutStrategy { get; set; }
+
         /// <summary>
         /// A strategy for constructing a solution to the search.
         /// </summary>
-        public ISolutionStrategy<D, P, A, S, Sol, TreeSearchNode<P, A>> SolutionStrategy { get => _solutionStrategy; set => _solutionStrategy = value; }
+        public ISolutionStrategy<D, P, A, S, Sol, TreeSearchNode<P, A>> SolutionStrategy { get; set; }
 
         #endregion
 
@@ -41,8 +35,8 @@ namespace AVThesis.Search.Tree.MCTS {
         /// <summary>
         /// Constructs a new instance.
         /// </summary>
-        /// <param name="playout">The playout strategy.</param>
-        /// <param name="solution">The solution strategy.</param>
+        /// <param name="playoutStrategy">The playout strategy.</param>
+        /// <param name="solutionStrategy">The solution strategy.</param>
         public MCTSBuilder(IPlayoutStrategy<D, P, A, S, Sol> playoutStrategy, ISolutionStrategy<D, P, A, S, Sol, TreeSearchNode<P, A>> solutionStrategy) {
             PlayoutStrategy = playoutStrategy;
             SolutionStrategy = solutionStrategy;
@@ -61,7 +55,7 @@ namespace AVThesis.Search.Tree.MCTS {
         /// <summary>
         /// Build a new Monte Carlo Tree Search.
         /// </summary>
-        /// <returns>A new instance of <see cref="MCTS{D, P, A, S, Sol, N}"/>.</returns>
+        /// <returns>A new instance of <see cref="MCTS{D,P,A,S,Sol}"/>.</returns>
         public override ISearchStrategy<D, P, A, S, Sol> Build() {
             return new MCTS<D, P, A, S, Sol>(SelectionStrategy, ExpansionStrategy, BackPropagationStrategy, FinalNodeSelectionStrategy, EvaluationStrategy, SolutionStrategy, PlayoutStrategy, Time, Iterations);
         }

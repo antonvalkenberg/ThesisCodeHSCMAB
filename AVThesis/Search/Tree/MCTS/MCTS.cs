@@ -17,18 +17,12 @@ namespace AVThesis.Search.Tree.MCTS {
     /// <typeparam name="Sol"><see cref="SearchContext{Sol}"/></typeparam>
     public class MCTS<D, P, A, S, Sol> : TreeSearch<D, P, A, S, Sol> where D : class where P : State where A : class, IMove where S : class where Sol : class {
 
-        #region Fields
-
-        private IPlayoutStrategy<D, P, A, S, Sol> _playoutStrategy;
-
-        #endregion
-
         #region Properties
 
         /// <summary>
         /// A strategy used during the Simulation phase of MCTS.
         /// </summary>
-        public IPlayoutStrategy<D, P, A, S, Sol> PlayoutStrategy { get => _playoutStrategy; set => _playoutStrategy = value; }
+        public IPlayoutStrategy<D, P, A, S, Sol> PlayoutStrategy { get; set; }
 
         #endregion
 

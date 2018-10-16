@@ -44,13 +44,13 @@ namespace AVThesis.Search {
         /// Copies this State and returns it.
         /// </summary>
         /// <returns>New State that is a copy of this State.</returns>
-				public abstract dynamic Copy();
+        public abstract dynamic Copy();
 
         /// <summary>
         /// Returns the unique identifier of the currently active player.
         /// </summary>
         /// <returns>The unique identifier of the currently active player.</returns>
-				public abstract int CurrentPlayer();
+        public abstract int CurrentPlayer();
 
         /// <summary>
         /// Returns the State's hash code.
@@ -62,10 +62,10 @@ namespace AVThesis.Search {
         /// Returns the number of players in the game.
         /// </summary>
         /// <returns>The number of players in the game.</returns>
-				public abstract int NumberOfPlayers();
+        public abstract int NumberOfPlayers();
 
         #endregion
 
-		}
+    }
 
 }
