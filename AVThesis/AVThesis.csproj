@@ -135,6 +135,7 @@
     <Compile Include="Bots\LSIBot.cs" />
     <Compile Include="Bots\MCTSBot.cs" />
     <Compile Include="Bots\RandomBot.cs" />
+    <Compile Include="Constants.cs" />
     <Compile Include="Datastructures\Deque.cs" />
     <Compile Include="Datastructures\Extentions.cs" />
     <Compile Include="Datastructures\IPositionGenerator.cs" />

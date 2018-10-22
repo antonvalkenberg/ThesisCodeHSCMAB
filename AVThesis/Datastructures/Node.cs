@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -10,7 +11,7 @@ namespace AVThesis.Datastructures {
     /// The most basic form of a Node.
     /// </summary>
     /// <typeparam name="A">The Type of thing the Node represents (e.g. a state or action).</typeparam>
-    public abstract class Node<A> where A : class {
+    public abstract class Node<A> : IEquatable<Node<A>> where A : class {
 
         #region Fields
 
@@ -150,13 +151,34 @@ namespace AVThesis.Datastructures {
 
         #region Overridden Methods
 
+        public static bool operator ==(Node<A> left, Node<A> right) {
+            return Equals(left, right);
+        }
+
+        public static bool operator !=(Node<A> left, Node<A> right) {
+            return !Equals(left, right);
+        }
+
+        public override bool Equals(object obj) {
+            if (obj is null) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((Node<A>)obj);
+        }
+
+        public bool Equals(Node<A> other) {
+            if (other is null) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return GetHashCode() == other.GetHashCode();
+        }
+
         public override int GetHashCode() {
             unchecked { // overflow is fine, the number just wraps
-                var hash = 23;
-                hash = hash * 47 + (Payload != null ? Payload.GetHashCode() : 0);
-                hash = hash * 47 + (Parent != null ? Parent.GetHashCode() : 0);
+                var hash = (int)Constants.HASH_OFFSET_BASIS;
+                hash = Constants.HASH_FNV_PRIME * (hash ^ (Payload != null ? Payload.GetHashCode() : 0));
+                hash = Constants.HASH_FNV_PRIME * (hash ^ (Parent != null ? Parent.GetHashCode() : 0));
                 foreach (var child in Children) {
-                    hash = hash * 47 + (child.GetHashCode());
+                    hash = Constants.HASH_FNV_PRIME * (hash ^ child.GetHashCode());
                 }
                 return hash;
             }

@@ -205,18 +205,39 @@ namespace AVThesis.Search {
 
         #region Overridden Methods
 
-        /// <summary>
-        /// Determines if this SearchNode is equal to another by using the equality operator on their <see cref="SearchNode{S, A}.GetHashCode"/>.
-        /// </summary>
-        /// <param name="other">The SearchNode to equate this one to.</param>
-        /// <returns>Whether or not the hashcodes of these two objects are equal.</returns>
+        public static bool operator ==(SearchNode<S, A> left, SearchNode<S, A> right) {
+            return Equals(left, right);
+        }
+
+        public static bool operator !=(SearchNode<S, A> left, SearchNode<S, A> right) {
+            return !Equals(left, right);
+        }
+
+        public override bool Equals(object obj) {
+            if (obj is null) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((SearchNode<S, A>)obj);
+        }
+
         public bool Equals(SearchNode<S, A> other) {
-            return other != null && GetHashCode() == other.GetHashCode();
+            if (other is null) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return GetHashCode() == other.GetHashCode();
         }
 
         public override int GetHashCode() {
-            //TODO calculate correct HashCode for SearchNode
-            return base.GetHashCode();
+            unchecked { // overflow is fine, the number just wraps
+                var hash = (int) AVThesis.Constants.HASH_OFFSET_BASIS;
+                hash = AVThesis.Constants.HASH_FNV_PRIME * (hash ^ (Payload != null ? Payload.GetHashCode() : 0));
+                hash = AVThesis.Constants.HASH_FNV_PRIME * (hash ^ (State != null ? State.GetHashCode() : 0));
+                hash = AVThesis.Constants.HASH_FNV_PRIME * (hash ^ (Parent != null ? Parent.GetHashCode() : 0));
+                hash = AVThesis.Constants.HASH_FNV_PRIME * (hash ^ Score.GetHashCode());
+                foreach (var child in Children) {
+                    hash = AVThesis.Constants.HASH_FNV_PRIME * (hash ^ child.GetHashCode());
+                }
+                return hash;
+            }
         }
 
         #endregion

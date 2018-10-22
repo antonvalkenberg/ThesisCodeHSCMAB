@@ -13,7 +13,7 @@ namespace AVThesis.Search.Tree {
     /// </summary>
     /// <typeparam name="S">A Type representing a state in the search.</typeparam>
     /// <typeparam name="A">A Type representing an action in the search.</typeparam>
-    public class TreeSearchNode<S, A> : SearchNode<S, A> where S : class where A : class {
+    public class TreeSearchNode<S, A> : SearchNode<S, A>, IEquatable<TreeSearchNode<S, A>> where S : class where A : class {
 
         #region Fields
 
@@ -45,8 +45,7 @@ namespace AVThesis.Search.Tree {
         /// Collection of TreeSearchNodes that can be reached from this TreeSearchNode.
         /// </summary>
         public new List<TreeSearchNode<S, A>> Children { get => _children; set => _children = value; }
-
-
+        
         /// <summary>
         /// Whether or not the score of this node is reliable.
         /// </summary>
@@ -197,18 +196,40 @@ namespace AVThesis.Search.Tree {
 
         #region Overridden Methods
 
-        /// <summary>
-        /// Determines if this TreeSearchNode is equal to another by using the equality operator on their <see cref="TreeSearchNode{S, A}.GetHashCode"/>.
-        /// </summary>
-        /// <param name="other">The TreeSearchNode to equate this one to.</param>
-        /// <returns>Whether or not the hashcodes of these two objects are equal.</returns>
+        public static bool operator ==(TreeSearchNode<S, A> left, TreeSearchNode<S, A> right) {
+            return Equals(left, right);
+        }
+
+        public static bool operator !=(TreeSearchNode<S, A> left, TreeSearchNode<S, A> right) {
+            return !Equals(left, right);
+        }
+
+        public override bool Equals(object obj) {
+            if (obj is null) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((TreeSearchNode<S, A>)obj);
+        }
+
         public bool Equals(TreeSearchNode<S, A> other) {
+            if (other is null) return false;
+            if (ReferenceEquals(this, other)) return true;
             return GetHashCode() == other.GetHashCode();
         }
 
         public override int GetHashCode() {
-            //TODO calculate correct HashCode for TreeSearchNode
-            return base.GetHashCode();
+            unchecked { // overflow is fine, the number just wraps
+                var hash = (int)AVThesis.Constants.HASH_OFFSET_BASIS;
+                hash = AVThesis.Constants.HASH_FNV_PRIME * (hash ^ (Payload != null ? Payload.GetHashCode() : 0));
+                hash = AVThesis.Constants.HASH_FNV_PRIME * (hash ^ (State != null ? State.GetHashCode() : 0));
+                hash = AVThesis.Constants.HASH_FNV_PRIME * (hash ^ (Parent != null ? Parent.GetHashCode() : 0));
+                hash = AVThesis.Constants.HASH_FNV_PRIME * (hash ^ Score.GetHashCode());
+                hash = AVThesis.Constants.HASH_FNV_PRIME * (hash ^ Visits);
+                foreach (var child in Children) {
+                    hash = AVThesis.Constants.HASH_FNV_PRIME * (hash ^ child.GetHashCode());
+                }
+                return hash;
+            }
         }
 
         public override string ToString() {

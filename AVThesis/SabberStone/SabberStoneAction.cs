@@ -101,18 +101,27 @@ namespace AVThesis.SabberStone {
             return !Equals(left, right);
         }
 
-        /// <inheritdoc />
         public override bool Equals(object obj) {
+            if (obj is null) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
             return Equals((SabberStoneAction)obj);
         }
 
-        public bool Equals(SabberStoneAction otherAction) {
-            return otherAction != null && GetHashCode() == otherAction.GetHashCode();
+        public bool Equals(SabberStoneAction other) {
+            if (other is null) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return GetHashCode() == other.GetHashCode();
         }
 
         public override int GetHashCode() {
-            //TODO: calculate SSA hashcode better
-            return (Tasks != null ? Tasks.GetHashCode() : 0);
+            unchecked { // overflow is fine, the number just wraps
+                var hash = (int)Constants.HASH_OFFSET_BASIS;
+                foreach (var playerTask in Tasks) {
+                    hash = Constants.HASH_FNV_PRIME * (hash ^ playerTask.GetHashCode());
+                }
+                return hash;
+            }
         }
 
         /// <summary>
