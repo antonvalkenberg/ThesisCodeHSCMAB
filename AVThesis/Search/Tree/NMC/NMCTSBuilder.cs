@@ -24,6 +24,11 @@ namespace AVThesis.Search.Tree.NMC {
         public new IPlayoutStrategy<D, P, A, S, Sol> PlayoutStrategy { get; set; }
 
         /// <summary>
+        /// A strategy to sample actions during the Naïve Sampling process.
+        /// </summary>
+        public ISamplingStrategy<D, P, A, S, Sol> SamplingStrategy { get; set; }
+
+        /// <summary>
         /// A strategy for constructing a solution to the search.
         /// </summary>
         public ISolutionStrategy<D, P, A, S, Sol, TreeSearchNode<P, A>> SolutionStrategy { get; set; }
@@ -47,8 +52,9 @@ namespace AVThesis.Search.Tree.NMC {
 
         #region Constructors
 
-        public NMCTSBuilder(IPlayoutStrategy<D, P, A, S, Sol> playoutStrategy, ISolutionStrategy<D, P, A, S, Sol, TreeSearchNode<P, A>> solutionStrategy, double policyExploreExploit, double policyLocal, double policyGlobal) {
+        public NMCTSBuilder(IPlayoutStrategy<D, P, A, S, Sol> playoutStrategy, ISamplingStrategy<D, P, A, S, Sol> samplingStrategy, ISolutionStrategy<D, P, A, S, Sol, TreeSearchNode<P, A>> solutionStrategy, double policyExploreExploit, double policyLocal, double policyGlobal) {
             PlayoutStrategy = playoutStrategy;
+            SamplingStrategy = samplingStrategy;
             SolutionStrategy = solutionStrategy;
             PolicyExploreExploit = policyExploreExploit;
             PolicyLocal = policyLocal;
@@ -67,7 +73,7 @@ namespace AVThesis.Search.Tree.NMC {
         /// </summary>
         /// <returns>A new instance of <see cref="NMCTS{D, P, A, S, Sol}"/>.</returns>
         public override ISearchStrategy<D, P, A, S, Sol> Build() {
-            return new NMCTS<D, P, A, S, Sol>(SelectionStrategy, ExpansionStrategy, BackPropagationStrategy, FinalNodeSelectionStrategy, EvaluationStrategy, SolutionStrategy, PlayoutStrategy, Time, Iterations, PolicyExploreExploit, PolicyLocal, PolicyGlobal);
+            return new NMCTS<D, P, A, S, Sol>(SelectionStrategy, ExpansionStrategy, BackPropagationStrategy, FinalNodeSelectionStrategy, EvaluationStrategy, SolutionStrategy, SamplingStrategy, PlayoutStrategy, Time, Iterations, PolicyExploreExploit, PolicyLocal, PolicyGlobal);
         }
 
         #endregion

@@ -60,6 +60,11 @@ namespace AVThesis.Search.Tree.NMC {
         public IPlayoutStrategy<D, P, A, S, Sol> PlayoutStrategy { get; set; }
 
         /// <summary>
+        /// A strategy to sample actions during the Naïve Sampling process.
+        /// </summary>
+        public ISamplingStrategy<D, P, A, S, Sol> SamplingStrategy { get; set; }
+
+        /// <summary>
         /// 
         /// </summary>
         public double PolicyExploreExploit { get; set; }
@@ -83,11 +88,13 @@ namespace AVThesis.Search.Tree.NMC {
             ITreeBackPropagation<D, P, A, S, Sol> backPropagationStrategy,
             ITreeFinalNodeSelection<D, P, A, S, Sol> finalNodeSelectionStrategy,
             IStateEvaluation<D, P, A, S, Sol, TreeSearchNode<P, A>> evaluationStrategy,
-            ISolutionStrategy<D, P, A, S, Sol, TreeSearchNode<P, A>> solutionStrategy
-            , IPlayoutStrategy<D, P, A, S, Sol> playoutStrategy, long time, int iterations, double exploreExploitPolicy, double localPolicy, double globalPolicy) :
+            ISolutionStrategy<D, P, A, S, Sol, TreeSearchNode<P, A>> solutionStrategy,
+            ISamplingStrategy<D, P, A, S, Sol> samplingStrategy,
+            IPlayoutStrategy<D, P, A, S, Sol> playoutStrategy, long time, int iterations, double exploreExploitPolicy, double localPolicy, double globalPolicy) :
             base(selectionStrategy, expansionStrategy, backPropagationStrategy, finalNodeSelectionStrategy,
                 evaluationStrategy, solutionStrategy, time, iterations) {
             PlayoutStrategy = playoutStrategy;
+            SamplingStrategy = samplingStrategy;
             PolicyExploreExploit = exploreExploitPolicy;
             PolicyLocal = localPolicy;
             PolicyGlobal = globalPolicy;
@@ -189,8 +196,7 @@ namespace AVThesis.Search.Tree.NMC {
                 // Explore
                 
                 // Create an action according to policy p_1
-                //TODO: create policy p_1 for NMCTS
-                A action = null;
+                A action = SamplingStrategy.Sample(context);
                 // Evaluate the sampled action
                 P newState = apply.Apply(context, state, action);
                 double reward = EvaluationStrategy.Evaluate(context, node, newState);

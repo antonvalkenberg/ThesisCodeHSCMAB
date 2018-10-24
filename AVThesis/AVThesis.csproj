@@ -175,6 +175,7 @@
     <Compile Include="Search\Tree\ITreeSelection.cs" />
     <Compile Include="Search\Tree\MCTS\MCTS.cs" />
     <Compile Include="Search\Tree\MCTS\MCTSBuilder.cs" />
+    <Compile Include="Search\Tree\NMC\ISamplingStrategy.cs" />
     <Compile Include="Search\Tree\NMC\NMCTS.cs" />
     <Compile Include="Search\Tree\NMC\NMCTSBuilder.cs" />
     <Compile Include="Search\Tree\TreeSearch.cs" />
