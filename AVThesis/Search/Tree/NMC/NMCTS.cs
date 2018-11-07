@@ -55,6 +55,11 @@ namespace AVThesis.Search.Tree.NMC {
         #region Properties
 
         /// <summary>
+        /// A strategy used to determine whether to explore or exploit.
+        /// </summary>
+        public IExplorationStrategy<D, P, A, S, Sol> ExplorationStrategy { get; set; }
+
+        /// <summary>
         /// A strategy used during the Simulation phase of NMCTS.
         /// </summary>
         public IPlayoutStrategy<D, P, A, S, Sol> PlayoutStrategy { get; set; }
@@ -65,17 +70,7 @@ namespace AVThesis.Search.Tree.NMC {
         public ISamplingStrategy<D, P, A, S, Sol> SamplingStrategy { get; set; }
 
         /// <summary>
-        /// 
-        /// </summary>
-        public double PolicyExploreExploit { get; set; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public double PolicyLocal { get; set; }
-
-        /// <summary>
-        /// 
+        /// The policy for selecting an Action from the global Multi-Armed-Bandit.
         /// </summary>
         public double PolicyGlobal { get; set; }
 
@@ -83,20 +78,35 @@ namespace AVThesis.Search.Tree.NMC {
 
         #region Constructors
 
+        /// <summary>
+        /// Constructs a new instance.
+        /// </summary>
+        /// <param name="selectionStrategy">The selection strategy.</param>
+        /// <param name="expansionStrategy">The expansion strategy.</param>
+        /// <param name="backPropagationStrategy">The back propagation strategy.</param>
+        /// <param name="finalNodeSelectionStrategy">The final node selection strategy.</param>
+        /// <param name="evaluationStrategy">The state evaluation strategy.</param>
+        /// <param name="explorationStrategy">The exploration strategy.</param>
+        /// <param name="solutionStrategy">The solution strategy.</param>
+        /// <param name="samplingStrategy">The sampling strategy.</param>
+        /// <param name="playoutStrategy">The playout strategy.</param>
+        /// <param name="time">The amount of time allowed for the search.</param>
+        /// <param name="iterations">The amount of iterations allowed for the search.</param>
+        /// <param name="globalPolicy">The global policy.</param>
         public NMCTS(ITreeSelection<D, P, A, S, Sol> selectionStrategy,
             ITreeExpansion<D, P, A, S, Sol> expansionStrategy,
             ITreeBackPropagation<D, P, A, S, Sol> backPropagationStrategy,
             ITreeFinalNodeSelection<D, P, A, S, Sol> finalNodeSelectionStrategy,
             IStateEvaluation<D, P, A, S, Sol, TreeSearchNode<P, A>> evaluationStrategy,
+            IExplorationStrategy<D, P, A, S, Sol> explorationStrategy,
             ISolutionStrategy<D, P, A, S, Sol, TreeSearchNode<P, A>> solutionStrategy,
             ISamplingStrategy<D, P, A, S, Sol> samplingStrategy,
-            IPlayoutStrategy<D, P, A, S, Sol> playoutStrategy, long time, int iterations, double exploreExploitPolicy, double localPolicy, double globalPolicy) :
+            IPlayoutStrategy<D, P, A, S, Sol> playoutStrategy, long time, int iterations, double globalPolicy) :
             base(selectionStrategy, expansionStrategy, backPropagationStrategy, finalNodeSelectionStrategy,
                 evaluationStrategy, solutionStrategy, time, iterations) {
-            PlayoutStrategy = playoutStrategy;
+            ExplorationStrategy = explorationStrategy;
             SamplingStrategy = samplingStrategy;
-            PolicyExploreExploit = exploreExploitPolicy;
-            PolicyLocal = localPolicy;
+            PlayoutStrategy = playoutStrategy;
             PolicyGlobal = globalPolicy;
         }
 
@@ -112,6 +122,10 @@ namespace AVThesis.Search.Tree.NMC {
             return new NMCTSBuilder<D, P, A, S, Sol>();
         }
 
+        /// <summary>
+        /// Perform the search. Note: should set the Solution in the SearchContext and update its Status.
+        /// </summary>
+        /// <param name="context">The context within which the search happens.</param>
         public override void Search(SearchContext<D, P, A, S, Sol> context) {
 
             var clone = context.Cloner;
@@ -154,6 +168,13 @@ namespace AVThesis.Search.Tree.NMC {
 
         #region Private Methods
 
+        /// <summary>
+        /// Selects an Action by using the NaïveSampling method and expands the tree with this action if it is not already present.
+        /// </summary>
+        /// <param name="context">The current search context.</param>
+        /// <param name="node">The node from which to expand the tree.</param>
+        /// <param name="gMAB">The global Multi-Armed-Bandit collection.</param>
+        /// <returns>A <see cref="TreeSearchNode{S,A}"/> from which represents the selected node for the Simulation phase.</returns>
         private TreeSearchNode<P, A> NaïveSelectAndExpand(SearchContext<D, P, A, S, Sol> context, TreeSearchNode<P, A> node, Dictionary<P, List<LocalArm>> gMAB) {
             var clone = context.Cloner;
             var state = clone.Clone(node.State);
@@ -179,6 +200,14 @@ namespace AVThesis.Search.Tree.NMC {
             return newNode;
         }
 
+        /// <summary>
+        /// Uses the local Multi-Armed-Bandits to explore the action space and uses the global Multi-Armed-Bandit to exploit the best performing actions.
+        /// </summary>
+        /// <param name="context">The current search context.</param>
+        /// <param name="node">The node in the search tree that is currently selected.</param>
+        /// <param name="state">The game state for the node.</param>
+        /// <param name="gMAB">The global Multi-Armed-Bandit.</param>
+        /// <returns>An <see cref="A"/> that was selected from the global Multi-Armed-Bandit.</returns>
         private A NaïveSampling(SearchContext<D, P, A, S, Sol> context, TreeSearchNode<P, A> node, P state, Dictionary<P, List<LocalArm>> gMAB) {
             var apply = context.Application;
             if (!gMAB.ContainsKey(state))
@@ -192,7 +221,7 @@ namespace AVThesis.Search.Tree.NMC {
             //      x_1...x_n is sampled by using a policy p_g to select a value combination using MAB_g.
 
             // Can only exploit if there is anything to exploit in the first place
-            if (gMAB[state].IsNullOrEmpty() || _rng.NextDouble() <= PolicyExploreExploit) {
+            if (gMAB[state].IsNullOrEmpty() || ExplorationStrategy.Policy(context, 0)) {
                 // Explore
                 
                 // Create an action according to policy p_1

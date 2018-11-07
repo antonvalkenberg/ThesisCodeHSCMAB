@@ -1,4 +1,5 @@
-﻿using AVThesis.Game;
+﻿using AVThesis.Agent;
+using AVThesis.Game;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -19,6 +20,11 @@ namespace AVThesis.Search.Tree.NMC {
         #region Properties
 
         /// <summary>
+        /// A strategy used to determine whether to explore or exploit.
+        /// </summary>
+        public IExplorationStrategy<D, P, A, S, Sol> ExplorationStrategy { get; set; }
+
+        /// <summary>
         /// A strategy used during the Simulation phase of NMCTS.
         /// </summary>
         public new IPlayoutStrategy<D, P, A, S, Sol> PlayoutStrategy { get; set; }
@@ -34,17 +40,7 @@ namespace AVThesis.Search.Tree.NMC {
         public ISolutionStrategy<D, P, A, S, Sol, TreeSearchNode<P, A>> SolutionStrategy { get; set; }
 
         /// <summary>
-        /// 
-        /// </summary>
-        public double PolicyExploreExploit { get; set; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public double PolicyLocal { get; set; }
-
-        /// <summary>
-        /// 
+        /// The policy for selecting an Action from the global Multi-Armed-Bandit.
         /// </summary>
         public double PolicyGlobal { get; set; }
 
@@ -52,16 +48,29 @@ namespace AVThesis.Search.Tree.NMC {
 
         #region Constructors
 
-        public NMCTSBuilder(IPlayoutStrategy<D, P, A, S, Sol> playoutStrategy, ISamplingStrategy<D, P, A, S, Sol> samplingStrategy, ISolutionStrategy<D, P, A, S, Sol, TreeSearchNode<P, A>> solutionStrategy, double policyExploreExploit, double policyLocal, double policyGlobal) {
+        /// <summary>
+        /// Constructs a new instance.
+        /// </summary>
+        /// <param name="explorationStrategy">The exploration strategy.</param>
+        /// <param name="playoutStrategy">The playout strategy.</param>
+        /// <param name="samplingStrategy">The sampling strategy.</param>
+        /// <param name="solutionStrategy">The solution strategy.</param>
+        /// <param name="policyGlobal">The global policy.</param>
+        public NMCTSBuilder(IExplorationStrategy<D, P, A, S, Sol> explorationStrategy, IPlayoutStrategy<D, P, A, S, Sol> playoutStrategy, ISamplingStrategy<D, P, A, S, Sol> samplingStrategy, ISolutionStrategy<D, P, A, S, Sol, TreeSearchNode<P, A>> solutionStrategy, double policyGlobal) {
+            ExplorationStrategy = explorationStrategy;
             PlayoutStrategy = playoutStrategy;
             SamplingStrategy = samplingStrategy;
             SolutionStrategy = solutionStrategy;
-            PolicyExploreExploit = policyExploreExploit;
-            PolicyLocal = policyLocal;
             PolicyGlobal = policyGlobal;
         }
 
+        /// <summary>
+        /// Constructs a new instance.
+        /// </summary>
         public NMCTSBuilder() {
+            ExplorationStrategy = new ChanceExploration<D, P, A, S, Sol>(Constants.DEFAULT_EXPLORE_CHANCE);
+            PlayoutStrategy = new AgentPlayout<D, P, A, S, Sol>(new RandomAgent<D, P, A, S, Sol>());
+            PolicyGlobal = 0; // pure-greedy, i.e. e-greedy with e=0
         }
 
         #endregion
@@ -73,7 +82,7 @@ namespace AVThesis.Search.Tree.NMC {
         /// </summary>
         /// <returns>A new instance of <see cref="NMCTS{D, P, A, S, Sol}"/>.</returns>
         public override ISearchStrategy<D, P, A, S, Sol> Build() {
-            return new NMCTS<D, P, A, S, Sol>(SelectionStrategy, ExpansionStrategy, BackPropagationStrategy, FinalNodeSelectionStrategy, EvaluationStrategy, SolutionStrategy, SamplingStrategy, PlayoutStrategy, Time, Iterations, PolicyExploreExploit, PolicyLocal, PolicyGlobal);
+            return new NMCTS<D, P, A, S, Sol>(SelectionStrategy, ExpansionStrategy, BackPropagationStrategy, FinalNodeSelectionStrategy, EvaluationStrategy, ExplorationStrategy, SolutionStrategy, SamplingStrategy, PlayoutStrategy, Time, Iterations, PolicyGlobal);
         }
 
         #endregion

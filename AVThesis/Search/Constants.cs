@@ -19,6 +19,11 @@ namespace AVThesis.Search {
         /// </summary>
         public const int NO_LIMIT_ON_THINKING_TIME = -1;
 
+        /// <summary>
+        /// The default chance to explore vesus exploit.
+        /// </summary>
+        public const double DEFAULT_EXPLORE_CHANCE = 0.5;
+
     }
 
 }

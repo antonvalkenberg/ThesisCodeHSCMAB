@@ -159,6 +159,7 @@
     <Compile Include="Search\ICloneStrategy.cs" />
     <Compile Include="Search\IEvaluationStrategy.cs" />
     <Compile Include="Search\IExpansionStrategy.cs" />
+    <Compile Include="Search\IExplorationStrategy.cs" />
     <Compile Include="Search\IGoalStrategy.cs" />
     <Compile Include="Search\INodeEvaluation.cs" />
     <Compile Include="Search\IPlayoutStrategy.cs" />
@@ -173,6 +174,8 @@
     <Compile Include="Search\Tree\ITreeExpansion.cs" />
     <Compile Include="Search\Tree\ITreeFinalNodeSelection.cs" />
     <Compile Include="Search\Tree\ITreeSelection.cs" />
+    <Compile Include="Search\Tree\MCTS\FlatMCS.cs" />
+    <Compile Include="Search\Tree\MCTS\FlatMCSBuilder.cs" />
     <Compile Include="Search\Tree\MCTS\MCTS.cs" />
     <Compile Include="Search\Tree\MCTS\MCTSBuilder.cs" />
     <Compile Include="Search\Tree\NMC\ISamplingStrategy.cs" />

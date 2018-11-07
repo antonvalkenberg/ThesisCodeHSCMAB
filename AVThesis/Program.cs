@@ -11,9 +11,9 @@ using AVThesis.Datastructures;
 /// </summary>
 namespace AVThesis {
 
-    class Program {
+    public class Program {
 
-				static void Main(string[] args) {
+		public static void Main(string[] args) {
             //RunTournamentMatch();
             //RunQuickMatch();
 

@@ -8,21 +8,26 @@ using AVThesis.Game;
 namespace AVThesis.Search.Tree.MCTS {
 
     /// <summary>
-    /// Monte Carlo Tree Search.
+    /// Flat Monte Carlo Search.
     /// </summary>
     /// <typeparam name="D"><see cref="SearchContext{D}"/></typeparam>
     /// <typeparam name="P"><see cref="SearchContext{P}"/></typeparam>
     /// <typeparam name="A"><see cref="SearchContext{A}"/></typeparam>
     /// <typeparam name="S"><see cref="SearchContext{S}"/></typeparam>
     /// <typeparam name="Sol"><see cref="SearchContext{Sol}"/></typeparam>
-    public class MCTS<D, P, A, S, Sol> : TreeSearch<D, P, A, S, Sol> where D : class where P : State where A : class, IMove where S : class where Sol : class {
+    public class FlatMCS<D, P, A, S, Sol> : TreeSearch<D, P, A, S, Sol> where D : class where P : State where A : class, IMove where S : class where Sol : class {
 
         #region Properties
 
         /// <summary>
-        /// A strategy used during the Simulation phase of MCTS.
+        /// A strategy used during the Simulation phase of FlatMCS.
         /// </summary>
         public IPlayoutStrategy<D, P, A, S, Sol> PlayoutStrategy { get; set; }
+
+        /// <summary>
+        /// A strategy used to determine if the search should explore or exploit.
+        /// </summary>
+        public IExplorationStrategy<D, P, A, S, Sol> ExplorationStrategy { get; set; }
 
         #endregion
 
@@ -38,10 +43,21 @@ namespace AVThesis.Search.Tree.MCTS {
         /// <param name="evaluationStrategy">The state evaluation strategy.</param>
         /// <param name="solutionStrategy">The solution strategy.</param>
         /// <param name="playoutStrategy">The playout strategy.</param>
+        /// <param name="explorationStrategy">The exploration strategy.</param>
         /// <param name="time">The amount of time allowed for the search.</param>
         /// <param name="iterations">The amount of iterations allowed for the search.</param>
-        public MCTS(ITreeSelection<D, P, A, S, Sol> selectionStrategy, ITreeExpansion<D, P, A, S, Sol> expansionStrategy, ITreeBackPropagation<D, P, A, S, Sol> backPropagationStrategy, ITreeFinalNodeSelection<D, P, A, S, Sol> finalNodeSelectionStrategy, IStateEvaluation<D, P, A, S, Sol, TreeSearchNode<P, A>> evaluationStrategy, ISolutionStrategy<D, P, A, S, Sol, TreeSearchNode<P, A>> solutionStrategy, IPlayoutStrategy<D, P, A, S, Sol> playoutStrategy, long time, int iterations) : base(selectionStrategy, expansionStrategy, backPropagationStrategy, finalNodeSelectionStrategy, evaluationStrategy, solutionStrategy, time, iterations) {
+        public FlatMCS(ITreeSelection<D, P, A, S, Sol> selectionStrategy,
+            ITreeExpansion<D, P, A, S, Sol> expansionStrategy,
+            ITreeBackPropagation<D, P, A, S, Sol> backPropagationStrategy,
+            ITreeFinalNodeSelection<D, P, A, S, Sol> finalNodeSelectionStrategy,
+            IStateEvaluation<D, P, A, S, Sol, TreeSearchNode<P, A>> evaluationStrategy,
+            ISolutionStrategy<D, P, A, S, Sol, TreeSearchNode<P, A>> solutionStrategy,
+            IPlayoutStrategy<D, P, A, S, Sol> playoutStrategy,
+            IExplorationStrategy<D, P, A, S, Sol> explorationStrategy, long time, int iterations) : base(
+            selectionStrategy, expansionStrategy, backPropagationStrategy, finalNodeSelectionStrategy,
+            evaluationStrategy, solutionStrategy, time, iterations) {
             PlayoutStrategy = playoutStrategy;
+            ExplorationStrategy = explorationStrategy;
         }
 
         #endregion
@@ -49,11 +65,11 @@ namespace AVThesis.Search.Tree.MCTS {
         #region Public Methods
 
         /// <summary>
-        /// Creates a new builder.
+        /// Creates a new Builder.
         /// </summary>
-        /// <returns>Builder.</returns>
-        public static MCTSBuilder<D, P, A, S, Sol> Builder() {
-            return new MCTSBuilder<D, P, A, S, Sol>();
+        /// <returns>A <see cref="FlatMCSBuilder{D,P,A,S,Sol}"/> used to build a Flat Monte-Carlo Search.</returns>
+        public static FlatMCSBuilder<D, P, A, S, Sol> Builder() {
+            return new FlatMCSBuilder<D, P, A, S, Sol>();
         }
 
         /// <summary>
@@ -65,7 +81,6 @@ namespace AVThesis.Search.Tree.MCTS {
             var clone = context.Cloner;
             var rootState = context.Source;
             var apply = context.Application;
-            var goal = context.Goal;
 
             DateTime endTime = DateTime.Now.AddMilliseconds(Time);
             int it = 0;
@@ -77,32 +92,29 @@ namespace AVThesis.Search.Tree.MCTS {
                 context.StartNode = root;
             }
 
-            while ((Time == Constants.NO_LIMIT_ON_THINKING_TIME || DateTime.Now < endTime) && (Iterations == Constants.NO_LIMIT_ON_ITERATIONS || it < Iterations)) {
+            while ((Time == Constants.NO_LIMIT_ON_THINKING_TIME || DateTime.Now < endTime) &&
+                   (Iterations == Constants.NO_LIMIT_ON_ITERATIONS || it < Iterations)) {
 
                 it++;
 
                 P worldState = clone.Clone(rootState);
-
-                // Selection
-                bool done = false;
                 TreeSearchNode<P, A> target = root;
-                while(!(done = goal.Done(context, worldState)) && target.IsFullyExpanded()) {
-                    target = SelectionStrategy.SelectNextNode(context, target);
-                    worldState = apply.Apply(context, worldState, target.Payload);
+
+                // Check if we have to expand
+                bool forceExpansion = root.Children.Count == 0;
+                if (forceExpansion || ExplorationStrategy.Policy(context, it)) {
+                    target = ExpansionStrategy.Expand(context, root, worldState);
                 }
 
-                // Expansion
-                P endState = worldState;
-                if (!done) {
-                    var result = ExpansionStrategy.Expand(context, target, endState);
-                    if (result != target) {
-                        endState = apply.Apply(context, endState, result.Payload);
-                        target = result;
-                    }
-
-                    // Simulation
-                    endState = PlayoutStrategy.Playout(context, endState);
+                // Select a node
+                if (target == null || target == root) {
+                    target = SelectionStrategy.SelectNextNode(context, root);
                 }
+
+                // Apply action in selected node
+                worldState = apply.Apply(context, worldState, target.Payload);
+                // Simulate
+                var endState = PlayoutStrategy.Playout(context, worldState);
 
                 // Backpropagation
                 BackPropagationStrategy.BackPropagate(context, EvaluationStrategy, target, endState);
@@ -117,5 +129,4 @@ namespace AVThesis.Search.Tree.MCTS {
         #endregion
 
     }
-
 }
