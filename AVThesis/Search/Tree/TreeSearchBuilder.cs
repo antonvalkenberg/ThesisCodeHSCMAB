@@ -104,5 +104,6 @@ namespace AVThesis.Search.Tree {
         public abstract ISearchStrategy<D, P, A, S, Sol> Build();
 
         #endregion
+
     }
 }

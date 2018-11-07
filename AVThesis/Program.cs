@@ -16,6 +16,7 @@ namespace AVThesis {
 		public static void Main(string[] args) {
             //RunTournamentMatch();
             //RunQuickMatch();
+            RunTicTacToeTest();
 
             string catcher = null;
         }
@@ -119,7 +120,8 @@ namespace AVThesis {
         public static void RunTicTacToeTest() {
             var test = new Test.TicTacToeSearchTest();
             test.Setup();
-            test.TestMCTS();
+            //test.TestMCTS();
+            test.TestFlatMCS();
         }
 
     }

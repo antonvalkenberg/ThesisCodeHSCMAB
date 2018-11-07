@@ -17,11 +17,6 @@ namespace AVThesis.Search.Tree.MCTS {
         public new IPlayoutStrategy<D, P, A, S, Sol> PlayoutStrategy { get; set; }
 
         /// <summary>
-        /// A strategy used to determine if the search should explore or exploit.
-        /// </summary>
-        public IExplorationStrategy<D, P, A, S, Sol> ExplorationStrategy { get; set; }
-
-        /// <summary>
         /// A strategy for constructing a solution to the search.
         /// </summary>
         public ISolutionStrategy<D, P, A, S, Sol, TreeSearchNode<P, A>> SolutionStrategy { get; set; }
@@ -34,11 +29,9 @@ namespace AVThesis.Search.Tree.MCTS {
         /// Constructs a new instance.
         /// </summary>
         /// <param name="playoutStrategy">The playout strategy.</param>
-        /// <param name="explorationStrategy">The exploration strategy.</param>
         /// <param name="solutionStrategy">The solution strategy.</param>
-        public FlatMCSBuilder(IPlayoutStrategy<D, P, A, S, Sol> playoutStrategy, IExplorationStrategy<D, P, A, S, Sol> explorationStrategy, ISolutionStrategy<D, P, A, S, Sol, TreeSearchNode<P, A>> solutionStrategy) {
+        public FlatMCSBuilder(IPlayoutStrategy<D, P, A, S, Sol> playoutStrategy, ISolutionStrategy<D, P, A, S, Sol, TreeSearchNode<P, A>> solutionStrategy) {
             PlayoutStrategy = playoutStrategy;
-            ExplorationStrategy = explorationStrategy;
             SolutionStrategy = solutionStrategy;
         }
 
@@ -47,7 +40,6 @@ namespace AVThesis.Search.Tree.MCTS {
         /// </summary>
         public FlatMCSBuilder() {
             PlayoutStrategy = new AgentPlayout<D, P, A, S, Sol>(new RandomAgent<D, P, A, S, Sol>());
-            ExplorationStrategy = new ChanceExploration<D, P, A, S, Sol>(Constants.DEFAULT_EXPLORE_CHANCE);
         }
 
         #endregion
@@ -59,7 +51,7 @@ namespace AVThesis.Search.Tree.MCTS {
         /// </summary>
         /// <returns>A new instance of <see cref="FlatMCS{D,P,A,S,Sol}"/>.</returns>
         public override ISearchStrategy<D, P, A, S, Sol> Build() {
-            return new FlatMCS<D, P, A, S, Sol>(SelectionStrategy, ExpansionStrategy, BackPropagationStrategy, FinalNodeSelectionStrategy, EvaluationStrategy, SolutionStrategy, PlayoutStrategy, ExplorationStrategy, Time, Iterations);
+            return new FlatMCS<D, P, A, S, Sol>(SelectionStrategy, ExpansionStrategy, BackPropagationStrategy, FinalNodeSelectionStrategy, EvaluationStrategy, SolutionStrategy, PlayoutStrategy, Time, Iterations);
         }
 
         #endregion

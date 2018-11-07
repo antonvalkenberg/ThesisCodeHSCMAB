@@ -1,4 +1,5 @@
-﻿using AVThesis.Game;
+﻿using System;
+using AVThesis.Game;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -6,13 +7,10 @@
 /// </summary>
 namespace AVThesis.Test {
 
-    public class TicTacToeMove : IMove {
+    public class TicTacToeMove : IMove, IEquatable<TicTacToeMove> {
 
-        private int _positionToPlace;
-        private int _playerID;
-
-        public int PositionToPlace { get => _positionToPlace; set => _positionToPlace = value; }
-        public int PlayerID { get => _playerID; set => _playerID = value; }
+        public int PositionToPlace { get; set; }
+        public int PlayerID { get; set; }
 
         public TicTacToeMove(int positionToPlace, int playerID) {
             PositionToPlace = positionToPlace;
@@ -21,6 +19,36 @@ namespace AVThesis.Test {
 
         public int Player() {
             return PlayerID;
+        }
+
+        public static bool operator ==(TicTacToeMove left, TicTacToeMove right) {
+            return Equals(left, right);
+        }
+
+        public static bool operator !=(TicTacToeMove left, TicTacToeMove right) {
+            return !Equals(left, right);
+        }
+
+        public bool Equals(TicTacToeMove other) {
+            if (other is null) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return GetHashCode() == other.GetHashCode();
+        }
+
+        public override bool Equals(object obj) {
+            if (obj is null) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((TicTacToeMove)obj);
+        }
+
+        public override int GetHashCode() {
+            unchecked { // overflow is fine, the number just wraps
+                var hash = (int)Constants.HASH_OFFSET_BASIS;
+                hash = Constants.HASH_FNV_PRIME * (hash ^ PositionToPlace);
+                hash = Constants.HASH_FNV_PRIME * (hash ^ (PlayerID + 1));
+                return hash;
+            }
         }
 
         public override string ToString() {

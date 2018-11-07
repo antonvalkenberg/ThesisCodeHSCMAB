@@ -231,7 +231,6 @@ namespace AVThesis.Search {
                 var hash = (int) AVThesis.Constants.HASH_OFFSET_BASIS;
                 hash = AVThesis.Constants.HASH_FNV_PRIME * (hash ^ (Payload != null ? Payload.GetHashCode() : 0));
                 hash = AVThesis.Constants.HASH_FNV_PRIME * (hash ^ (State != null ? State.GetHashCode() : 0));
-                hash = AVThesis.Constants.HASH_FNV_PRIME * (hash ^ (Parent != null ? Parent.GetHashCode() : 0));
                 hash = AVThesis.Constants.HASH_FNV_PRIME * (hash ^ Score.GetHashCode());
                 foreach (var child in Children) {
                     hash = AVThesis.Constants.HASH_FNV_PRIME * (hash ^ child.GetHashCode());

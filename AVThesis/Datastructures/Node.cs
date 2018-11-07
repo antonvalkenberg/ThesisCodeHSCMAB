@@ -176,7 +176,6 @@ namespace AVThesis.Datastructures {
             unchecked { // overflow is fine, the number just wraps
                 var hash = (int)Constants.HASH_OFFSET_BASIS;
                 hash = Constants.HASH_FNV_PRIME * (hash ^ (Payload != null ? Payload.GetHashCode() : 0));
-                hash = Constants.HASH_FNV_PRIME * (hash ^ (Parent != null ? Parent.GetHashCode() : 0));
                 foreach (var child in Children) {
                     hash = Constants.HASH_FNV_PRIME * (hash ^ child.GetHashCode());
                 }

@@ -24,11 +24,6 @@ namespace AVThesis.Search.Tree.MCTS {
         /// </summary>
         public IPlayoutStrategy<D, P, A, S, Sol> PlayoutStrategy { get; set; }
 
-        /// <summary>
-        /// A strategy used to determine if the search should explore or exploit.
-        /// </summary>
-        public IExplorationStrategy<D, P, A, S, Sol> ExplorationStrategy { get; set; }
-
         #endregion
 
         #region Constructors
@@ -43,7 +38,6 @@ namespace AVThesis.Search.Tree.MCTS {
         /// <param name="evaluationStrategy">The state evaluation strategy.</param>
         /// <param name="solutionStrategy">The solution strategy.</param>
         /// <param name="playoutStrategy">The playout strategy.</param>
-        /// <param name="explorationStrategy">The exploration strategy.</param>
         /// <param name="time">The amount of time allowed for the search.</param>
         /// <param name="iterations">The amount of iterations allowed for the search.</param>
         public FlatMCS(ITreeSelection<D, P, A, S, Sol> selectionStrategy,
@@ -52,12 +46,10 @@ namespace AVThesis.Search.Tree.MCTS {
             ITreeFinalNodeSelection<D, P, A, S, Sol> finalNodeSelectionStrategy,
             IStateEvaluation<D, P, A, S, Sol, TreeSearchNode<P, A>> evaluationStrategy,
             ISolutionStrategy<D, P, A, S, Sol, TreeSearchNode<P, A>> solutionStrategy,
-            IPlayoutStrategy<D, P, A, S, Sol> playoutStrategy,
-            IExplorationStrategy<D, P, A, S, Sol> explorationStrategy, long time, int iterations) : base(
+            IPlayoutStrategy<D, P, A, S, Sol> playoutStrategy, long time, int iterations) : base(
             selectionStrategy, expansionStrategy, backPropagationStrategy, finalNodeSelectionStrategy,
             evaluationStrategy, solutionStrategy, time, iterations) {
             PlayoutStrategy = playoutStrategy;
-            ExplorationStrategy = explorationStrategy;
         }
 
         #endregion
@@ -101,8 +93,7 @@ namespace AVThesis.Search.Tree.MCTS {
                 TreeSearchNode<P, A> target = root;
 
                 // Check if we have to expand
-                bool forceExpansion = root.Children.Count == 0;
-                if (forceExpansion || ExplorationStrategy.Policy(context, it)) {
+                if (root.Children.Count == 0) {
                     target = ExpansionStrategy.Expand(context, root, worldState);
                 }
 

@@ -40,13 +40,24 @@ namespace AVThesis.Test {
 
         #region Public Methods
 
+        public void TestFlatMCS() {
+            // Search setup
+            var builder = FlatMCS<D, P, A, S, A>.Builder();
+            builder.Iterations = 1000;
+            builder.PlayoutStrategy = new AgentPlayout<D, P, A, S, A>(Agent);
+            builder.SolutionStrategy = new ActionSolution<D, P, A, S, A, TreeSearchNode<P, A>>();
+
+            // Test if the AI finds the correct solution.
+            TestAI(SearchContext<D, P, A, S, A>.GameSearchSetup(GameLogic, null, State, null, builder.Build()));
+        }
+
         public void TestMCTS() {
             // Search setup
             var builder = MCTS<D, P, A, S, A>.Builder();
             builder.ExpansionStrategy = new MinimumTExpansion<D, P, A, S, A>(5);
             builder.Iterations = 1000;
-            builder.SolutionStrategy = new ActionSolution<D, P, A, S, A, TreeSearchNode<P, A>>();
             builder.PlayoutStrategy = new AgentPlayout<D, P, A, S, A>(Agent);
+            builder.SolutionStrategy = new ActionSolution<D, P, A, S, A, TreeSearchNode<P, A>>();
 
             // Test if the AI finds the correct solution.
             TestAI(SearchContext<D, P, A, S, A>.GameSearchSetup(GameLogic, null, State, null, builder.Build()));
