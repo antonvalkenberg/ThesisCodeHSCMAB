@@ -10,16 +10,16 @@ namespace AVThesis.Search {
     /// A way to evaluate a Node.
     /// </summary>
     /// <typeparam name="N">The Type of Node that is to be evaluated.</typeparam>
-		public interface INodeEvaluation<N> {
+    public interface INodeEvaluation<N> {
 
         /// <summary>
         /// Returns the score associated with the argument node.
         /// </summary>
         /// <param name="node">The node to score.</param>
         /// <returns>Double representing the score associated with the argument node.</returns>
-				double Score(N node);
+        double Score(N node);
 
-		}
+    }
 
     /// <summary>
     /// Provides a way to evaluate a <see cref="TreeSearchNode{S, A}"/> by using its UCB (Upper Confidence Bounds) value.

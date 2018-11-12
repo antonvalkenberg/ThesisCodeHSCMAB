@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using AVThesis.Agent;
 using AVThesis.Game;
 using AVThesis.Search;
@@ -43,8 +44,10 @@ namespace AVThesis.Test {
         public void TestFlatMCS() {
             // Search setup
             var builder = FlatMCS<D, P, A, S, A>.Builder();
-            builder.Iterations = 1000;
+            builder.EvaluationStrategy = new WinLossDrawStateEvaluation<D, P, A, S, A, TreeSearchNode<P, A>>(1, -10, 0);
+            builder.Iterations = 10000;
             builder.PlayoutStrategy = new AgentPlayout<D, P, A, S, A>(Agent);
+            builder.SelectionStrategy = new BestNodeSelection<D, P, A, S, A>(1000, new ScoreUCB<P, A>(1 / Math.Sqrt(2)));
             builder.SolutionStrategy = new ActionSolution<D, P, A, S, A, TreeSearchNode<P, A>>();
 
             // Test if the AI finds the correct solution.

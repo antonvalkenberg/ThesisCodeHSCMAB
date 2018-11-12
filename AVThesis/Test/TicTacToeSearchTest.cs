@@ -23,7 +23,7 @@ namespace AVThesis.Test {
         public override void TestAI(SearchContext<object, TicTacToeState, TicTacToeMove, object, TicTacToeMove> context) {
 
             // On an empty board the game should be a draw.
-            // (first player should play a corner position and second player should force the draw by playing middle followed by any edge)
+            // (first player should play a corner position and second player should force the draw by playing middle)
             var source = new TicTacToeState();
 
             context.Reset();
@@ -31,11 +31,12 @@ namespace AVThesis.Test {
 
             var result = PlayGame(context);
 
-            Debug.WriteLine(string.Format("Game won by player {0}, should be {1}.", result.PlayerWon, -1));
-            Debug.WriteLine(string.Format("Result: \r\n{0}", result));
+            Debug.WriteLine($"Game won by player {result.PlayerWon}, should be {-1}.");
+            Debug.WriteLine($"Result: \r\n{result}");
             Debug.WriteLine("");
 
             // If the first player plays the middle position, the game is a draw.
+            // (second player should play a corner position)
             source = new TicTacToeState("----X----");
             source.EndTurn();
 
@@ -44,11 +45,12 @@ namespace AVThesis.Test {
 
             result = PlayGame(context);
 
-            Debug.WriteLine(string.Format("Game won by player {0}, should be {1}.", result.PlayerWon, -1));
-            Debug.WriteLine(string.Format("Result: \r\n{0}", result));
+            Debug.WriteLine($"Game won by player {result.PlayerWon}, should be {-1}.");
+            Debug.WriteLine($"Result: \r\n{result}");
             Debug.WriteLine("");
 
             // If the first player plays an edge position, the game is a draw.
+            // (second player should play a corner position)
             source = new TicTacToeState("---X-----");
             source.EndTurn();
 
@@ -57,8 +59,8 @@ namespace AVThesis.Test {
 
             result = PlayGame(context);
 
-            Debug.WriteLine(string.Format("Game won by player {0}, should be {1}.", result.PlayerWon, -1));
-            Debug.WriteLine(string.Format("Result: \r\n{0}", result));
+            Debug.WriteLine($"Game won by player {result.PlayerWon}, should be {-1}.");
+            Debug.WriteLine($"Result: \r\n{result}");
             Debug.WriteLine("");
         }
 

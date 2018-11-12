@@ -52,6 +52,29 @@ namespace AVThesis.Test {
         public TicTacToeMove Act(SearchContext<object, TicTacToeState, TicTacToeMove, object, TicTacToeMove> context, TicTacToeState state) {
             List<int> possibilities = TicTacToeMoveGenerator.AllEmptyPositions(state);
 
+            // Check for own winning moves
+            var myID = state.ActivePlayerID;
+            foreach (var possibility in possibilities) {
+                var testMove = new TicTacToeMove(possibility, myID);
+                var clone = (TicTacToeState) state.Copy();
+                clone = Apply(null, clone, testMove);
+                if (clone.Done && clone.PlayerWon == myID)
+                    return testMove;
+            }
+
+            // Check for opponent's winning moves
+            var oppID = myID == TicTacToeState.PLAYER_ONE_ID
+                ? TicTacToeState.PLAYER_ONE_ID
+                : TicTacToeState.PLAYER_TWO_ID;
+            foreach (var possibility in possibilities) {
+                var testMove = new TicTacToeMove(possibility, oppID);
+                var clone = (TicTacToeState)state.Copy();
+                clone = Apply(null, clone, testMove);
+                if (clone.Done && clone.PlayerWon == oppID)
+                    return new TicTacToeMove(possibility, myID);
+            }
+
+            // Otherwise, act random
             int index = new System.Random().Next(possibilities.Count);
             int randomPosition = possibilities.ToArray()[index];
 

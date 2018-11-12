@@ -93,7 +93,7 @@ namespace AVThesis.Search.Tree.MCTS {
                 TreeSearchNode<P, A> target = root;
 
                 // Check if we have to expand
-                if (root.Children.Count == 0) {
+                if (!target.IsFullyExpanded()) {
                     target = ExpansionStrategy.Expand(context, root, worldState);
                 }
 

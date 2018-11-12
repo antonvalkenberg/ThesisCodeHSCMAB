@@ -120,8 +120,8 @@ namespace AVThesis {
         public static void RunTicTacToeTest() {
             var test = new Test.TicTacToeSearchTest();
             test.Setup();
-            //test.TestMCTS();
-            test.TestFlatMCS();
+            //test.TestFlatMCS();
+            test.TestMCTS();
         }
 
     }
