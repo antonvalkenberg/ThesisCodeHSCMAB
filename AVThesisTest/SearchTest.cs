@@ -5,6 +5,7 @@ using AVThesis.Game;
 using AVThesis.Search;
 using AVThesis.Search.Tree;
 using AVThesis.Search.Tree.MCTS;
+using AVThesis.Search.Tree.NMC;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -58,8 +59,22 @@ namespace AVThesis.Test {
             // Search setup
             var builder = MCTS<D, P, A, S, A>.Builder();
             builder.ExpansionStrategy = new MinimumTExpansion<D, P, A, S, A>(5);
-            builder.Iterations = 1000;
+            builder.Iterations = 10000;
             builder.PlayoutStrategy = new AgentPlayout<D, P, A, S, A>(Agent);
+            builder.SolutionStrategy = new ActionSolution<D, P, A, S, A, TreeSearchNode<P, A>>();
+
+            // Test if the AI finds the correct solution.
+            TestAI(SearchContext<D, P, A, S, A>.GameSearchSetup(GameLogic, null, State, null, builder.Build()));
+        }
+
+        public void TestNMCTS() {
+            // Search setup
+            var builder = NMCTS<D, P, A, S, A>.Builder();
+            builder.ExplorationStrategy = new ChanceExploration<D, P, A, S, A>(0.5);
+            builder.Iterations = 10000;
+            builder.PlayoutStrategy = new AgentPlayout<D, P, A, S, A>(Agent);
+            builder.PolicyGlobal = 0;
+            builder.SamplingStrategy = (ISamplingStrategy<P, A>) new TicTacToeGameLogic.RandomTicTacToeMoveSampler();
             builder.SolutionStrategy = new ActionSolution<D, P, A, S, A, TreeSearchNode<P, A>>();
 
             // Test if the AI finds the correct solution.

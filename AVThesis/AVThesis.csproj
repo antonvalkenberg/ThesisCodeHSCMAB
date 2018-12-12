@@ -169,6 +169,9 @@
     <Compile Include="Search\ISearchStrategy.cs" />
     <Compile Include="Search\ISolutionStrategy.cs" />
     <Compile Include="Search\IStateEvaluation.cs" />
+    <Compile Include="Search\LSI\ILSISamplingStrategy.cs" />
+    <Compile Include="Search\LSI\ISideInformationStrategy.cs" />
+    <Compile Include="Search\LSI\LSI.cs" />
     <Compile Include="Search\SearchContext.cs" />
     <Compile Include="Search\SearchNode.cs" />
     <Compile Include="Search\State.cs" />
@@ -180,18 +183,12 @@
     <Compile Include="Search\Tree\MCTS\FlatMCSBuilder.cs" />
     <Compile Include="Search\Tree\MCTS\MCTS.cs" />
     <Compile Include="Search\Tree\MCTS\MCTSBuilder.cs" />
-    <Compile Include="Search\Tree\NMC\ISamplingStrategy.cs" />
+    <Compile Include="Search\ISamplingStrategy.cs" />
     <Compile Include="Search\Tree\NMC\NMCTS.cs" />
     <Compile Include="Search\Tree\NMC\NMCTSBuilder.cs" />
     <Compile Include="Search\Tree\TreeSearch.cs" />
     <Compile Include="Search\Tree\TreeSearchBuilder.cs" />
     <Compile Include="Search\Tree\TreeSearchNode.cs" />
-    <Compile Include="Test\SearchTest.cs" />
-    <Compile Include="Test\TicTacToeGameLogic.cs" />
-    <Compile Include="Test\TicTacToeMove.cs" />
-    <Compile Include="Test\TicTacToeMoveGenerator.cs" />
-    <Compile Include="Test\TicTacToeState.cs" />
-    <Compile Include="Test\TicTacToeSearchTest.cs" />
     <Compile Include="Tournament\TournamentMatch.cs" />
     <Compile Include="Util.cs" />
   </ItemGroup>

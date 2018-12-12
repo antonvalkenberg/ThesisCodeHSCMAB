@@ -67,7 +67,7 @@ namespace AVThesis.Search.Tree.NMC {
         /// <summary>
         /// A strategy to sample actions during the Naïve Sampling process.
         /// </summary>
-        public ISamplingStrategy<D, P, A, S, Sol> SamplingStrategy { get; set; }
+        public ISamplingStrategy<P, A> SamplingStrategy { get; set; }
 
         /// <summary>
         /// The policy for selecting an Action from the global Multi-Armed-Bandit.
@@ -100,7 +100,7 @@ namespace AVThesis.Search.Tree.NMC {
             IStateEvaluation<D, P, A, S, Sol, TreeSearchNode<P, A>> evaluationStrategy,
             IExplorationStrategy<D, P, A, S, Sol> explorationStrategy,
             ISolutionStrategy<D, P, A, S, Sol, TreeSearchNode<P, A>> solutionStrategy,
-            ISamplingStrategy<D, P, A, S, Sol> samplingStrategy,
+            ISamplingStrategy<P, A> samplingStrategy,
             IPlayoutStrategy<D, P, A, S, Sol> playoutStrategy, long time, int iterations, double globalPolicy) :
             base(selectionStrategy, expansionStrategy, backPropagationStrategy, finalNodeSelectionStrategy,
                 evaluationStrategy, solutionStrategy, time, iterations) {
@@ -225,7 +225,7 @@ namespace AVThesis.Search.Tree.NMC {
                 // Explore
                 
                 // Create an action according to policy p_1
-                A action = SamplingStrategy.Sample(context);
+                A action = SamplingStrategy.Sample(state);
                 // Evaluate the sampled action
                 P newState = apply.Apply(context, state, action);
                 double reward = EvaluationStrategy.Evaluate(context, node, newState);

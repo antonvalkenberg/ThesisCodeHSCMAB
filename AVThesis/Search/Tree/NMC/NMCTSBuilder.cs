@@ -32,7 +32,7 @@ namespace AVThesis.Search.Tree.NMC {
         /// <summary>
         /// A strategy to sample actions during the Naïve Sampling process.
         /// </summary>
-        public ISamplingStrategy<D, P, A, S, Sol> SamplingStrategy { get; set; }
+        public ISamplingStrategy<P, A> SamplingStrategy { get; set; }
 
         /// <summary>
         /// A strategy for constructing a solution to the search.
@@ -56,7 +56,7 @@ namespace AVThesis.Search.Tree.NMC {
         /// <param name="samplingStrategy">The sampling strategy.</param>
         /// <param name="solutionStrategy">The solution strategy.</param>
         /// <param name="policyGlobal">The global policy.</param>
-        public NMCTSBuilder(IExplorationStrategy<D, P, A, S, Sol> explorationStrategy, IPlayoutStrategy<D, P, A, S, Sol> playoutStrategy, ISamplingStrategy<D, P, A, S, Sol> samplingStrategy, ISolutionStrategy<D, P, A, S, Sol, TreeSearchNode<P, A>> solutionStrategy, double policyGlobal) {
+        public NMCTSBuilder(IExplorationStrategy<D, P, A, S, Sol> explorationStrategy, IPlayoutStrategy<D, P, A, S, Sol> playoutStrategy, ISamplingStrategy<P, A> samplingStrategy, ISolutionStrategy<D, P, A, S, Sol, TreeSearchNode<P, A>> solutionStrategy, double policyGlobal) {
             ExplorationStrategy = explorationStrategy;
             PlayoutStrategy = playoutStrategy;
             SamplingStrategy = samplingStrategy;

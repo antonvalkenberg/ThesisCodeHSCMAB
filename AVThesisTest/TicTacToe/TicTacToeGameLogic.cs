@@ -4,6 +4,7 @@ using AVThesis.Agent;
 using AVThesis.Datastructures;
 using AVThesis.Game;
 using AVThesis.Search;
+using AVThesis.Search.Tree.NMC;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -132,6 +133,14 @@ namespace AVThesis.Test {
                 state.Done = true;
                 state.PlayerWon = State.DRAW;
             }
+        }
+
+        public class RandomTicTacToeMoveSampler : ISamplingStrategy<TicTacToeState, TicTacToeMove> {
+
+            public TicTacToeMove Sample(TicTacToeState state) {
+                return new TicTacToeMove(TicTacToeMoveGenerator.AllEmptyPositions(state).RandomElementOrDefault(), state.ActivePlayerID); 
+            }
+
         }
 
     }

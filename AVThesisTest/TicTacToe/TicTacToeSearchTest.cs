@@ -1,6 +1,5 @@
-﻿using System.Diagnostics;
-using AVThesis.Agent;
-using AVThesis.Search;
+﻿using AVThesis.Search;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -31,9 +30,7 @@ namespace AVThesis.Test {
 
             var result = PlayGame(context);
 
-            Debug.WriteLine($"Game won by player {result.PlayerWon}, should be {-1}.");
-            Debug.WriteLine($"Result: \r\n{result}");
-            Debug.WriteLine("");
+            Assert.IsTrue(result.PlayerWon == -1);
 
             // If the first player plays the middle position, the game is a draw.
             // (second player should play a corner position)
@@ -45,10 +42,8 @@ namespace AVThesis.Test {
 
             result = PlayGame(context);
 
-            Debug.WriteLine($"Game won by player {result.PlayerWon}, should be {-1}.");
-            Debug.WriteLine($"Result: \r\n{result}");
-            Debug.WriteLine("");
-
+            Assert.IsTrue(result.PlayerWon == -1);
+            
             // If the first player plays an edge position, the game is a draw.
             // (second player should play a corner position)
             source = new TicTacToeState("---X-----");
@@ -59,9 +54,7 @@ namespace AVThesis.Test {
 
             result = PlayGame(context);
 
-            Debug.WriteLine($"Game won by player {result.PlayerWon}, should be {-1}.");
-            Debug.WriteLine($"Result: \r\n{result}");
-            Debug.WriteLine("");
+            Assert.IsTrue(result.PlayerWon == -1);
         }
 
     }

@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.26730.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AVThesis", "AVThesis\AVThesis.csproj", "{4158351C-FECB-48B3-BE8D-10E46E97D68C}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AVThesisTest", "AVThesisTest\AVThesisTest.csproj", "{B6EAF0EB-EF4B-46EE-B46A-848BE8D3D690}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{4158351C-FECB-48B3-BE8D-10E46E97D68C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4158351C-FECB-48B3-BE8D-10E46E97D68C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4158351C-FECB-48B3-BE8D-10E46E97D68C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B6EAF0EB-EF4B-46EE-B46A-848BE8D3D690}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B6EAF0EB-EF4B-46EE-B46A-848BE8D3D690}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B6EAF0EB-EF4B-46EE-B46A-848BE8D3D690}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B6EAF0EB-EF4B-46EE-B46A-848BE8D3D690}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

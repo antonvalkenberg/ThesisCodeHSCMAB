@@ -15,8 +15,7 @@ namespace AVThesis {
 
 		public static void Main(string[] args) {
             //RunTournamentMatch();
-            //RunQuickMatch();
-            RunTicTacToeTest();
+            RunQuickMatch();
 
             string catcher = null;
         }
@@ -115,13 +114,6 @@ namespace AVThesis {
             }
 
             Console.WriteLine($"Game: {game.Game.State}, Player1: {game.Player1.PlayState} / Player2: {game.Player2.PlayState}");
-        }
-
-        public static void RunTicTacToeTest() {
-            var test = new Test.TicTacToeSearchTest();
-            test.Setup();
-            //test.TestFlatMCS();
-            test.TestMCTS();
         }
 
     }
