@@ -1,10 +1,11 @@
 ﻿using AVThesis.Search;
+using Constants = AVThesis.Constants;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
 /// In parts inspired by a code framework written by G.J. Roelofs and T. Aliyev.
 /// </summary>
-namespace AVThesis.Test {
+namespace AVThesisTest.TicTacToe {
 
     public class TicTacToeState : State {
 
@@ -15,8 +16,8 @@ namespace AVThesis.Test {
         public const char OPEN_SPACE = '-';
 
         public string State { get; set; }
-        public int ActivePlayerID { get; set; } = 0;
-        public bool Done { get; set; } = false;
+        public int ActivePlayerID { get; set; }
+        public bool Done { get; set; }
 
         public TicTacToeState() {
             State = new string(OPEN_SPACE, 9);
@@ -53,7 +54,7 @@ namespace AVThesis.Test {
         }
 
         public override bool Equals(State otherState) {
-            return otherState is TicTacToeState && Equals(otherState);
+            return otherState is TicTacToeState state && Equals(state);
         }
 
         public bool Equals(TicTacToeState otherState) {

@@ -1,4 +1,4 @@
-using AVThesis.Test;
+using AVThesisTest.TicTacToe;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace AVThesisTest {
@@ -7,24 +7,35 @@ namespace AVThesisTest {
     public class SearchTechniquesTest {
 
         [TestMethod]
-        public void TestMCTS() {
-            var test = new TicTacToeSearchTest();
-            test.Setup();
-            test.TestMCTS();
-        }
-
-        [TestMethod]
-        public void TestFlatMCS() {
+        public void TestFlatMCSTicTacToe() {
             var test = new TicTacToeSearchTest();
             test.Setup();
             test.TestFlatMCS();
         }
 
         [TestMethod]
-        public void TestNMCTS() {
+        public void TestMCTSTicTacToe() {
             var test = new TicTacToeSearchTest();
             test.Setup();
-            test.TestNMCTS();
+            test.TestMCTS();
+        }
+
+        [TestMethod]
+        public void TestNMCTSTicTacToe() {
+            var test = new TicTacToeSearchTest();
+            test.Setup();
+            var samplingStrategy = new TicTacToeGameLogic.RandomTicTacToeMoveSampler();
+            test.TestNMCTS(samplingStrategy);
+        }
+
+        [TestMethod]
+        public void TestLSITicTacToe() {
+            var test = new TicTacToeSearchTest();
+            test.Setup();
+            var sideInformationStrategy = new TicTacToeGameLogic.LSITicTacToeSideInformation();
+            sideInformationStrategy.Setup(test.GameLogic, test.PlayoutStrategy, test.EvaluationStrategy);
+            var samplingStrategy = new TicTacToeGameLogic.LSITicTacToeMoveSampler();
+            test.TestLSI(sideInformationStrategy, samplingStrategy);
         }
 
     }

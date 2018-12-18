@@ -4,13 +4,14 @@ using AVThesis.Agent;
 using AVThesis.Datastructures;
 using AVThesis.Game;
 using AVThesis.Search;
-using AVThesis.Search.Tree.NMC;
+using AVThesis.Search.LSI;
+using AVThesis.Search.Tree;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
 /// In parts inspired by a code framework written by G.J. Roelofs and T. Aliyev.
 /// </summary>
-namespace AVThesis.Test {
+namespace AVThesisTest.TicTacToe {
 
     public class TicTacToeGameLogic : IGameLogic<object, TicTacToeState, TicTacToeMove, object, TicTacToeMove, TicTacToeMove>, IAgent<SearchContext<object, TicTacToeState, TicTacToeMove, object, TicTacToeMove>, TicTacToeState, TicTacToeMove> {
 
@@ -139,6 +140,71 @@ namespace AVThesis.Test {
 
             public TicTacToeMove Sample(TicTacToeState state) {
                 return new TicTacToeMove(TicTacToeMoveGenerator.AllEmptyPositions(state).RandomElementOrDefault(), state.ActivePlayerID); 
+            }
+
+        }
+
+        public class LSITicTacToeMoveSampler : ILSISamplingStrategy<TicTacToeState, TicTacToeMove, OddmentTable<int>> {
+
+            public TicTacToeMove Sample(TicTacToeState state) {
+                return null;
+            }
+
+            public TicTacToeMove Sample(TicTacToeState state, OddmentTable<int> sideInformation) {
+
+                // Get all available positions in this state
+                var emptyPositions = TicTacToeMoveGenerator.AllEmptyPositions(state);
+
+                var positionSelected = false;
+                var selectedPosition = -1;
+                while (!positionSelected) {
+                    // Sample a position from the OddmentTable
+                    selectedPosition = sideInformation.Next();
+                    // Check if this position can be played, otherwise generate a new one
+                    positionSelected = emptyPositions.Contains(selectedPosition);
+                }
+
+                return new TicTacToeMove(selectedPosition, state.ActivePlayerID);
+            }
+
+        }
+
+        public class LSITicTacToeSideInformation : ISideInformationStrategy<object, TicTacToeState, TicTacToeMove, object, TicTacToeMove, OddmentTable<int>> {
+
+            public IGameLogic<object, TicTacToeState, TicTacToeMove, object, TicTacToeMove, TicTacToeMove> GameLogic { get; set; }
+
+            public IPlayoutStrategy<object, TicTacToeState, TicTacToeMove, object, TicTacToeMove> PlayoutStrategy { get; set; }
+
+            public IStateEvaluation<object, TicTacToeState, TicTacToeMove, object, TicTacToeMove, TreeSearchNode<TicTacToeState, TicTacToeMove>> EvaluationStrategy { get; set; }
+
+            public void Setup(IGameLogic<object, TicTacToeState, TicTacToeMove, object, TicTacToeMove, TicTacToeMove> gameLogic,
+                IPlayoutStrategy<object, TicTacToeState, TicTacToeMove, object, TicTacToeMove> playoutStrategy,
+                IStateEvaluation<object, TicTacToeState, TicTacToeMove, object, TicTacToeMove, TreeSearchNode<TicTacToeState, TicTacToeMove>> evaluation) {
+                GameLogic = gameLogic;
+                PlayoutStrategy = playoutStrategy;
+                EvaluationStrategy = evaluation;
+            }
+
+            public OddmentTable<int> Create(SearchContext<object, TicTacToeState, TicTacToeMove, object, TicTacToeMove> context, int samplesForGeneration) {
+                
+                var table = new Dictionary<int, double>();
+
+                for (int i = 0; i < samplesForGeneration; i++) {
+                    var action = new TicTacToeMove(TicTacToeMoveGenerator.AllEmptyPositions(context.Source).RandomElementOrDefault(), context.Source.ActivePlayerID);
+                    var newState = GameLogic.Apply(context, (TicTacToeState) context.Source.Copy(), action);
+                    var endState = PlayoutStrategy.Playout(context, newState);
+                    var value = EvaluationStrategy.Evaluate(context, null, endState);
+                    if (!table.ContainsKey(action.PositionToPlace)) table.Add(action.PositionToPlace, 0);
+                    table[action.PositionToPlace] += value;
+                }
+
+                var oddmentTable = new OddmentTable<int>();
+                foreach (var kvPair in table) {
+                    oddmentTable.Add(kvPair.Key, kvPair.Value, recalculate: false);
+                }
+                oddmentTable.Recalculate();
+
+                return oddmentTable;
             }
 
         }

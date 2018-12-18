@@ -7,17 +7,14 @@ using AVThesis.Datastructures;
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
 /// In parts inspired by a code framework written by G.J. Roelofs and T. Aliyev.
 /// </summary>
-namespace AVThesis.Test {
+namespace AVThesisTest.TicTacToe {
 
     public sealed class TicTacToeMoveGenerator : IPositionGenerator<TicTacToeMove> {
+        public string Board { get; set; }
 
-        private string _board;
-        private int _playerID;
-        private int _position = -1;
+        public int PlayerID { get; set; }
 
-        public string Board { get => _board; set => _board = value; }
-        public int PlayerID { get => _playerID; set => _playerID = value; }
-        public int Position { get => _position; set => _position = value; }
+        public int Position { get; set; } = -1;
 
         public TicTacToeMoveGenerator(TicTacToeState state) {
             // Initialise the position to the first open position on the board.
