@@ -110,7 +110,7 @@ namespace AVThesisTest {
                 
                 // Check if the search was successful
                 if (context.Status != SearchContext<D, P, A, S, A>.SearchStatus.Success) {
-                    throw new System.Exception("Search did not conclude successfully.");
+                    throw new Exception("Search did not conclude successfully.");
                 }
 
                 // Apply the found solution

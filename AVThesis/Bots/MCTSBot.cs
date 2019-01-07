@@ -38,13 +38,6 @@ namespace AVThesis.Bots {
 
         private const string _botName = "MCTSBot";
         private readonly Random _rng = new Random();
-        private Controller _player;
-        private ISabberStoneBot _playoutBot;
-        private IGoalStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> _goal;
-        private IGameLogic<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction, SabberStoneAction> _gameLogic;
-        private IPlayoutStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> _playout;
-        private MCTSBuilder<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> _builder;
-        private bool _hierarchicalExpansion;
 
         #endregion
 
@@ -53,37 +46,42 @@ namespace AVThesis.Bots {
         /// <summary>
         /// The player this bot is representing in a game of SabberStone.
         /// </summary>
-        public Controller Player { get => _player; set => _player = value; }
+        public Controller Player { get; set; }
 
         /// <summary>
         /// The bot that is used during the playouts.
         /// </summary>
-        public ISabberStoneBot PlayoutBot { get => _playoutBot; set => _playoutBot = value; }
+        public ISabberStoneBot PlayoutBot { get; set; }
 
         /// <summary>
         /// The strategy used to determine if a playout has reached its goal state.
         /// </summary>
-        public IGoalStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Goal { get => _goal; set => _goal = value; }
+        public IGoalStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Goal { get; set; }
 
         /// <summary>
         /// The game specific logic required for searching through SabberStoneStates and SabberStoneActions
         /// </summary>
-        public IGameLogic<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction, SabberStoneAction> GameLogic { get => _gameLogic; set => _gameLogic = value; }
+        public IGameLogic<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction, SabberStoneAction> GameLogic { get; set; }
 
         /// <summary>
         /// The strategy used to play out a game in simulation.
         /// </summary>
-        public IPlayoutStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Playout { get => _playout; set => _playout = value; }
+        public IPlayoutStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Playout { get; set; }
 
         /// <summary>
         /// The Monte Carlo Tree Search builder that creates a search-setup ready to use.
         /// </summary>
-        public MCTSBuilder<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Builder { get => _builder; set => _builder = value; }
+        public MCTSBuilder<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Builder { get; set; }
 
         /// <summary>
         /// Whether or not to use Hierarchical Expansion during the search.
         /// </summary>
-        public bool HierarchicalExpansion { get => _hierarchicalExpansion; set => _hierarchicalExpansion = value; }
+        public bool HierarchicalExpansion { get; set; }
+
+        /// <summary>
+        /// The amount of determinisations the search should use.
+        /// </summary>
+        public int Determinisations { get; set; }
 
         #endregion
 
@@ -94,7 +92,8 @@ namespace AVThesis.Bots {
         /// </summary>
         /// <param name="player">The player.</param>
         /// <param name="hierarchicalExpansion">[Optional] Whether or not to use Hierarchical Expansion. Default value is false.</param>
-        public MCTSBot(Controller player, bool hierarchicalExpansion = false) : this(hierarchicalExpansion) {
+        /// <param name="determinisations">[Optional] The amount of determinisations to use. Default value is 0.</param>
+        public MCTSBot(Controller player, bool hierarchicalExpansion = false, int determinisations = 0) : this(hierarchicalExpansion, determinisations) {
             Player = player;
         }
 
@@ -102,8 +101,10 @@ namespace AVThesis.Bots {
         /// Constructs a new instance of MCTSBot with default strategies.
         /// </summary>
         /// <param name="hierarchicalExpansion">[Optional] Whether or not to use Hierarchical Expansion. Default value is false.</param>
-        public MCTSBot(bool hierarchicalExpansion = false) {
+        /// <param name="determinisations">[Optional] The amount of determinisations to use. Default value is 0.</param>
+        public MCTSBot(bool hierarchicalExpansion = false, int determinisations = 0) {
             HierarchicalExpansion = hierarchicalExpansion;
+            Determinisations = determinisations;
 
             // Note: we're not setting the Controller here, because we want to clone the current one when doing a playout.
             PlayoutBot = new RandomBot();
@@ -125,11 +126,25 @@ namespace AVThesis.Bots {
             Builder.ExpansionStrategy = new MinimumTExpansion<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>(MIN_T_VISIT_THRESHOLD_FOR_EXPANSION);
             Builder.SelectionStrategy = new BestNodeSelection<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>(SELECTION_VISIT_MINIMUM_FOR_EVALUATION, nodeEvaluation);
             Builder.EvaluationStrategy = new EvaluationStrategyHearthStone();
-            Builder.Iterations = MCTS_NUMBER_OF_ITERATIONS;
+            Builder.Iterations = Determinisations > 0 ? MCTS_NUMBER_OF_ITERATIONS / Determinisations : MCTS_NUMBER_OF_ITERATIONS; // Note: Integer division by design.
             Builder.BackPropagationStrategy = new EvaluateOnceAndColorBackPropagation<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>();
             Builder.FinalNodeSelectionStrategy = new BestRatioFinalNodeSelection<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>();
             Builder.SolutionStrategy = new SolutionStrategySabberStone(HierarchicalExpansion);
             Builder.PlayoutStrategy = Playout;
+        }
+
+        #endregion
+
+        #region Private Methods
+
+        /// <summary>
+        /// Runs a single search.
+        /// </summary>
+        /// <param name="state">The state to search.</param>
+        /// <returns>SabberStoneAction that was voted as the best option through the Ensemble of determinisations.</returns>
+        private SabberStoneAction Search(SabberStoneState state) {
+
+            throw new NotImplementedException();
         }
 
         #endregion
@@ -150,7 +165,7 @@ namespace AVThesis.Bots {
             var stateCopy = (SabberStoneState)state.Copy();
             var opponent = stateCopy.Game.CurrentOpponent;
 
-            // TODO Before starting a search, create a determinisation of the opponnent's cards in hand
+            #region Obfuscation
 
             //In case we need to obfuscate the state ourselves:
             //
@@ -170,6 +185,10 @@ namespace AVThesis.Bots {
             var opponentHistory = opponent.PlayHistory;
             var playedIds = opponentHistory.Where(i => i.SourceCard.Id != "GAME_005").Select(i => i.SourceCard.Id).ToList();
             // TODO try to use these played cards to determine if anything was revealed so we know about it
+
+            #endregion
+
+            #region Determinisation
 
             //Once the state is correctly obfuscated:
             //
@@ -196,12 +215,14 @@ namespace AVThesis.Bots {
             // Determinise the opponent's cards.
             stateCopy.Determinise(opponent, knownCards, selectedDeck, _rng);
 
+            #endregion
+
             Console.WriteLine();
             Console.WriteLine(Name());
             Console.WriteLine("Starting an MCTS-search in turn " + (stateCopy.Game.Turn + 1) / 2);
 
             // Setup a new search with the current state as source.
-            SearchContext<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context = GameSearchSetup(GameLogic, null, stateCopy, null, Builder.Build());
+            var context = GameSearchSetup(GameLogic, null, stateCopy, null, Builder.Build());
             
             // Execute the search
             context.Execute();
