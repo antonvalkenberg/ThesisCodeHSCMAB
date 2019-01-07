@@ -20,10 +20,9 @@ namespace AVThesis.Tournament {
         #region Inner Class: GameData
 
         public class GameData {
-            private int _winningPlayerID;
 
-            public int WinningPlayerID { get => _winningPlayerID; set => _winningPlayerID = value; }
-            
+            public int WinningPlayerID { get; set; }
+
             public GameData(int winningPlayerID) {
                 WinningPlayerID = winningPlayerID;
             }
@@ -34,11 +33,7 @@ namespace AVThesis.Tournament {
 
         #region Fields
 
-        List<ISabberStoneBot> _bots;
-        GameConfig _gameConfig;
-        int _numberOfGames;
-        List<GameData> _matchStatistics;
-        bool _printToConsole = false;
+        readonly bool _printToConsole = false;
 
         #endregion
 
@@ -48,23 +43,23 @@ namespace AVThesis.Tournament {
         /// The bots participating in this match.
         /// Note: the order of this collection does not reflect playing order in the match's games. (starting player is alternated)
         /// </summary>
-        public List<ISabberStoneBot> Bots { get => _bots; set => _bots = value; }
+        public List<ISabberStoneBot> Bots { get; set; }
 
         /// <summary>
         /// The configuration of the SabberStone Game that will be played.
         /// </summary>
-        public GameConfig GameConfig { get => _gameConfig; set => _gameConfig = value; }
+        public GameConfig GameConfig { get; set; }
 
         /// <summary>
         /// The amount of games that should be played in this match.
         /// </summary>
-        public int NumberOfGames { get => _numberOfGames; set => _numberOfGames = value; }
+        public int NumberOfGames { get; set; }
 
         /// <summary>
         /// Statistics regarding the match, indexed by game number.
         /// </summary>
-        public List<GameData> MatchStatistics { get => _matchStatistics; set => _matchStatistics = value; }
-        
+        public List<GameData> MatchStatistics { get; set; }
+
         #endregion
 
         #region Constructor
@@ -96,15 +91,15 @@ namespace AVThesis.Tournament {
         public void RunMatch() {
             // Run all the games of the match.
             for (int i = 0; i < NumberOfGames; i++) {
-                Console.WriteLine(string.Format("** Starting Game {0} of {1}", i, NumberOfGames));
+                Console.WriteLine($"** Starting Game {i+1} of {NumberOfGames}");
                 RunGame(i);
                 Console.WriteLine("");
             }
 
             // Check how many games each bot won at the end.
-            int bot1Wins = MatchStatistics.Where(i => i.WinningPlayerID == Bots[0].PlayerID()).Count();
-            int bot2Wins = MatchStatistics.Where(i => i.WinningPlayerID == Bots[1].PlayerID()).Count();
-            Console.WriteLine(string.Format("** Match Results: {0} won {1} games, {2} won {3} games.", Bots[0].Name(), bot1Wins, Bots[1].Name(), bot2Wins));
+            int bot1Wins = MatchStatistics.Count(i => i.WinningPlayerID == Bots[0].PlayerID());
+            int bot2Wins = MatchStatistics.Count(i => i.WinningPlayerID == Bots[1].PlayerID());
+            Console.WriteLine($"** Match Results: {Bots[0].Name()} won {bot1Wins} games, {Bots[1].Name()} won {bot2Wins} games.");
         }
 
         /// <summary>
@@ -130,7 +125,7 @@ namespace AVThesis.Tournament {
             // Play out the game.
             while (game.Game.State != State.COMPLETE) {
                 if (_printToConsole) Console.WriteLine("");
-                if (_printToConsole) Console.WriteLine($"Player1: {game.Player1.PlayState} / Player2: {game.Player2.PlayState} - " + $"TURN {(game.Game.Turn + 1) / 2} - {game.Game.CurrentPlayer.Name}");
+                if (_printToConsole) Console.WriteLine($"TURN {(game.Game.Turn + 1) / 2} - {game.Game.CurrentPlayer.Name}");
                 if (_printToConsole) Console.WriteLine($"Hero[P1] {game.Player1.Hero} HP: {game.Player1.Hero.Health} / Hero[P2] {game.Player2.Hero} HP: {game.Player2.Hero.Health}");
 
                 // Play out the current player's turn until they pass.

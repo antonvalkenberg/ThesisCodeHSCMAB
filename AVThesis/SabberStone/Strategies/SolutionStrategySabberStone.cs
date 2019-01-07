@@ -34,10 +34,12 @@ namespace AVThesis.SabberStone.Strategies {
 
                 // The final-node selection strategy has chosen a child of the root as final-node.
                 // We now have to piece together the complete action until the turn goes to the opponent.
-                while (!node.IsLeaf() && node.Payload.Player() == rootPlayerId) {
+                while (node.Payload.Player() == rootPlayerId) {
                     var task = node.Payload.Tasks.First();
                     solution.AddTask(task);
-                    // Move to the next node in the tree
+                    
+                    // Move to the next node in the tree, unless we are currently at a leaf node
+                    if (node.IsLeaf()) break;
                     node = selection.SelectNextNode(context, node);
                 }
 

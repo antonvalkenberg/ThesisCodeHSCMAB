@@ -8,7 +8,7 @@ using System.Linq;
 /// </summary>
 namespace AVThesis.Datastructures {
 
-		public static class Extentions {
+    public static class Extentions {
 
         private static Random _r = new Random();
 
@@ -20,8 +20,9 @@ namespace AVThesis.Datastructures {
         /// <returns>A random element or the default value of T if the enumeration is empty.</returns>
         public static T RandomElementOrDefault<T>(this IEnumerable<T> list) {
             // If there are no elements in the list, return the default value of T
-            if (list.Count() == 0)
+            if (list.Count() == 0) {
                 return default(T);
+            }
 
             return list.ElementAt(_r.Next(list.Count()));
         }
@@ -43,10 +44,10 @@ namespace AVThesis.Datastructures {
         /// <param name="list">This enumeration.</param>
         /// <returns>A new, shuffled version of this enumeration.</returns>
         public static IEnumerable<T> Shuffle<T>(this IEnumerable<T> list) {
-						var r = new Random((int)DateTime.Now.Ticks);
-						return list.Select(x => new { Number = r.Next(), Item = x }).OrderBy(x => x.Number).Select(x => x.Item);
-				}
+            var r = new Random((int)DateTime.Now.Ticks);
+            return list.Select(x => new { Number = r.Next(), Item = x }).OrderBy(x => x.Number).Select(x => x.Item);
+        }
 
-		}
+    }
 
 }

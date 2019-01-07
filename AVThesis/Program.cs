@@ -36,7 +36,7 @@ namespace AVThesis {
             };
 
             // Create a new tournament match
-            var match = new Tournament.TournamentMatch(new RandomBot(), new RandomBot(), gameConfig, 2, printToConsole: true);
+            var match = new Tournament.TournamentMatch(new MCTSBot(hierarchicalExpansion: true), new RandomBot(), gameConfig, 50, printToConsole: false);
 
             match.RunMatch();
         }
@@ -67,16 +67,16 @@ namespace AVThesis {
             
             while (game.Game.State != State.COMPLETE) {
                 Console.WriteLine("");
-                Console.WriteLine($"Player1: {game.Player1.PlayState} / Player2: {game.Player2.PlayState} - " + $"TURN {(game.Game.Turn + 1) / 2} - {game.Game.CurrentPlayer.Name}");
+                Console.WriteLine($"TURN {(game.Game.Turn + 1) / 2} - {game.Game.CurrentPlayer.Name}");
                 Console.WriteLine($"Hero[P1] {game.Player1.Hero} HP: {game.Player1.Hero.Health} / Hero[P2] {game.Player2.Hero} HP: {game.Player2.Hero.Health}");
 
                 // Check if the current player is Player1
                 if (game.Game.CurrentPlayer.Id == game.Player1.Id) {
-                    // Handle all of player 1's turn
-                    Console.WriteLine($"- Player 1 - <{game.Game.CurrentPlayer.Name}> ---------------------------");
-
+                    
                     // Ask the bot to act.
                     var action = bot1.Act(game);
+
+                    Console.WriteLine($"- {game.Game.CurrentPlayer.Name} Action ----------------------------");
 
                     // Check if the action is valid
                     if (action != null && action.IsComplete()) {
@@ -91,13 +91,17 @@ namespace AVThesis {
                     }
                 }
 
+                // Check if Player1's action ended the game.
+                if (game.Game.State == State.COMPLETE) break;
+                Console.WriteLine("*");
+                
                 // Check if the current player is Player2
                 if (game.Game.CurrentPlayer.Id == game.Player2.Id) {
-                    // Handle all of player 2's turn
-                    Console.WriteLine($"- Player 2 - <{game.Game.CurrentPlayer.Name}> ---------------------------");
 
                     // Ask the bot to act.
                     var action = bot2.Act(game);
+
+                    Console.WriteLine($"- {game.Game.CurrentPlayer.Name} Action ----------------------------");
 
                     // Check if the action is valid
                     if (action != null && action.IsComplete()) {
