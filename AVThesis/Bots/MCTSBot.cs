@@ -10,6 +10,7 @@ using AVThesis.Search.Tree;
 using AVThesis.Search.Tree.MCTS;
 using SabberStoneCore.Model;
 using SabberStoneCore.Model.Entities;
+using SabberStoneCore.Tasks;
 using SabberStoneCore.Tasks.PlayerTasks;
 using static AVThesis.Search.SearchContext<object, AVThesis.SabberStone.SabberStoneState, AVThesis.SabberStone.SabberStoneAction, object, AVThesis.SabberStone.SabberStoneAction>;
 
@@ -23,6 +24,28 @@ namespace AVThesis.Bots {
     /// A bot that plays Hearthstone using Monte Carlo Tree Search to find its best move.
     /// </summary>
     public class MCTSBot : ISabberStoneBot {
+
+        #region Helper Class
+
+        private class TaskStatistics {
+            public PlayerTask Task { get; private set; }
+            private double TotalValue { get; set; }
+            private int Visits { get; set; }
+            public TaskStatistics(PlayerTask task, double value) {
+                Task = task;
+                TotalValue = value;
+                Visits = 1;
+            }
+            public void AddValue(double value) {
+                TotalValue += value;
+                Visits++;
+            }
+            public double AverageValue() {
+                return TotalValue / Visits;
+            }
+        }
+
+        #endregion
 
         #region Constants
 
@@ -136,7 +159,7 @@ namespace AVThesis.Bots {
             Builder.Iterations = Determinisations > 0 ? MCTS_NUMBER_OF_ITERATIONS / Determinisations : MCTS_NUMBER_OF_ITERATIONS; // Note: Integer division by design.
             Builder.BackPropagationStrategy = new EvaluateOnceAndColorBackPropagation<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>();
             Builder.FinalNodeSelectionStrategy = new BestRatioFinalNodeSelection<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>();
-            Builder.SolutionStrategy = new SolutionStrategySabberStone(HierarchicalExpansion);
+            Builder.SolutionStrategy = new SolutionStrategySabberStone(HierarchicalExpansion, nodeEvaluation);
             Builder.PlayoutStrategy = Playout;
         }
 
@@ -148,13 +171,14 @@ namespace AVThesis.Bots {
         /// Runs a single search.
         /// </summary>
         /// <param name="state">The state to search.</param>
-        /// <returns>SabberStoneAction.</returns>
-        private SabberStoneAction Search(SabberStoneState state) {
+        /// <returns>Tuple of the selected SabberStoneAction and a list of values for the individual PlayerTasks.</returns>
+        private Tuple<SabberStoneAction, List<Tuple<PlayerTask, double>>> Search(SabberStoneState state) {
             var timer = System.Diagnostics.Stopwatch.StartNew();
             if (_debug) Console.WriteLine();
 
             // Setup a new search with the current state as source.
-            var context = GameSearchSetup(GameLogic, null, state, null, Builder.Build());
+            var search = (MCTS<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>)Builder.Build();
+            var context = GameSearchSetup(GameLogic, null, state, null, search);
 
             // Execute the search
             context.Execute();
@@ -162,20 +186,52 @@ namespace AVThesis.Bots {
             // Check if the search was successful
             if (context.Status != SearchStatus.Success) {
                 // TODO in case of search failure: throw exception, or print error.
-                return SabberStoneAction.CreateNullMove(state.Game.CurrentPlayer);
+                return new Tuple<SabberStoneAction, List<Tuple<PlayerTask, double>>>(SabberStoneAction.CreateNullMove(state.Game.CurrentPlayer), new List<Tuple<PlayerTask, double>>());
             }
 
             var solution = context.Solution;
+            // Retrieve the value of the final node from the search, this will be important in the case of multiple determinisations
+            var solutionStrat = (SolutionStrategySabberStone) search.SolutionStrategy;
+            var taskValues = new List<Tuple<PlayerTask, double>>(solutionStrat.TaskValues);
+            // Make sure to clear the values for the next search
+            solutionStrat.ClearTaskValues();
+
             var time = timer.ElapsedMilliseconds;
             if (_debug) Console.WriteLine($"MCTS returned with solution: {solution}");
             if (_debug) Console.WriteLine($"Calculation time was: {time} ms.");
 
             // Check if the solution is a complete action.
-            if (solution.IsComplete()) return solution;
-            // Otherwise add an End-Turn task before returning.
-            if (_debug) Console.WriteLine("Solution was an incomplete action; adding End-Turn task.");
-            solution.Tasks.Add(EndTurnTask.Any(Player));
-            return solution;
+            if (!solution.IsComplete()) {
+                // Otherwise add an End-Turn task before returning.
+                if (_debug) Console.WriteLine("Solution was an incomplete action; adding End-Turn task.");
+                solution.Tasks.Add(EndTurnTask.Any(Player));
+            }
+
+            return new Tuple<SabberStoneAction, List<Tuple<PlayerTask, double>>>(solution, taskValues);
+        }
+
+        private SabberStoneAction DetermineBestTasks(SabberStoneState state, Dictionary<int, TaskStatistics> taskStatistics) {
+            // Clone game so that we can process the selected tasks and get an updated options list.
+            var clonedGame = state.Game.Clone();
+            var clonedPlayer = clonedGame.CurrentPlayer;
+
+            // We have to determine which tasks are the best to execute in this state, based on the provided values of the MCTS search.
+            // So we'll check the statistics table for the highest value among tasks that are currently available in the state.
+            // This continues until the end-turn task is selected.
+            var action = new SabberStoneAction();
+            TaskStatistics bestTask;
+            do {
+                var availableTasks = clonedPlayer.Options().Select(i => i.FullPrint());
+                //TODO this might not work because of missing HashCode / Comparator implementation for PlayerTask
+                bestTask = taskStatistics.Values.Where(i => availableTasks.Contains(i.Task.FullPrint())).OrderByDescending(i => i.AverageValue()).FirstOrDefault();
+                if (bestTask != null) {
+                    var task = bestTask.Task;
+                    action.AddTask(task);
+                    clonedGame.Process(task);
+                }
+            } while (clonedGame.CurrentPlayer.Id == clonedPlayer.Id && bestTask != null && bestTask.Task.PlayerTaskType != PlayerTaskType.END_TURN);
+
+            return action;
         }
 
         #endregion
@@ -228,6 +284,7 @@ namespace AVThesis.Bots {
 
             // Keep track of the solution from each determinisation
             var solutions = new List<SabberStoneAction>();
+            var taskValues = new Dictionary<int, TaskStatistics>();
             for (int i = 0; i < Determinisations; i++) {
 
                 // Copy the state before changing things
@@ -262,12 +319,19 @@ namespace AVThesis.Bots {
 
                 #endregion
 
-                // Run a search and add the solution to the collection
-                solutions.Add(Search(stateCopy));
+                // Run a search and add the result and statistics to the collections
+                var searchResult = Search(stateCopy);
+                solutions.Add(searchResult.Item1);
+                foreach (var tuple in searchResult.Item2) {
+                    //TODO implement correct HashCode implementation for PlayerTask
+                    var taskHash = tuple.Item1.FullPrint().GetHashCode();
+                    if (!taskValues.ContainsKey(taskHash)) taskValues.Add(taskHash, new TaskStatistics(tuple.Item1, tuple.Item2));
+                    else taskValues[taskHash].AddValue(tuple.Item2);
+                }
             }
 
-            // TODO use voting to determine the winning action
-            var solution = solutions.RandomElementOrDefault();
+            // We use the Root Parallelisation technique when there are multiple determinisations
+            var solution = Determinisations > 1 ? DetermineBestTasks(state, taskValues) : solutions.RandomElementOrDefault();
 
             var time = timer.ElapsedMilliseconds;
             if (_debug) Console.WriteLine();
