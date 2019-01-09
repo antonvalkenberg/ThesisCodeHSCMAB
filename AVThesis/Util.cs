@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using SabberStoneCore.Enums;
 using SabberStoneCore.Model;
+using SabberStoneCore.Tasks;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -61,13 +62,13 @@ namespace AVThesis {
         }
 
         /// <summary>
-        /// Normalizes a value in the range of [min .. max] to the range of [0.0 .. 1.0].
+        /// Normalises a value in the range of [min .. max] to the range of [0.0 .. 1.0].
         /// </summary>
-        /// <param name="x">The value to be normalized.</param>
+        /// <param name="x">The value to be normalised.</param>
         /// <param name="min">The minimum value.</param>
         /// <param name="max">The maximum value.</param>
-        /// <returns>Normalized value of x.</returns>
-        public static double Normalize(double x, double min, double max) {
+        /// <returns>Normalised value of x.</returns>
+        public static double Normalise(double x, double min, double max) {
             return (x - min) / (max - min);
         }
 

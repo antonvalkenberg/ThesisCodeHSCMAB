@@ -3,7 +3,6 @@ using AVThesis.SabberStone;
 using SabberStoneCore.Config;
 using SabberStoneCore.Enums;
 using AVThesis.Bots;
-using AVThesis.Datastructures;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -17,7 +16,9 @@ namespace AVThesis {
             //RunTournamentMatch();
             RunQuickMatch();
 
-            string catcher = null;
+#pragma warning disable 219
+		    string catcher = null;
+#pragma warning restore 219
         }
 
         public static void RunTournamentMatch() {
@@ -36,7 +37,7 @@ namespace AVThesis {
             };
 
             // Create a new tournament match
-            var match = new Tournament.TournamentMatch(new MCTSBot(hierarchicalExpansion: true), new RandomBot(), gameConfig, 50, printToConsole: false);
+            var match = new Tournament.TournamentMatch(new MCTSBot(hierarchicalExpansion: true), new RandomBot(), gameConfig, 50);
 
             match.RunMatch();
         }

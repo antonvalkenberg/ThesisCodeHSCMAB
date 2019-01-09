@@ -28,11 +28,9 @@ namespace AVThesis.Bots {
         #region Helper Class
 
         private class TaskStatistics {
-            public PlayerTask Task { get; private set; }
             private double TotalValue { get; set; }
             private int Visits { get; set; }
-            public TaskStatistics(PlayerTask task, double value) {
-                Task = task;
+            public TaskStatistics(double value) {
                 TotalValue = value;
                 Visits = 1;
             }
@@ -56,6 +54,7 @@ namespace AVThesis.Bots {
         private const int PLAYOUT_TURN_CUTOFF = 2;
         private const string BOT_NAME = "MCTSBot";
         private readonly Random _rng = new Random();
+        private static PlayerTaskComparer _comparer = new PlayerTaskComparer();
         private readonly bool _debug;
 
         #endregion
@@ -210,7 +209,13 @@ namespace AVThesis.Bots {
             return new Tuple<SabberStoneAction, List<Tuple<PlayerTask, double>>>(solution, taskValues);
         }
 
-        private SabberStoneAction DetermineBestTasks(SabberStoneState state, Dictionary<int, TaskStatistics> taskStatistics) {
+        /// <summary>
+        /// Determines the best tasks for the game state based on the provided statistics and creates a <see cref="SabberStoneAction"/> from them.
+        /// </summary>
+        /// <param name="state">The game state to create the best action for.</param>
+        /// <param name="taskStatistics">The statistics for individual tasks.</param>
+        /// <returns><see cref="SabberStoneAction"/> created from the best individual tasks available in the provided state.</returns>
+        private static SabberStoneAction DetermineBestTasks(SabberStoneState state, Dictionary<PlayerTask, TaskStatistics> taskStatistics) {
             // Clone game so that we can process the selected tasks and get an updated options list.
             var clonedGame = state.Game.Clone();
             var clonedPlayer = clonedGame.CurrentPlayer;
@@ -219,18 +224,24 @@ namespace AVThesis.Bots {
             // So we'll check the statistics table for the highest value among tasks that are currently available in the state.
             // This continues until the end-turn task is selected.
             var action = new SabberStoneAction();
-            TaskStatistics bestTask;
+            KeyValuePair<PlayerTask, TaskStatistics> bestTask;
             do {
-                var availableTasks = clonedPlayer.Options().Select(i => i.FullPrint());
-                //TODO this might not work because of missing HashCode / Comparator implementation for PlayerTask
-                bestTask = taskStatistics.Values.Where(i => availableTasks.Contains(i.Task.FullPrint())).OrderByDescending(i => i.AverageValue()).FirstOrDefault();
-                if (bestTask != null) {
-                    var task = bestTask.Task;
-                    action.AddTask(task);
-                    clonedGame.Process(task);
-                }
-            } while (clonedGame.CurrentPlayer.Id == clonedPlayer.Id && bestTask != null && bestTask.Task.PlayerTaskType != PlayerTaskType.END_TURN);
+                // Get the available options in this state and find which tasks we have statistics on.
+                var availableTasks = clonedPlayer.Options();
+                bestTask = taskStatistics.Where(i => availableTasks.Contains(i.Key, _comparer)).OrderByDescending(i => i.Value.AverageValue()).FirstOrDefault();
 
+                // If we can't find any task, stop.
+                if (bestTask.IsDefault()) break;
+                
+                // If we found a task, add it to the Action and process it to progress the game.
+                var task = bestTask.Key;
+                action.AddTask(task);
+                clonedGame.Process(task);
+
+                // Continue while it is still our turn and we haven't yet selected to end the turn.
+            } while (clonedGame.CurrentPlayer.Id == clonedPlayer.Id && bestTask.Key.PlayerTaskType != PlayerTaskType.END_TURN);
+
+            // Return the created action consisting of the best action available at each point.
             return action;
         }
 
@@ -284,7 +295,7 @@ namespace AVThesis.Bots {
 
             // Keep track of the solution from each determinisation
             var solutions = new List<SabberStoneAction>();
-            var taskValues = new Dictionary<int, TaskStatistics>();
+            var taskValues = new Dictionary<PlayerTask, TaskStatistics>(_comparer);
             for (int i = 0; i < Determinisations; i++) {
 
                 // Copy the state before changing things
@@ -323,10 +334,8 @@ namespace AVThesis.Bots {
                 var searchResult = Search(stateCopy);
                 solutions.Add(searchResult.Item1);
                 foreach (var tuple in searchResult.Item2) {
-                    //TODO implement correct HashCode implementation for PlayerTask
-                    var taskHash = tuple.Item1.FullPrint().GetHashCode();
-                    if (!taskValues.ContainsKey(taskHash)) taskValues.Add(taskHash, new TaskStatistics(tuple.Item1, tuple.Item2));
-                    else taskValues[taskHash].AddValue(tuple.Item2);
+                    if (!taskValues.ContainsKey(tuple.Item1)) taskValues.Add(tuple.Item1, new TaskStatistics(tuple.Item2));
+                    else taskValues[tuple.Item1].AddValue(tuple.Item2);
                 }
             }
 

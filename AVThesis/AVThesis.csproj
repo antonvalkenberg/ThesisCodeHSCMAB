@@ -150,6 +150,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SabberStone\Decks.cs" />
+    <Compile Include="SabberStone\PlayerTaskComparer.cs" />
     <Compile Include="SabberStone\SabberStoneGameLogic.cs" />
     <Compile Include="SabberStone\ISabberStoneBot.cs" />
     <Compile Include="SabberStone\SabberStoneAction.cs" />

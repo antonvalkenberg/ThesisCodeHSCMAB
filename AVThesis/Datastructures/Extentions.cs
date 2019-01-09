@@ -8,9 +8,9 @@ using System.Linq;
 /// </summary>
 namespace AVThesis.Datastructures {
 
-    public static class Extentions {
+    public static class Extensions {
 
-        private static Random _r = new Random();
+        private static readonly Random _r = new Random();
 
         /// <summary>
         /// Returns a random element from this enumeration.
@@ -19,12 +19,13 @@ namespace AVThesis.Datastructures {
         /// <param name="collection">This enumeration.</param>
         /// <returns>A random element or the default value of T if the enumeration is empty.</returns>
         public static T RandomElementOrDefault<T>(this IEnumerable<T> list) {
+            var enumerable = list.ToList();
             // If there are no elements in the list, return the default value of T
-            if (list.Count() == 0) {
+            if (!enumerable.Any()) {
                 return default(T);
             }
 
-            return list.ElementAt(_r.Next(list.Count()));
+            return enumerable.ElementAt(_r.Next(enumerable.Count()));
         }
 
         /// <summary>
@@ -34,11 +35,11 @@ namespace AVThesis.Datastructures {
         /// <param name="list">This enumeration.</param>
         /// <returns>Whether or not this enumeration is null or empty.</returns>
         public static bool IsNullOrEmpty<T>(this IEnumerable<T> list) {
-            return list == null || list.Count() == 0;
+            return list == null || !list.Any();
         }
 
         /// <summary>
-        /// Shuffles this enumeration. This is done by assiging a random number to each item and returning a new enumerable ordered by these numbers.
+        /// Shuffles this enumeration. This is done by assigning a random number to each item and returning a new enumerable ordered by these numbers.
         /// </summary>
         /// <typeparam name="T">The Type of this enumeration.</typeparam>
         /// <param name="list">This enumeration.</param>
@@ -46,6 +47,16 @@ namespace AVThesis.Datastructures {
         public static IEnumerable<T> Shuffle<T>(this IEnumerable<T> list) {
             var r = new Random((int)DateTime.Now.Ticks);
             return list.Select(x => new { Number = r.Next(), Item = x }).OrderBy(x => x.Number).Select(x => x.Item);
+        }
+
+        /// <summary>
+        /// Checks the value of a struct to see if it equals the default value.
+        /// </summary>
+        /// <typeparam name="T">The Type of this struct.</typeparam>
+        /// <param name="value">The value of this struct.</param>
+        /// <returns>Whether or not this struct's value is equals to the default value.</returns>
+        public static bool IsDefault<T>(this T value) where T : struct {
+           return value.Equals(default(T));
         }
 
     }

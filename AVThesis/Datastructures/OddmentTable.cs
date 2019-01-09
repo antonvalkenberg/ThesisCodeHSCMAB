@@ -85,7 +85,7 @@ namespace AVThesis.Datastructures {
         /// <param name="allOptions">The new options to use for this OddmentTable.</param>
         public void Recalculate(List<Tuple<double, T>> allOptions) {
 
-            // Save the options and get a summation that we'll need for normalizing.
+            // Save the options and get a summation that we'll need for normalising.
             Options = allOptions;
             double sum = 0;
             foreach (var option in Options) {
@@ -96,10 +96,10 @@ namespace AVThesis.Datastructures {
             _probability = new double[Options.Count];
             double average = 1.0 / Options.Count;
 
-            // Normalize the probabilities.
+            // Normalise the probabilities.
             List<double> newProbabilities = new List<double>();
             foreach (var option in Options) {
-                newProbabilities.Add(Util.Normalize(option.Item1, 0, sum));
+                newProbabilities.Add(Util.Normalise(option.Item1, 0, sum));
             }
 
             // Create two stacks to act as worklists as we populate the tables.
