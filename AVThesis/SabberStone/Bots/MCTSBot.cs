@@ -29,7 +29,7 @@ namespace AVThesis.SabberStone.Bots {
         private const int MIN_T_VISIT_THRESHOLD_FOR_EXPANSION = 20;
         private const int SELECTION_VISIT_MINIMUM_FOR_EVALUATION = 50;
         private const double UCT_C_CONSTANT_DEFAULT = 0.1;
-        private const int PLAYOUT_TURN_CUTOFF = 2;
+        private const int PLAYOUT_TURN_CUTOFF = 3;
         private const string BOT_NAME = "MCTSBot";
         private readonly Random _rng = new Random();
         private readonly bool _debug;
@@ -102,6 +102,14 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
         public MCTSBot(Controller player, bool hierarchicalExpansion = false, bool allowPerfectInformation = false, int determinisations = 1, bool debugInfoToConsole = false) : this(hierarchicalExpansion, allowPerfectInformation, determinisations, debugInfoToConsole) {
             Player = player;
+
+            // Set the playout bots correctly if we are using PlayoutStrategySabberStone
+            if (Playout is PlayoutStrategySabberStone playout) {
+                MyPlayoutBot.SetController(Player);
+                playout.AddPlayoutBot(Player.Id, MyPlayoutBot);
+                OpponentPlayoutBot.SetController(Player.Opponent);
+                playout.AddPlayoutBot(Player.Id, MyPlayoutBot);
+            }
         }
 
         /// <summary>
@@ -120,11 +128,11 @@ namespace AVThesis.SabberStone.Bots {
             // Simulation will be handled by the Playout.
             var sabberStoneStateEvaluation = new EvaluationStrategyHearthStone();
             var playout = new PlayoutStrategySabberStone();
-            MyPlayoutBot = new MASTPlayoutBot(Player, MASTPlayoutBot.SelectionType.EGreedy, sabberStoneStateEvaluation, playout);
-            playout.AddPlayoutBot(Player.Id, MyPlayoutBot);
-            OpponentPlayoutBot = new RandomBot(Player.Opponent);
-            playout.AddPlayoutBot(Player.Opponent.Id, OpponentPlayoutBot);
             Playout = playout;
+
+            // Set the playout bots
+            MyPlayoutBot = new MASTPlayoutBot(MASTPlayoutBot.SelectionType.EGreedy, sabberStoneStateEvaluation, playout);
+            OpponentPlayoutBot = new RandomBot();
 
             // We'll be cutting off the simulations after X turns, using a GoalStrategy.
             Goal = new GoalStrategyTurnCutoff(PLAYOUT_TURN_CUTOFF);

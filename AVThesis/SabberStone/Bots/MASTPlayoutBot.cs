@@ -80,14 +80,12 @@ namespace AVThesis.SabberStone.Bots {
         /// <summary>
         /// Creates a new instance of the MASTPlayoutBot.
         /// </summary>
-        /// <param name="player">The player that this playoutBot represents when playing out a game.</param>
         /// <param name="selection">The type of selection to use.</param>
         /// <param name="evaluation">The EvaluationStrategy used for evaluating a SabberStoneState.</param>
         /// <param name="playout">The PlayoutStrategy used for simulating a game.</param>
-        public MASTPlayoutBot(Controller player, SelectionType selection, EvaluationStrategyHearthStone evaluation, PlayoutStrategySabberStone playout) {
-            Player = player;
+        public MASTPlayoutBot(SelectionType selection, EvaluationStrategyHearthStone evaluation, PlayoutStrategySabberStone playout) {
             Selection = selection;
-            RandomPlayoutBot = new RandomBot(player);
+            RandomPlayoutBot = new RandomBot();
             Evaluation = evaluation;
             Playout = playout;
             playout.SimulationCompleted += SimulationCompleted;
@@ -139,7 +137,7 @@ namespace AVThesis.SabberStone.Bots {
             // Repeatedly exploit the highest (average) reward task that is available in this state
             do {
                 // Get the stats of the tasks currently available in this state
-                var availableTasks = stateClone.Game.CurrentPlayer.Options().Cast<SabberStonePlayerTask>().ToList();
+                var availableTasks = stateClone.Game.CurrentPlayer.Options().Select(i => (SabberStonePlayerTask)i).ToList();
                 var availableTaskHashes = availableTasks.Select(i => i.GetHashCode()).ToList();
                 var availableStatistics = MASTTable.Where(i => availableTaskHashes.Contains(i.Key)).ToList();
 
@@ -194,6 +192,8 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="sender">The object that triggered the event.</param>
         /// <param name="eventArgs">The arguments of the event.</param>
         public void SimulationCompleted(object sender, PlayoutStrategySabberStone.SimulationCompletedEventArgs eventArgs) {
+            //TODO check to make sure we are evaluating the board from the correct viewpoint
+            
             // Evaluate the state.
             var eval = Evaluation.Evaluate(eventArgs.Context, null, eventArgs.EndState);
             // Add data for all the actions that have been taken.
@@ -240,6 +240,7 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="controller">This bot's Controller.</param>
         public void SetController(Controller controller) {
             Player = controller;
+            RandomPlayoutBot = new RandomBot(controller);
             // Also reset the table of statistics
             ResetMASTData();
         }
