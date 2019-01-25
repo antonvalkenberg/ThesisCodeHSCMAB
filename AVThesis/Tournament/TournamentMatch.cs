@@ -33,7 +33,7 @@ namespace AVThesis.Tournament {
 
         #region Fields
 
-        readonly bool _printToConsole = false;
+        readonly bool _printToConsole;
 
         #endregion
 
@@ -166,8 +166,8 @@ namespace AVThesis.Tournament {
                     foreach (var item in action.Tasks) {
 
                         // Process the task
-                        if (_printToConsole) Console.WriteLine(item.FullPrint());
-                        game.Game.Process(item);
+                        if (_printToConsole) Console.WriteLine(item.Task.FullPrint());
+                        game.Game.Process(item.Task);
                     }
                 }
                 // In the case where an incomplete action was returned, return a null-move

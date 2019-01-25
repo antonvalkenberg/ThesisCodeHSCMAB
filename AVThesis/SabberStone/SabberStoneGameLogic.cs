@@ -5,8 +5,6 @@ using System.Linq;
 using AVThesis.Datastructures;
 using AVThesis.Game;
 using AVThesis.Search;
-using SabberStoneCore.Model.Entities;
-using SabberStoneCore.Tasks;
 using SabberStoneCore.Tasks.PlayerTasks;
 using State = SabberStoneCore.Enums.State;
 
@@ -186,7 +184,7 @@ namespace AVThesis.SabberStone {
 
                 // Process each task.
                 foreach (var item in action.Tasks) {
-                    position.Game.Process(item);
+                    position.Game.Process(item.Task);
                 }
             } else {
 
@@ -230,7 +228,7 @@ namespace AVThesis.SabberStone {
             availableOptions = availableOptions.Where(i => i.ZonePosition <= 0).ToList();
             foreach (var item in availableOptions) {
                 var action = new SabberStoneAction();
-                action.AddTask(item);
+                action.AddTask((SabberStonePlayerTask)item);
                 topLevelActions.Add(action);
             }
 
@@ -296,18 +294,18 @@ namespace AVThesis.SabberStone {
         /// <param name="playerId">The unique identifier of the player that will play the action.</param>
         /// <param name="ignorePositioning">[Optional] Whether or not to treat minion play tasks with different positions as the same and ignore the extras. Default is true.</param>
         /// <returns>Collection of available tasks, potentially having minion play tasks with different positions filtered out.</returns>
-        private static IEnumerable<PlayerTask> CreateCurrentOptions(SabberStoneState rootState, SabberStoneAction action, int playerId, bool ignorePositioning = true) {
+        private static IEnumerable<SabberStonePlayerTask> CreateCurrentOptions(SabberStoneState rootState, SabberStoneAction action, int playerId, bool ignorePositioning = true) {
 
             // Clone the root state before tampering with it
             var clonedState = (SabberStoneState)rootState.Copy();
             // Apply the tasks in the current action to the root state
             foreach (var task in action.Tasks) {
-                clonedState.Game.Process(task);
+                clonedState.Game.Process(task.Task);
             }
 
             // If it's no longer our player's turn, or if the game has ended return an empty list
             // Note: this will happen if the last task processed was an end-turn task or if that task ended the game
-            if (clonedState.Game.CurrentPlayer.Id != playerId || clonedState.Game.State == State.COMPLETE) return new List<PlayerTask>();
+            if (clonedState.Game.CurrentPlayer.Id != playerId || clonedState.Game.State == State.COMPLETE) return new List<SabberStonePlayerTask>();
 
             // Query the game for the currently available actions
             var currentOptions = clonedState.Game.CurrentPlayer.Options();
@@ -319,7 +317,7 @@ namespace AVThesis.SabberStone {
             }
 
             // Return the options
-            return currentOptions;
+            return currentOptions.Cast<SabberStonePlayerTask>();
         }
 
         #endregion

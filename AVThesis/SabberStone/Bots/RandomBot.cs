@@ -1,13 +1,12 @@
-﻿using AVThesis.SabberStone;
+﻿using AVThesis.Datastructures;
 using SabberStoneCore.Model.Entities;
-using AVThesis.Datastructures;
 using SabberStoneCore.Tasks;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
 /// In parts inspired by a code framework written by G.J. Roelofs and T. Aliyev.
 /// </summary>
-namespace AVThesis.Bots {
+namespace AVThesis.SabberStone.Bots {
 
     /// <summary>
     /// A bot that plays Hearthstone through random moves.
@@ -16,8 +15,7 @@ namespace AVThesis.Bots {
 
         #region Fields
 
-        private const string _botName = "RandomBot";
-        private Controller _player;
+        private const string BOT_NAME = "RandomBot";
 
         #endregion
 
@@ -26,7 +24,7 @@ namespace AVThesis.Bots {
         /// <summary>
         /// The player this bot represents.
         /// </summary>
-        public Controller Player { get => _player; set => _player = value; }
+        public Controller Player { get; set; }
 
         #endregion
 
@@ -68,7 +66,7 @@ namespace AVThesis.Bots {
             var selectedTask = clonedPlayer.Options().RandomElementOrDefault();
             do {
                 // Add the task to the action.
-                action.AddTask(selectedTask);
+                action.AddTask((SabberStonePlayerTask)selectedTask);
 
                 // Process the task on the cloned game state.
                 clonedGame.Process(selectedTask);
@@ -80,7 +78,7 @@ namespace AVThesis.Bots {
             } while (clonedGame.CurrentPlayer.Id == clonedPlayer.Id && selectedTask != null && selectedTask.PlayerTaskType != PlayerTaskType.END_TURN);
 
             // Add the last selected task, if it is not null
-            if (selectedTask != null) action.AddTask(selectedTask);
+            if (selectedTask != null) action.AddTask((SabberStonePlayerTask)selectedTask);
 
             return action;
         }
@@ -125,7 +123,7 @@ namespace AVThesis.Bots {
         /// </summary>
         /// <returns>String representing the Bot's name.</returns>
         public string Name() {
-            return _botName;
+            return BOT_NAME;
         }
 
         #endregion

@@ -3,43 +3,28 @@ using System.Collections.Generic;
 using System.Linq;
 using AVThesis.Datastructures;
 using AVThesis.Game;
-using AVThesis.SabberStone;
 using AVThesis.SabberStone.Strategies;
 using AVThesis.Search;
 using AVThesis.Search.LSI;
 using AVThesis.Search.Tree;
 using SabberStoneCore.Model.Entities;
-using SabberStoneCore.Tasks;
 using SabberStoneCore.Tasks.PlayerTasks;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
 /// In parts inspired by a code framework written by G.J. Roelofs and T. Aliyev.
 /// </summary>
-namespace AVThesis.Bots {
+namespace AVThesis.SabberStone.Bots {
 
     /// <summary>
     /// A bot that plays Hearthstone using Linear Side Information to find its best move.
     /// </summary>
     public class LSIBot : ISabberStoneBot {
 
-        #region Helper Class
-
-        private class ActionValue {
-            public SabberStoneAction Action { get; set; }
-            public double Value { get; set; }
-            public ActionValue(SabberStoneAction action, double value) {
-                Action = action;
-                Value = value;
-            }
-        }
-
-        #endregion
-
         #region Inner Classes
 
-        private class SabberStoneSideInformationStrategy : ISideInformationStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction, OddmentTable<PlayerTask>> {
-            
+        private class SabberStoneSideInformationStrategy : ISideInformationStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction, OddmentTable<SabberStonePlayerTask>> {
+
             #region Properties
 
             /// <summary>
@@ -69,12 +54,11 @@ namespace AVThesis.Bots {
             /// <summary>
             /// Creates a new instance.
             /// </summary>
-            /// <param name="playoutBot">The bot that is used during the playouts.</param>
             /// <param name="playout">The strategy used to play out a game in simulation.</param>
             /// <param name="evaluation">The evaluation strategy for determining the value of samples.</param>
             /// <param name="gameLogic">The game specific logic required for searching through SabberStoneStates and SabberStoneActions.</param>
-            public SabberStoneSideInformationStrategy(RandomBot playoutBot, IPlayoutStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> playout, IStateEvaluation<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction, TreeSearchNode<SabberStoneState, SabberStoneAction>> evaluation, IGameLogic<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction, SabberStoneAction> gameLogic) {
-                PlayoutBot = playoutBot;
+            public SabberStoneSideInformationStrategy(IPlayoutStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> playout, IStateEvaluation<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction, TreeSearchNode<SabberStoneState, SabberStoneAction>> evaluation, IGameLogic<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction, SabberStoneAction> gameLogic) {
+                PlayoutBot = new RandomBot();
                 Playout = playout;
                 Evaluation = evaluation;
                 GameLogic = gameLogic;
@@ -85,7 +69,7 @@ namespace AVThesis.Bots {
             #region Public Methods
 
             /// <inheritdoc />
-            public OddmentTable<PlayerTask> Create(SearchContext<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, int samplesForGeneration) {
+            public OddmentTable<SabberStonePlayerTask> Create(SearchContext<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, int samplesForGeneration) {
 
                 // So we have an issue here, because it's Hearthstone we don't know in advance how many dimensions we have.
                 //      -> We can just evenly distribute budget over the currently available dimensions
@@ -103,7 +87,7 @@ namespace AVThesis.Bots {
 
                 // I guess use OddmentTable again?
 
-                var table = new Dictionary<PlayerTask, double>();
+                var table = new Dictionary<SabberStonePlayerTask, double>(PlayerTaskComparer.Comparer);
 
                 // So, we have a number of samples to use
                 // For each of those, generate a random SabberStoneAction and playout
@@ -124,7 +108,7 @@ namespace AVThesis.Bots {
                 }
 
                 // Create the Oddment table
-                var oddmentTable = new OddmentTable<PlayerTask>();
+                var oddmentTable = new OddmentTable<SabberStonePlayerTask>();
                 foreach (var kvPair in table) {
                     oddmentTable.Add(kvPair.Key, kvPair.Value, recalculate: false);
                 }
@@ -138,7 +122,7 @@ namespace AVThesis.Bots {
 
         }
 
-        private class SabberStoneLSISamplingStrategy : ILSISamplingStrategy<SabberStoneState, SabberStoneAction, OddmentTable<PlayerTask>> {
+        private class SabberStoneLSISamplingStrategy : ILSISamplingStrategy<SabberStoneState, SabberStoneAction, OddmentTable<SabberStonePlayerTask>> {
             
             #region Properties
 
@@ -164,13 +148,13 @@ namespace AVThesis.Bots {
             #region Private Methods
 
             /// <summary>
-            /// Expands a specific state and returns all available PlayerTasks.
-            /// Note: it is assumed that the expansion is performed Hierarchically and therefore only contains single PlayerTask SabberStoneActions.
+            /// Expands a specific state and returns all available SabberStonePlayerTasks.
+            /// Note: it is assumed that the expansion is performed Hierarchically and therefore only contains single SabberStonePlayerTask SabberStoneActions.
             /// </summary>
             /// <param name="state">The game state.</param>
-            /// <returns>Collection of PlayerTasks that are available in the provided state.</returns>
-            private List<PlayerTask> GetAvailablePlayerTasks(SabberStoneState state) {
-                var availableTasks = new List<PlayerTask>();
+            /// <returns>Collection of SabberStonePlayerTasks that are available in the provided state.</returns>
+            private List<SabberStonePlayerTask> GetAvailablePlayerTasks(SabberStoneState state) {
+                var availableTasks = new List<SabberStonePlayerTask>();
                 foreach (var expandedAction in GameLogic.Expand(null, state)) {
                     availableTasks.Add(expandedAction.Tasks.First());
                 }
@@ -182,7 +166,7 @@ namespace AVThesis.Bots {
             #region Public Methods
 
             /// <inheritdoc />
-            public SabberStoneAction Sample(SabberStoneState state, OddmentTable<PlayerTask> sideInformation) {
+            public SabberStoneAction Sample(SabberStoneState state, OddmentTable<SabberStonePlayerTask> sideInformation) {
 
                 var action = new SabberStoneAction();
                 while (!action.IsComplete()) {
@@ -191,7 +175,7 @@ namespace AVThesis.Bots {
                     // Check if the task is available in the current state
                     if (GetAvailablePlayerTasks(state).Contains(task)) {
                         action.AddTask(task);
-                        state.Game.Process(task);
+                        state.Game.Process(task.Task);
                     }
                 }
 
@@ -214,7 +198,7 @@ namespace AVThesis.Bots {
         private const int LSI_SAMPLES_FOR_GENERATION = 250;
         private const int LSI_SAMPLES_FOR_EVALUATION = 750;
         private const int PLAYOUT_TURN_CUTOFF = 2;
-        private const string _botName = "LSIBot";
+        private const string BOT_NAME = "LSIBot";
 
         #endregion
 
@@ -224,11 +208,6 @@ namespace AVThesis.Bots {
         /// The player this bot is representing in a game of SabberStone.
         /// </summary>
         public Controller Player { get; set; }
-
-        /// <summary>
-        /// The bot that is used during the playouts.
-        /// </summary>
-        public RandomBot PlayoutBot { get; set; }
 
         /// <summary>
         /// The strategy used to determine if a playout has reached its goal state.
@@ -253,12 +232,12 @@ namespace AVThesis.Bots {
         /// <summary>
         /// The strategy for creating the side information.
         /// </summary>
-        public ISideInformationStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction, OddmentTable<PlayerTask>> SideInformationStrategy { get; set; }
+        public ISideInformationStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction, OddmentTable<SabberStonePlayerTask>> SideInformationStrategy { get; set; }
 
         /// <summary>
         /// The strategy for sampling actions during the generation phase of LSI.
         /// </summary>
-        public ILSISamplingStrategy<SabberStoneState, SabberStoneAction, OddmentTable<PlayerTask>> SamplingStrategy { get; set; }
+        public ILSISamplingStrategy<SabberStoneState, SabberStoneAction, OddmentTable<SabberStonePlayerTask>> SamplingStrategy { get; set; }
 
         public int SamplesUsedGeneration { get; set; }
         public int SamplesUsedEvaluation { get; set; }
@@ -274,14 +253,11 @@ namespace AVThesis.Bots {
         public LSIBot(Controller player) {
             Player = player;
 
-            // Set the playout bot
-            PlayoutBot = new RandomBot();
-
             // LSI will need a goal-strategy to determine when a simulation is done
             Goal = new GoalStrategyTurnCutoff(PLAYOUT_TURN_CUTOFF);
 
             // LSI will need a playout-strategy to run the simulations
-            Playout = new PlayoutStrategySabberStone(PlayoutBot);
+            Playout = new PlayoutStrategySabberStone();
 
             // LSI will need an evaluation-strategy to evaluate the strength of samples
             Evaluation = new EvaluationStrategyHearthStone();
@@ -291,7 +267,7 @@ namespace AVThesis.Bots {
             GameLogic = new SabberStoneGameLogic(true, Goal);
 
             // The side information strategy needs access to several of these.
-            SideInformationStrategy = new SabberStoneSideInformationStrategy(PlayoutBot, Playout, Evaluation, GameLogic);
+            SideInformationStrategy = new SabberStoneSideInformationStrategy(Playout, Evaluation, GameLogic);
 
             // The sampling strategy used to sample actions during the generation phase.
             SamplingStrategy = new SabberStoneLSISamplingStrategy(GameLogic);
@@ -316,7 +292,7 @@ namespace AVThesis.Bots {
             int adjustedSamplesForEvaluation = (int)(LSI_SAMPLES_FOR_EVALUATION * 1.0);
 
             // Create a new LSI search
-            var search = new LSI<object, SabberStoneState, SabberStoneAction, object, TreeSearchNode<SabberStoneState, SabberStoneAction>, OddmentTable<PlayerTask>>(
+            var search = new LSI<object, SabberStoneState, SabberStoneAction, object, TreeSearchNode<SabberStoneState, SabberStoneAction>, OddmentTable<SabberStonePlayerTask>>(
                 LSI_SAMPLES_FOR_GENERATION,
                 adjustedSamplesForEvaluation,
                 SideInformationStrategy,
@@ -348,7 +324,7 @@ namespace AVThesis.Bots {
             if (solution.IsComplete()) return solution;
             // Otherwise add an End-Turn task before returning.
             Console.WriteLine("Solution was an incomplete action; adding End-Turn task.");
-            solution.Tasks.Add(EndTurnTask.Any(Player));
+            solution.Tasks.Add((SabberStonePlayerTask)EndTurnTask.Any(Player));
             return solution;
         }
 
@@ -364,7 +340,7 @@ namespace AVThesis.Bots {
 
         /// <inheritdoc />
         public string Name() {
-            return _botName;
+            return BOT_NAME;
         }
 
         #endregion

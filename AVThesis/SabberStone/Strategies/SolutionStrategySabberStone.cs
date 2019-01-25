@@ -4,7 +4,6 @@ using System.Linq;
 using AVThesis.Search;
 using AVThesis.Search.Tree;
 using AVThesis.Search.Tree.MCTS;
-using SabberStoneCore.Tasks;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -21,16 +20,16 @@ namespace AVThesis.SabberStone.Strategies {
 
         private INodeEvaluation<TreeSearchNode<SabberStoneState, SabberStoneAction>> NodeEvaluation { get; }
 
-        public List<Tuple<PlayerTask, double>> TaskValues { get; private set; }
+        public List<Tuple<SabberStonePlayerTask, double>> TaskValues { get; private set; }
 
         public SolutionStrategySabberStone(bool hierarchicalExpansion, INodeEvaluation<TreeSearchNode<SabberStoneState, SabberStoneAction>> nodeEvaluation) {
             HierarchicalExpansion = hierarchicalExpansion;
             NodeEvaluation = nodeEvaluation;
-            TaskValues = new List<Tuple<PlayerTask, double>>();
+            TaskValues = new List<Tuple<SabberStonePlayerTask, double>>();
         }
 
         public void ClearTaskValues() {
-            TaskValues = new List<Tuple<PlayerTask, double>>();
+            TaskValues = new List<Tuple<SabberStonePlayerTask, double>>();
         }
 
         /// <inheritdoc cref="ISolutionStrategy{D,P,A,S,Sol,N}.Solution"/>
@@ -50,7 +49,7 @@ namespace AVThesis.SabberStone.Strategies {
                     var task = node.Payload.Tasks.First();
 
                     solution.AddTask(task);
-                    TaskValues.Add(new Tuple<PlayerTask, double>(task, node.CalculateScore(NodeEvaluation)));
+                    TaskValues.Add(new Tuple<SabberStonePlayerTask, double>(task, node.CalculateScore(NodeEvaluation)));
                     
                     // Move to the next node in the tree, unless we are currently at a leaf node
                     if (node.IsLeaf()) break;
@@ -62,7 +61,7 @@ namespace AVThesis.SabberStone.Strategies {
 
             // If not HE, the task values are combined for the action, so just assign the action's value to each task in the list.
             foreach (var payloadTask in node.Payload.Tasks) {
-                TaskValues.Add(new Tuple<PlayerTask, double>(payloadTask, node.CalculateScore(NodeEvaluation)));
+                TaskValues.Add(new Tuple<SabberStonePlayerTask, double>(payloadTask, node.CalculateScore(NodeEvaluation)));
             }
 
             return node.Payload;

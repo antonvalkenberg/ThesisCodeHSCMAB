@@ -21,9 +21,9 @@ namespace AVThesis.SabberStone {
         #region Properties
 
         /// <summary>
-        /// The PlayerTasks that this SabberStoneAction represents.
+        /// The SabberStonePlayerTask that this SabberStoneAction represents.
         /// </summary>
-        public List<PlayerTask> Tasks { get; }
+        public List<SabberStonePlayerTask> Tasks { get; }
 
         #endregion
 
@@ -32,16 +32,16 @@ namespace AVThesis.SabberStone {
         /// <summary>
         /// Constructs a new instance of a SabberStoneAction.
         /// </summary>
-        /// <param name="action">The PlayerTasks that the SabberStoneAction represents.</param>
-        public SabberStoneAction(List<PlayerTask> action) {
-            Tasks = new List<PlayerTask>(action);
+        /// <param name="action">The SabberStonePlayerTask that the SabberStoneAction represents.</param>
+        public SabberStoneAction(List<SabberStonePlayerTask> action) {
+            Tasks = new List<SabberStonePlayerTask>(action);
         }
 
         /// <summary>
         /// Constructs a new instance of a SabberStoneAction with an empty action.
         /// </summary>
         public SabberStoneAction() {
-            Tasks = new List<PlayerTask>();
+            Tasks = new List<SabberStonePlayerTask>();
         }
 
         #endregion
@@ -55,15 +55,15 @@ namespace AVThesis.SabberStone {
         /// <returns>Integer representing the unique identifier of the player that plays this SabberStoneAction.</returns>
         public int Player() {
             if (Tasks.IsNullOrEmpty()) return -1;
-            return Tasks.First().Controller.Id;
+            return Tasks.First().Task.Controller.Id;
         }
 
         /// <summary>
-        /// Add a PlayerTask to this SabberStoneAction's action list.
+        /// Add a SabberStonePlayerTask to this SabberStoneAction's action list.
         /// </summary>
         /// <param name="task">The task to be added.</param>
         /// <param name="index">[Optional] The index to add the task at. Default value is -1.</param>
-        public void AddTask(PlayerTask task, int index = -1) {
+        public void AddTask(SabberStonePlayerTask task, int index = -1) {
             if (index > -1) Tasks.Insert(index, task);
             else Tasks.Add(task);
         }
@@ -75,7 +75,7 @@ namespace AVThesis.SabberStone {
         /// <returns>Whether or not this SabberStoneAction is complete.</returns>
         public bool IsComplete() {
             // An action is complete if it's not empty and ends with an END_TURN task.
-            return !Tasks.IsNullOrEmpty() && Tasks.Last().PlayerTaskType == PlayerTaskType.END_TURN;
+            return !Tasks.IsNullOrEmpty() && Tasks.Last().Task.PlayerTaskType == PlayerTaskType.END_TURN;
         }
 
         /// <summary>
@@ -85,7 +85,7 @@ namespace AVThesis.SabberStone {
         /// <returns>SabberStoneAction containing only an <see cref="SabberStoneCore.Tasks.PlayerTasks.EndTurnTask"/>.</returns>
         public static SabberStoneAction CreateNullMove(Controller player) {
             var nullMove = new SabberStoneAction();
-            nullMove.AddTask(SabberStoneCore.Tasks.PlayerTasks.EndTurnTask.Any(player));
+            nullMove.AddTask((SabberStonePlayerTask)SabberStoneCore.Tasks.PlayerTasks.EndTurnTask.Any(player));
             return nullMove;
         }
 
@@ -104,7 +104,7 @@ namespace AVThesis.SabberStone {
         public override bool Equals(object obj) {
             if (obj is null) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (obj.GetType() != GetType()) return false;
             return Equals((SabberStoneAction)obj);
         }
 
@@ -132,7 +132,7 @@ namespace AVThesis.SabberStone {
             var sb = new StringBuilder();
             sb.AppendLine($"SabberStoneAction for player with ID {Player()}, containing {Tasks.Count} task(s).");
             foreach (var item in Tasks) {
-                sb.AppendLine(item.FullPrint());
+                sb.AppendLine(item.Task.FullPrint());
             }
             return sb.ToString();
         }
@@ -140,4 +140,5 @@ namespace AVThesis.SabberStone {
         #endregion
 
     }
+
 }

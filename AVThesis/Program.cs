@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using AVThesis.Datastructures;
 using AVThesis.SabberStone;
 using SabberStoneCore.Config;
 using SabberStoneCore.Enums;
-using AVThesis.Bots;
+using AVThesis.SabberStone.Bots;
+using SabberStoneCore.Tasks;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -14,10 +18,22 @@ namespace AVThesis {
 
 		public static void Main(string[] args) {
             //RunTournamentMatch();
-            RunQuickMatch();
+            //RunQuickMatch();
+
+            //TODO Test this
+            // Get the available options in this state and find which tasks we have statistics on.
+            var taskStatistics = new Dictionary<int, PlayerTaskStatistics>();
+		    var options = new List<PlayerTask>();
+		    var availableTasks = options.Cast<SabberStonePlayerTask>().Select(i => i.GetHashCode());
+		    var bestTask = taskStatistics.Where(i => availableTasks.Contains(i.Key)).OrderByDescending(i => i.Value.AverageValue()).FirstOrDefault();
+
+		    // If we can't find any task, stop.
+		    if (bestTask.IsDefault()) {
+		        string lol = "";
+		    }
 
 #pragma warning disable 219
-		    string catcher = null;
+            string catcher = null;
 #pragma warning restore 219
         }
 
@@ -86,8 +102,8 @@ namespace AVThesis {
                         foreach (var item in action.Tasks) {
 
                             // Process the task
-                            Console.WriteLine(item.FullPrint());
-                            game.Game.Process(item);
+                            Console.WriteLine(item.Task.FullPrint());
+                            game.Game.Process(item.Task);
                         }
                     }
                 }
@@ -111,8 +127,8 @@ namespace AVThesis {
                         foreach (var item in action.Tasks) {
 
                             // Process the task
-                            Console.WriteLine(item.FullPrint());
-                            game.Game.Process(item);
+                            Console.WriteLine(item.Task.FullPrint());
+                            game.Game.Process(item.Task);
                         }
                     }
                 }

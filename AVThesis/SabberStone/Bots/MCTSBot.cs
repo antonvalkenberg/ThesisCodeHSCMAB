@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using AVThesis.Datastructures;
 using AVThesis.Game;
-using AVThesis.SabberStone;
 using AVThesis.SabberStone.Strategies;
 using AVThesis.Search;
 using AVThesis.Search.Tree;
@@ -12,38 +11,17 @@ using SabberStoneCore.Model;
 using SabberStoneCore.Model.Entities;
 using SabberStoneCore.Tasks;
 using SabberStoneCore.Tasks.PlayerTasks;
-using static AVThesis.Search.SearchContext<object, AVThesis.SabberStone.SabberStoneState, AVThesis.SabberStone.SabberStoneAction, object, AVThesis.SabberStone.SabberStoneAction>;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
 /// In parts inspired by a code framework written by G.J. Roelofs and T. Aliyev.
 /// </summary>
-namespace AVThesis.Bots {
+namespace AVThesis.SabberStone.Bots {
 
     /// <summary>
     /// A bot that plays Hearthstone using Monte Carlo Tree Search to find its best move.
     /// </summary>
     public class MCTSBot : ISabberStoneBot {
-
-        #region Helper Class
-
-        private class TaskStatistics {
-            private double TotalValue { get; set; }
-            private int Visits { get; set; }
-            public TaskStatistics(double value) {
-                TotalValue = value;
-                Visits = 1;
-            }
-            public void AddValue(double value) {
-                TotalValue += value;
-                Visits++;
-            }
-            public double AverageValue() {
-                return TotalValue / Visits;
-            }
-        }
-
-        #endregion
 
         #region Constants
 
@@ -54,7 +32,6 @@ namespace AVThesis.Bots {
         private const int PLAYOUT_TURN_CUTOFF = 2;
         private const string BOT_NAME = "MCTSBot";
         private readonly Random _rng = new Random();
-        private static PlayerTaskComparer _comparer = new PlayerTaskComparer();
         private readonly bool _debug;
 
         #endregion
@@ -69,7 +46,12 @@ namespace AVThesis.Bots {
         /// <summary>
         /// The bot that is used during the playouts.
         /// </summary>
-        public ISabberStoneBot PlayoutBot { get; set; }
+        public ISabberStoneBot MyPlayoutBot { get; set; }
+
+        /// <summary>
+        /// The bot that is used for the opponent's playouts.
+        /// </summary>
+        public ISabberStoneBot OpponentPlayoutBot { get; set; }
 
         /// <summary>
         /// The strategy used to determine if a playout has reached its goal state.
@@ -135,17 +117,20 @@ namespace AVThesis.Bots {
             Determinisations = determinisations;
             _debug = debugInfoToConsole;
 
-            // Note: we're not setting the Controller here, because we want to clone the current one when doing a playout.
-            PlayoutBot = new RandomBot();
+            // Simulation will be handled by the Playout.
+            var sabberStoneStateEvaluation = new EvaluationStrategyHearthStone();
+            var playout = new PlayoutStrategySabberStone();
+            MyPlayoutBot = new MASTPlayoutBot(Player, MASTPlayoutBot.SelectionType.EGreedy, sabberStoneStateEvaluation, playout);
+            playout.AddPlayoutBot(Player.Id, MyPlayoutBot);
+            OpponentPlayoutBot = new RandomBot(Player.Opponent);
+            playout.AddPlayoutBot(Player.Opponent.Id, OpponentPlayoutBot);
+            Playout = playout;
 
             // We'll be cutting off the simulations after X turns, using a GoalStrategy.
             Goal = new GoalStrategyTurnCutoff(PLAYOUT_TURN_CUTOFF);
 
             // Expansion, Application and Goal will be handled by the GameLogic.
             GameLogic = new SabberStoneGameLogic(HierarchicalExpansion, Goal);
-
-            // Simulation will be handled by the Playout.
-            Playout = new PlayoutStrategySabberStone(PlayoutBot);
 
             // Create the INodeEvaluation strategy used in the selection phase.
             var nodeEvaluation = new ScoreUCB<SabberStoneState, SabberStoneAction>(UCT_C_CONSTANT_DEFAULT);
@@ -154,7 +139,7 @@ namespace AVThesis.Bots {
             Builder = MCTS<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>.Builder();
             Builder.ExpansionStrategy = new MinimumTExpansion<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>(MIN_T_VISIT_THRESHOLD_FOR_EXPANSION);
             Builder.SelectionStrategy = new BestNodeSelection<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>(SELECTION_VISIT_MINIMUM_FOR_EVALUATION, nodeEvaluation);
-            Builder.EvaluationStrategy = new EvaluationStrategyHearthStone();
+            Builder.EvaluationStrategy = sabberStoneStateEvaluation;
             Builder.Iterations = Determinisations > 0 ? MCTS_NUMBER_OF_ITERATIONS / Determinisations : MCTS_NUMBER_OF_ITERATIONS; // Note: Integer division by design.
             Builder.BackPropagationStrategy = new EvaluateOnceAndColorBackPropagation<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>();
             Builder.FinalNodeSelectionStrategy = new BestRatioFinalNodeSelection<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>();
@@ -171,27 +156,27 @@ namespace AVThesis.Bots {
         /// </summary>
         /// <param name="state">The state to search.</param>
         /// <returns>Tuple of the selected SabberStoneAction and a list of values for the individual PlayerTasks.</returns>
-        private Tuple<SabberStoneAction, List<Tuple<PlayerTask, double>>> Search(SabberStoneState state) {
+        private Tuple<SabberStoneAction, List<Tuple<SabberStonePlayerTask, double>>> Search(SabberStoneState state) {
             var timer = System.Diagnostics.Stopwatch.StartNew();
             if (_debug) Console.WriteLine();
 
             // Setup a new search with the current state as source.
             var search = (MCTS<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>)Builder.Build();
-            var context = GameSearchSetup(GameLogic, null, state, null, search);
+            var context = SearchContext<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>.GameSearchSetup(GameLogic, null, state, null, search);
 
             // Execute the search
             context.Execute();
 
             // Check if the search was successful
-            if (context.Status != SearchStatus.Success) {
+            if (context.Status != SearchContext<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>.SearchStatus.Success) {
                 // TODO in case of search failure: throw exception, or print error.
-                return new Tuple<SabberStoneAction, List<Tuple<PlayerTask, double>>>(SabberStoneAction.CreateNullMove(state.Game.CurrentPlayer), new List<Tuple<PlayerTask, double>>());
+                return new Tuple<SabberStoneAction, List<Tuple<SabberStonePlayerTask, double>>>(SabberStoneAction.CreateNullMove(state.Game.CurrentPlayer), new List<Tuple<SabberStonePlayerTask, double>>());
             }
 
             var solution = context.Solution;
             // Retrieve the value of the final node from the search, this will be important in the case of multiple determinisations
             var solutionStrat = (SolutionStrategySabberStone) search.SolutionStrategy;
-            var taskValues = new List<Tuple<PlayerTask, double>>(solutionStrat.TaskValues);
+            var taskValues = new List<Tuple<SabberStonePlayerTask, double>>(solutionStrat.TaskValues);
             // Make sure to clear the values for the next search
             solutionStrat.ClearTaskValues();
 
@@ -203,10 +188,10 @@ namespace AVThesis.Bots {
             if (!solution.IsComplete()) {
                 // Otherwise add an End-Turn task before returning.
                 if (_debug) Console.WriteLine("Solution was an incomplete action; adding End-Turn task.");
-                solution.Tasks.Add(EndTurnTask.Any(Player));
+                solution.Tasks.Add((SabberStonePlayerTask)EndTurnTask.Any(Player));
             }
 
-            return new Tuple<SabberStoneAction, List<Tuple<PlayerTask, double>>>(solution, taskValues);
+            return new Tuple<SabberStoneAction, List<Tuple<SabberStonePlayerTask, double>>>(solution, taskValues);
         }
 
         /// <summary>
@@ -215,7 +200,7 @@ namespace AVThesis.Bots {
         /// <param name="state">The game state to create the best action for.</param>
         /// <param name="taskStatistics">The statistics for individual tasks.</param>
         /// <returns><see cref="SabberStoneAction"/> created from the best individual tasks available in the provided state.</returns>
-        private static SabberStoneAction DetermineBestTasks(SabberStoneState state, Dictionary<PlayerTask, TaskStatistics> taskStatistics) {
+        private static SabberStoneAction DetermineBestTasks(SabberStoneState state, Dictionary<int, PlayerTaskStatistics> taskStatistics) {
             // Clone game so that we can process the selected tasks and get an updated options list.
             var clonedGame = state.Game.Clone();
             var clonedPlayer = clonedGame.CurrentPlayer;
@@ -224,22 +209,22 @@ namespace AVThesis.Bots {
             // So we'll check the statistics table for the highest value among tasks that are currently available in the state.
             // This continues until the end-turn task is selected.
             var action = new SabberStoneAction();
-            KeyValuePair<PlayerTask, TaskStatistics> bestTask;
+            KeyValuePair<int, PlayerTaskStatistics> bestTask;
             do {
                 // Get the available options in this state and find which tasks we have statistics on.
-                var availableTasks = clonedPlayer.Options();
-                bestTask = taskStatistics.Where(i => availableTasks.Contains(i.Key, _comparer)).OrderByDescending(i => i.Value.AverageValue()).FirstOrDefault();
+                var availableTasks = clonedPlayer.Options().Cast<SabberStonePlayerTask>().Select(i =>i.GetHashCode());
+                bestTask = taskStatistics.Where(i => availableTasks.Contains(i.Key)).OrderByDescending(i => i.Value.AverageValue()).FirstOrDefault();
 
                 // If we can't find any task, stop.
                 if (bestTask.IsDefault()) break;
                 
                 // If we found a task, add it to the Action and process it to progress the game.
-                var task = bestTask.Key;
+                var task = bestTask.Value.Task;
                 action.AddTask(task);
-                clonedGame.Process(task);
+                clonedGame.Process(task.Task);
 
                 // Continue while it is still our turn and we haven't yet selected to end the turn.
-            } while (clonedGame.CurrentPlayer.Id == clonedPlayer.Id && bestTask.Key.PlayerTaskType != PlayerTaskType.END_TURN);
+            } while (clonedGame.CurrentPlayer.Id == clonedPlayer.Id && bestTask.Value.Task.Task.PlayerTaskType != PlayerTaskType.END_TURN);
 
             // Return the created action consisting of the best action available at each point.
             return action;
@@ -295,7 +280,7 @@ namespace AVThesis.Bots {
 
             // Keep track of the solution from each determinisation
             var solutions = new List<SabberStoneAction>();
-            var taskValues = new Dictionary<PlayerTask, TaskStatistics>(_comparer);
+            var taskValues = new Dictionary<int, PlayerTaskStatistics>();
             for (int i = 0; i < Determinisations; i++) {
 
                 // Copy the state before changing things
@@ -330,12 +315,16 @@ namespace AVThesis.Bots {
 
                 #endregion
 
-                // Run a search and add the result and statistics to the collections
+                // Run a search and add the result to the collection of possible solutions
                 var searchResult = Search(stateCopy);
                 solutions.Add(searchResult.Item1);
+
+                // Also record data for each individual task
                 foreach (var tuple in searchResult.Item2) {
-                    if (!taskValues.ContainsKey(tuple.Item1)) taskValues.Add(tuple.Item1, new TaskStatistics(tuple.Item2));
-                    else taskValues[tuple.Item1].AddValue(tuple.Item2);
+                    var taskHash = tuple.Item1.GetHashCode();
+
+                    if (!taskValues.ContainsKey(taskHash)) taskValues.Add(taskHash, new PlayerTaskStatistics(tuple.Item1, tuple.Item2));
+                    else taskValues[taskHash].AddValue(tuple.Item2);
                 }
             }
 
@@ -351,7 +340,7 @@ namespace AVThesis.Bots {
             if (!solution.IsComplete()) {
                 // Otherwise add an End-Turn task before returning.
                 if (_debug) Console.WriteLine("Solution was an incomplete action; adding End-Turn task.");
-                solution.Tasks.Add(EndTurnTask.Any(Player));
+                solution.Tasks.Add((SabberStonePlayerTask)EndTurnTask.Any(Player));
             }
 
             if (_debug) Console.WriteLine();
@@ -365,7 +354,7 @@ namespace AVThesis.Bots {
         public string Name() {
             var he = HierarchicalExpansion ? "_HE" : "";
             var pi = PerfectInformation ? "_PI" : "";
-            return $"{BOT_NAME}_{Builder.Iterations}it_{Determinisations}det{he}{pi}_p{PlayoutBot.Name()}";
+            return $"{BOT_NAME}_{Builder.Iterations}it_{Determinisations}det{he}{pi}_p{MyPlayoutBot.Name()}_op{OpponentPlayoutBot.Name()}";
         }
 
         /// <summary>

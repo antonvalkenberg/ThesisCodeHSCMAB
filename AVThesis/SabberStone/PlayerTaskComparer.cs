@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using SabberStoneCore.Tasks;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -8,19 +7,20 @@ using SabberStoneCore.Tasks;
 namespace AVThesis.SabberStone {
 
     /// <summary>
-    /// EqualityComparer for <see cref="PlayerTask"/>.
+    /// EqualityComparer for <see cref="SabberStonePlayerTask"/>.
     /// </summary>
-    public class PlayerTaskComparer : IEqualityComparer<PlayerTask> {
+    public class PlayerTaskComparer : IEqualityComparer<SabberStonePlayerTask> {
 
-        public bool Equals(PlayerTask x, PlayerTask y) {
+        public static readonly PlayerTaskComparer Comparer = new PlayerTaskComparer();
+
+        public bool Equals(SabberStonePlayerTask x, SabberStonePlayerTask y) {
             if (x == null || y == null) return false;
             if (ReferenceEquals(x, y)) return true;
             return x.GetHashCode() == y.GetHashCode();
         }
 
-        public int GetHashCode(PlayerTask obj) {
-            //TODO I don't like relying on the FullPrint method to generate a HashCode for PlayerTasks, potentially implement GetHashCode ourselves.
-            return obj.FullPrint().GetHashCode();
+        public int GetHashCode(SabberStonePlayerTask obj) {
+            return obj.GetHashCode();
         }
 
     }

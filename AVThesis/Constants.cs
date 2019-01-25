@@ -21,5 +21,10 @@ namespace AVThesis {
         /// </summary>
         public const int HASH_FNV_PRIME = 16777619;
 
+        /// <summary>
+        /// The tolerance to allow when checing floating-point equalities.
+        /// </summary>
+        public const double DOUBLE_EQUALITY_TOLERANCE = 0.0000001;
+
     }
 }
