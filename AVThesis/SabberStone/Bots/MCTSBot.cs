@@ -88,6 +88,11 @@ namespace AVThesis.SabberStone.Bots {
         /// </summary>
         public int Determinisations { get; set; }
 
+        /// <summary>
+        /// The type of selection strategy used by the M.A.S.T. playout.
+        /// </summary>
+        public MASTPlayoutBot.SelectionType MASTSelectionType { get; set; }
+
         #endregion
 
         #region Constructor
@@ -96,11 +101,13 @@ namespace AVThesis.SabberStone.Bots {
         /// Constructs a new instance of MCTSBot with a <see cref="Controller"/> representing the player.
         /// </summary>
         /// <param name="player">The player.</param>
-        /// <param name="hierarchicalExpansion">[Optional] Whether or not to use Hierarchical Expansion. Default value is false.</param>
+        /// <param name="hierarchicalExpansion">[Optional] Whether or not to use Hierarchical Expansion. Default value is true.</param>
         /// <param name="allowPerfectInformation">[Optional] Whether or not this bot is allowed perfect information about the game state (i.e. no obfuscation and therefore no determinisation). Default value is false.</param>
         /// <param name="determinisations">[Optional] The amount of determinisations to use. Default value is 1.</param>
+        /// <param name="mastSelectionType">[Optional] The type of selection strategy used by the M.A.S.T. playout. Default value is <see cref="MASTPlayoutBot.SelectionType.EGreedy"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
-        public MCTSBot(Controller player, bool hierarchicalExpansion = false, bool allowPerfectInformation = false, int determinisations = 1, bool debugInfoToConsole = false) : this(hierarchicalExpansion, allowPerfectInformation, determinisations, debugInfoToConsole) {
+        public MCTSBot(Controller player, bool hierarchicalExpansion = true, bool allowPerfectInformation = false, int determinisations = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool debugInfoToConsole = false)
+            : this(hierarchicalExpansion, allowPerfectInformation, determinisations, mastSelectionType, debugInfoToConsole) {
             Player = player;
 
             // Set the playout bots correctly if we are using PlayoutStrategySabberStone
@@ -115,14 +122,16 @@ namespace AVThesis.SabberStone.Bots {
         /// <summary>
         /// Constructs a new instance of MCTSBot with default strategies.
         /// </summary>
-        /// <param name="hierarchicalExpansion">[Optional] Whether or not to use Hierarchical Expansion. Default value is false.</param>
+        /// <param name="hierarchicalExpansion">[Optional] Whether or not to use Hierarchical Expansion. Default value is true.</param>
         /// <param name="allowPerfectInformation">[Optional] Whether or not this bot is allowed perfect information about the game state (i.e. no obfuscation and therefore no determinisation). Default value is false.</param>
         /// <param name="determinisations">[Optional] The amount of determinisations to use. Default value is 1.</param>
+        /// <param name="mastSelectionType">[Optional] The type of selection strategy used by the M.A.S.T. playout. Default value is <see cref="MASTPlayoutBot.SelectionType.EGreedy"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
-        public MCTSBot(bool hierarchicalExpansion = false, bool allowPerfectInformation = false, int determinisations = 1, bool debugInfoToConsole = false) {
+        public MCTSBot(bool hierarchicalExpansion = true, bool allowPerfectInformation = false, int determinisations = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool debugInfoToConsole = false) {
             HierarchicalExpansion = hierarchicalExpansion;
             PerfectInformation = allowPerfectInformation;
             Determinisations = determinisations;
+            MASTSelectionType = mastSelectionType;
             _debug = debugInfoToConsole;
 
             // Simulation will be handled by the Playout.
@@ -131,8 +140,8 @@ namespace AVThesis.SabberStone.Bots {
             Playout = playout;
 
             // Set the playout bots
-            MyPlayoutBot = new MASTPlayoutBot(MASTPlayoutBot.SelectionType.EGreedy, sabberStoneStateEvaluation, playout);
-            OpponentPlayoutBot = new RandomBot();
+            MyPlayoutBot = new MASTPlayoutBot(MASTSelectionType, sabberStoneStateEvaluation, playout);
+            OpponentPlayoutBot = new MASTPlayoutBot(MASTSelectionType, sabberStoneStateEvaluation, playout);
 
             // We'll be cutting off the simulations after X turns, using a GoalStrategy.
             Goal = new GoalStrategyTurnCutoff(PLAYOUT_TURN_CUTOFF);
