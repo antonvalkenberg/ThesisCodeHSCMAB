@@ -21,12 +21,11 @@ namespace AVThesis {
         /// <param name="score">The total score aquired by the node.</param>
         /// <param name="visits">The amount of visits to the node.</param>
         /// <param name="parentVisits">The amount of visits to the parent of the node.</param>
-        /// <param name="C">A constant. Should be tuned experimentally.</param>
+        /// <param name="c">A constant. Should be tuned experimentally.</param>
         /// <returns>Double representing the UCB value.</returns>
-        public static double UCB(double score, int visits, int parentVisits, double C) {
-            //TODO for UCB: why not return 0 (or int.MAX) in the case of no visits to avoid the use of 'double.Epsilon'?
-            // perhaps add a small random value to avoid super greedy behaviour, two percent points
-            return (score / (visits + double.Epsilon)) + 2 * C * Math.Sqrt(Math.Log(parentVisits) / (visits + double.Epsilon));
+        public static double UCB(double score, int visits, int parentVisits, double c) {
+            //TODO UCB: perhaps add a small random value to avoid super greedy behaviour, two percent points
+            return (score / (visits + double.Epsilon)) + 2 * c * Math.Sqrt(Math.Log(parentVisits) / (visits + double.Epsilon));
         }
 
         /// <summary>

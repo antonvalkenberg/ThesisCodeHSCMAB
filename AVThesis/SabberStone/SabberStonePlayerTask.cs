@@ -1,5 +1,4 @@
 ﻿using SabberStoneCore.Tasks;
-using SabberStoneCore.Tasks.PlayerTasks;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -16,10 +15,6 @@ namespace AVThesis.SabberStone {
             return new SabberStonePlayerTask(t);
         }
 
-        public static explicit operator SabberStonePlayerTask(EndTurnTask t) {
-            return new SabberStonePlayerTask(t);
-        }
-
         public PlayerTask Task { get; }
 
         public SabberStonePlayerTask(PlayerTask task) {
@@ -29,6 +24,10 @@ namespace AVThesis.SabberStone {
         public override int GetHashCode() {
             //TODO create correct implementation of PlayerTask.GetHashCode()
             return Task.FullPrint().GetHashCode();
+        }
+
+        public override string ToString() {
+            return Task.FullPrint();
         }
 
     }

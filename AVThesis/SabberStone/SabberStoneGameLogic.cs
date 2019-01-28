@@ -317,7 +317,7 @@ namespace AVThesis.SabberStone {
             }
 
             // Return the options
-            return currentOptions.Cast<SabberStonePlayerTask>();
+            return currentOptions.Select(i => (SabberStonePlayerTask)i);
         }
 
         #endregion

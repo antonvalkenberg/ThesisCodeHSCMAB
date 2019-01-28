@@ -19,12 +19,12 @@ namespace AVThesis.SabberStone {
         /// <summary>
         /// The total amount of value that has been recorded for this SabberStonePlayerTask.
         /// </summary>
-        private double TotalValue { get; set; }
+        public double TotalValue { get; private set; }
 
         /// <summary>
         /// The number of times this SabberStonePlayerTask has been visited.
         /// </summary>
-        private int Visits { get; set; }
+        public int Visits { get; private set; }
 
         #endregion
 
@@ -59,6 +59,16 @@ namespace AVThesis.SabberStone {
         /// </summary>
         /// <returns>The total value for this task divided by the amount of visits.</returns>
         public double AverageValue() => TotalValue / Visits;
+
+        /// <summary>
+        /// Returns the UCB value of this task.
+        /// </summary>
+        /// <param name="parentVisits">The amount of visits to the task's parent.</param>
+        /// <param name="c">The c-parameter to be used.</param>
+        /// <returns>UCB value of this task, see <see cref="Util.UCB"/>.</returns>
+        public double UCB(int parentVisits, double c) {
+            return Util.UCB(TotalValue, Visits, parentVisits, c);
+        }
 
         #endregion
 

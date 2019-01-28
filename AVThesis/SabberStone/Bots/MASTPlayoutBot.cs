@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AVThesis.Datastructures;
 using AVThesis.SabberStone.Strategies;
+using SabberStoneCore.Enums;
 using SabberStoneCore.Model.Entities;
 using SabberStoneCore.Tasks;
 
@@ -31,6 +32,7 @@ namespace AVThesis.SabberStone.Bots {
         #region Fields
 
         private const double EGREEDY_E = 0.2;
+        private const double UCB_C = 0.7;
         private const string BOT_NAME = "MASTPlayoutBot";
         private readonly Random _rng = new Random();
 
@@ -132,10 +134,9 @@ namespace AVThesis.SabberStone.Bots {
 
             var action = new SabberStoneAction();
             var stateClone = state.Game.Clone();
-            var currentPlayerId = stateClone.CurrentPlayer.Id;
-            SabberStonePlayerTask selectedTask;
             // Repeatedly exploit the highest (average) reward task that is available in this state
             do {
+                SabberStonePlayerTask selectedTask;
                 // Get the stats of the tasks currently available in this state
                 var availableTasks = stateClone.Game.CurrentPlayer.Options().Select(i => (SabberStonePlayerTask)i).ToList();
                 var availableTaskHashes = availableTasks.Select(i => i.GetHashCode()).ToList();
@@ -153,11 +154,11 @@ namespace AVThesis.SabberStone.Bots {
                 }
                 else {
                     // Find all available tasks that have an average value similar to the best
+                    var bestValue = bestTask.Value.AverageValue();
                     var compTasks = availableStatistics.Where(i =>
-                        Math.Abs(i.Value.AverageValue() - bestTask.Value.AverageValue()) <
-                        Constants.DOUBLE_EQUALITY_TOLERANCE).ToList();
+                        Math.Abs(i.Value.AverageValue() - bestValue) < Constants.DOUBLE_EQUALITY_TOLERANCE).ToList();
                     // Select one of the tasks
-                    selectedTask = compTasks.Count() > 1 ? compTasks.RandomElementOrDefault().Value.Task : bestTask.Value.Task;
+                    selectedTask = compTasks.RandomElementOrDefault().Value.Task;
                 }
 
                 // Add the task to the action we are building
@@ -165,8 +166,8 @@ namespace AVThesis.SabberStone.Bots {
                 // Process the task
                 stateClone.Process(selectedTask.Task);
 
-            // Continue while it is still our turn and we haven't yet selected to end the turn.
-            } while (stateClone.CurrentPlayer.Id == currentPlayerId && selectedTask.Task.PlayerTaskType != PlayerTaskType.END_TURN);
+            // Continue until we have created a complete action, or the game has completed
+            } while (!action.IsComplete() && stateClone.Game.State != State.COMPLETE);
 
             // Return the action we've created
             return action;
@@ -178,8 +179,46 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="state">The game state.</param>
         /// <returns><see cref="SabberStoneAction"/>.</returns>
         private SabberStoneAction SelectUCB(SabberStoneState state) {
-            //TODO Implement UCB selection for MAST
-            throw new NotImplementedException();
+            var action = new SabberStoneAction();
+            var stateClone = state.Game.Clone();
+            // Repeatedly exploit the highest UCB-value task that is available in this state
+            do {
+                SabberStonePlayerTask selectedTask;
+                // Get the stats of the tasks currently available in this state
+                var availableTasks = stateClone.Game.CurrentPlayer.Options().Select(i => (SabberStonePlayerTask)i).ToList();
+                var availableTaskHashes = availableTasks.Select(i => i.GetHashCode()).ToList();
+                var availableStatistics = MASTTable.Where(i => availableTaskHashes.Contains(i.Key)).ToList();
+                var totalVisits = availableStatistics.Sum(i => i.Value.Visits);
+
+                // Find the task with the highest UCB value
+                var bestTask = availableStatistics.OrderByDescending(i => i.Value.UCB(totalVisits, UCB_C)).FirstOrDefault();
+
+                // If no best task was found, randomly choose an available task
+                if (bestTask.IsDefault()) {
+                    var randomTask = availableTasks.RandomElementOrDefault();
+                    // If we also can't randomly find a task, stop
+                    if (randomTask == null) break;
+                    selectedTask = randomTask;
+                }
+                else {
+                    // Find all available tasks that have an UCB value similar to the best
+                    var bestValue = bestTask.Value.UCB(totalVisits, UCB_C);
+                    var compTasks = availableStatistics.Where(i =>
+                        Math.Abs(i.Value.UCB(totalVisits, UCB_C) - bestValue) < Constants.DOUBLE_EQUALITY_TOLERANCE).ToList();
+                    // Select one of the tasks
+                    selectedTask = compTasks.RandomElementOrDefault().Value.Task;
+                }
+
+                // Add the task to the action we are building
+                action.AddTask(selectedTask);
+                // Process the task
+                stateClone.Process(selectedTask.Task);
+
+                // Continue until we have created a complete action, or the game has completed
+            } while (!action.IsComplete() && stateClone.Game.State != State.COMPLETE);
+
+            // Return the action we've created
+            return action;
         }
 
         #endregion
@@ -192,8 +231,6 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="sender">The object that triggered the event.</param>
         /// <param name="eventArgs">The arguments of the event.</param>
         public void SimulationCompleted(object sender, PlayoutStrategySabberStone.SimulationCompletedEventArgs eventArgs) {
-            //TODO check to make sure we are evaluating the board from the correct viewpoint
-            
             // Evaluate the state.
             var eval = Evaluation.Evaluate(eventArgs.Context, null, eventArgs.EndState);
             // Add data for all the actions that have been taken.
