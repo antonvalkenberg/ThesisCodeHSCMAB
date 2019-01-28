@@ -59,8 +59,8 @@ namespace AVThesis {
             }));
 
             // Create two bots to play
-            var bot1 = new MCTSBot(game.Player1);
-            var bot2 = new MCTSBot(game.Player2, mastSelectionType: MASTPlayoutBot.SelectionType.UCB);
+            var bot1 = new MCTSBot(game.Player1, debugInfoToConsole: true);
+            var bot2 = new MCTSBot(game.Player2, mastSelectionType: MASTPlayoutBot.SelectionType.UCB, debugInfoToConsole: true);
 
             game.Game.StartGame();
 

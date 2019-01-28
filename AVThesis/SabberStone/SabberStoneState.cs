@@ -138,7 +138,7 @@ namespace AVThesis.SabberStone {
         /// Determinise the opponent's cards using Cards from a deck, while leaving any known cards in place.
         /// </summary>
         /// <param name="knownCardIDs">Card IDs of the known cards in the Controller's deck or hand.</param>
-        /// <param name="deck">The deck to choose cards from when determinising.</param>
+        /// <param name="deck">The deck to choose cards from when creating the determinisation.</param>
         /// <param name="rng">Random number generator.</param>
         public void Determinise(List<string> knownCardIDs, List<Card> deck, Random rng) {
             var opponent = Game.CurrentOpponent;
