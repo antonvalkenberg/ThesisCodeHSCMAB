@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using AVThesis.SabberStone;
 using SabberStoneCore.Config;
 using SabberStoneCore.Enums;
@@ -14,7 +16,7 @@ namespace AVThesis {
 
 		public static void Main(string[] args) {
             //RunTournamentMatch();
-            RunQuickMatch();
+            //RunQuickMatch();
 
 #pragma warning disable 219
             string catcher = null;

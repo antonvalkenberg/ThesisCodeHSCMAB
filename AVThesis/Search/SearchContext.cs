@@ -141,12 +141,12 @@ namespace AVThesis.Search {
         /// <param name="cloner"><see cref="SearchContext{D, P, A, S, Sol, N}.Cloner"/></param>
         public SearchContext(D domain, P source, P target, S subject, Sol solution, SearchStatus status, SearchNode<P, A> startNode, ISearchStrategy<D, P, A, S, Sol> search, IExpansionStrategy<D, P, A, S, Sol, A> expansion, IApplicationStrategy<D, P, A, S, Sol> application, IEvaluationStrategy<D, P, A, S, Sol> evaluation, IGoalStrategy<D, P, A, S, Sol> goal, ICloneStrategy<P> cloner) {
             Domain = domain;
-            Source = source;
-            Target = target;
+            Source = source.Copy();
+            Target = target.Copy();
             Subject = subject;
             Solution = solution;
             Status = status;
-            StartNode = startNode;
+            StartNode = startNode.Copy();
             Search = search;
             Expansion = expansion;
             Application = application;

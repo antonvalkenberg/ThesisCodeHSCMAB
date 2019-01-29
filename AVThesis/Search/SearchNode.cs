@@ -16,42 +16,32 @@ namespace AVThesis.Search {
     /// <typeparam name="A">A Type representing an action in the search.</typeparam>
     public class SearchNode<S, A> : Node<A>, IEquatable<SearchNode<S, A>> where S : class where A : class {
 
-        #region Fields
-
-        private S _state;
-        private double _score;
-        private IPositionGenerator<A> _positionGenerator;
-        private SearchNode<S, A> _parent;
-        private List<SearchNode<S, A>> _children;
-
-        #endregion
-
         #region Properties
 
         /// <summary>
         /// The state that this SearchNode represents.
         /// </summary>
-        public S State { get => _state; set => _state = value; }
+        public S State { get; set; }
 
         /// <summary>
         /// The score for this SearchNode.
         /// </summary>
-        public double Score { get => _score; set => _score = value; }
+        public double Score { get; set; }
 
         /// <summary>
         /// The PositionGenerator for the actions possible from this SearchNode's state.
         /// </summary>
-        public IPositionGenerator<A> PositionGenerator { get => _positionGenerator; set => _positionGenerator = value; }
+        public IPositionGenerator<A> PositionGenerator { get; set; }
 
         /// <summary>
         /// The SearchNode that this is a child of.
         /// </summary>
-        public new SearchNode<S, A> Parent { get => _parent; set => _parent = value; }
+        public new SearchNode<S, A> Parent { get; set; }
 
         /// <summary>
         /// Collection of SearchNodes that can be reached from this SearchNode.
         /// </summary>
-        public new List<SearchNode<S, A>> Children { get => _children; set => _children = value; }
+        public new List<SearchNode<S, A>> Children { get; set; }
 
         #endregion
 
@@ -115,6 +105,16 @@ namespace AVThesis.Search {
         #region Public Methods
 
         /// <summary>
+        /// Creates a copy of this SearchNode.
+        /// </summary>
+        /// <returns>A copy of this SearchNode.</returns>
+        public SearchNode<S, A> Copy() {
+            var newNode = IsRoot() ? new SearchNode<S, A>(State, Payload) : new SearchNode<S, A>(Parent.Copy(), State, Payload);
+            newNode.Children = new List<SearchNode<S, A>>(Children);
+            return newNode;
+        }
+
+        /// <summary>
         /// Determines if this SearchNode's PositionGenerator exists and cannot advance to the next element.
         /// </summary>
         /// <returns>Whether or not this SearchNode is fully expanded.</returns>
@@ -165,7 +165,7 @@ namespace AVThesis.Search {
         /// </summary>
         /// <param name="child">The SearchNode to add as a child.</param>
         public void AddChild(SearchNode<S, A> child) {
-            _children.Add(child);
+            Children.Add(child);
         }
 
         /// <summary>

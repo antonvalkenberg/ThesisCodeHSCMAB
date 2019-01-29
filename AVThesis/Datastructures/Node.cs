@@ -13,30 +13,22 @@ namespace AVThesis.Datastructures {
     /// <typeparam name="A">The Type of thing the Node represents (e.g. a state or action).</typeparam>
     public abstract class Node<A> : IEquatable<Node<A>> where A : class {
 
-        #region Fields
-
-        private A _payload;
-        private Node<A> _parent;
-        private List<Node<A>> _children;
-
-        #endregion
-
         #region Properties
 
         /// <summary>
         /// The Node's subject matter (e.g. a gamestate or gameaction).
         /// </summary>
-        public A Payload { get { return _payload; } private set { _payload = value; } }
+        public A Payload { get; private set; }
 
         /// <summary>
         /// The Node that this is a child of.
         /// </summary>
-        public Node<A> Parent { get { return _parent; } set { _parent = value; } }
+        public Node<A> Parent { get; set; }
 
         /// <summary>
         /// Collection of Nodes that can be reached from this Node.
         /// </summary>
-        public List<Node<A>> Children { get { return _children; } set { _children = value; } }
+        public List<Node<A>> Children { get; set; }
 
         #endregion
 
@@ -111,7 +103,7 @@ namespace AVThesis.Datastructures {
         /// </summary>
         /// <param name="child">The Node to add as a child.</param>
         public void AddChild(Node<A> child) {
-            _children.Add(child);
+            Children.Add(child);
         }
 
         /// <summary>

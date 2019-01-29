@@ -16,6 +16,11 @@ namespace AVThesis {
     public static class Util {
 
         /// <summary>
+        /// A random number generator.
+        /// </summary>
+        public static Random RNG = new Random();
+
+        /// <summary>
         /// Calculates UCB.
         /// </summary>
         /// <param name="score">The total score aquired by the node.</param>

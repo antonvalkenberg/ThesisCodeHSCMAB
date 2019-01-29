@@ -135,41 +135,46 @@ namespace AVThesis.SabberStone {
         }
 
         /// <summary>
-        /// Determinise the opponent's cards using Cards from a deck, while leaving any known cards in place.
+        /// Determinise the unknown cards in this state,  while leaving any known cards in place.
         /// </summary>
-        /// <param name="knownCardIDs">Card IDs of the known cards in the Controller's deck or hand.</param>
-        /// <param name="deck">The deck to choose cards from when creating the determinisation.</param>
-        /// <param name="rng">Random number generator.</param>
-        public void Determinise(List<string> knownCardIDs, List<Card> deck, Random rng) {
+        /// <param name="knownRootPlayerCards">The known cards in the root player's hand and the cards that player has played this game.</param>
+        /// <param name="knownOpponentCards">The known cards in the opponent's hand and the cards that player has played this game.</param>
+        /// <param name="selectedDeck">The deck that had been selected to represent the unknown contents of the opponent's deck.</param>
+        public void Determinise(List<string> knownRootPlayerCards, List<string> knownOpponentCards, List<Card> selectedDeck) {
+            
+            #region Root Player
+            var rootPlayerDeck = Game.CurrentPlayer.DeckCards;
+
+            // TODO Determinisation -> re-write method to also consider root player
+
+            #endregion
+
+            #region Opponent
             var opponent = Game.CurrentOpponent;
 
-            // Remove any known cards from the deck, those will already be in their correct place
-            var knownCardsCopy = new List<string>(knownCardIDs);
-            foreach (var item in deck) {
-                if (knownCardsCopy.Contains(item.Id)) {
-                    knownCardsCopy.Remove(item.Id);
-                    deck.Remove(item);
-                }
+            // Remove any known cards from the opponent's deck, those will already be in their correct place
+            var knownCardsCopy = new List<string>(knownOpponentCards);
+            foreach (var item in selectedDeck) {
+                if (!knownCardsCopy.Contains(item.Id)) continue;
+                knownCardsCopy.Remove(item.Id);
+                selectedDeck.Remove(item);
             }
 
             // Select an amount of cards from the deck that will replace the hidden-cards in the opponent's hand.
             // TODO There can be several strategies to do determinisation (random, best-case, worst-case)
             var opponentCards = opponent.HandZone.GetAll();
-            // Small check to see if the sizes are compatible.
-            if (opponentCards.Count() > deck.Count())
-                Console.WriteLine("WARNING: More cards in opponent's hand than in selected deck.");
             foreach (var item in opponentCards) {
                 // Don't replace if we know a card is supposed to be there.
-                if (!knownCardIDs.Contains(item.Card.Id)) {
+                if (!knownOpponentCards.Contains(item.Card.Id)) {
                     opponent.HandZone.Remove(item);
-                    var randomPosition = rng.Next(deck.Count);
-                    var randomDeckCard = deck.ElementAt(randomPosition);
-                    deck.RemoveAt(randomPosition);
+                    var randomPosition = Util.RNG.Next(selectedDeck.Count);
+                    var randomDeckCard = selectedDeck.ElementAt(randomPosition);
+                    selectedDeck.RemoveAt(randomPosition);
                     opponent.HandZone.Add(Entity.FromCard(opponent, randomDeckCard));
                 }
                 else {
                     // Remove the card from the known cards list, so we replace any other copies that we do not know about.
-                    knownCardIDs.Remove(item.Card.Id);
+                    knownOpponentCards.Remove(item.Card.Id);
                 }
             }
 
@@ -177,22 +182,25 @@ namespace AVThesis.SabberStone {
             // This can be randomised, or a random card can be selected whenever a card is drawn from the deck.
             var opponentDeck = opponent.DeckZone.GetAll();
             // Small check to see if the sizes are compatible.
-            if (opponentDeck.Count() > deck.Count())
+            if (opponentDeck.Count() > selectedDeck.Count())
                 Console.WriteLine("WARNING: More cards in opponent's deck than in selected deck.");
             foreach (var item in opponentDeck) {
                 // Don't replace if we know a card is supposed to be there.
-                if (!knownCardIDs.Contains(item.Card.Id)) {
+                if (!knownOpponentCards.Contains(item.Card.Id)) {
                     opponent.DeckZone.Remove(item);
-                    var randomPosition = rng.Next(deck.Count);
-                    var randomDeckCard = deck.ElementAt(randomPosition);
-                    deck.RemoveAt(randomPosition);
+                    var randomPosition = Util.RNG.Next(selectedDeck.Count);
+                    var randomDeckCard = selectedDeck.ElementAt(randomPosition);
+                    selectedDeck.RemoveAt(randomPosition);
                     opponent.DeckZone.Add(Entity.FromCard(opponent, randomDeckCard));
                 }
                 else {
                     // Remove the card from the known cards list, so we replace any other copies that we do not know about.
-                    knownCardIDs.Remove(item.Card.Id);
+                    knownOpponentCards.Remove(item.Card.Id);
                 }
             }
+
+            #endregion
+
         }
 
         #endregion
@@ -221,7 +229,7 @@ namespace AVThesis.SabberStone {
         /// <param name="otherState">The SabberStoneState to check with this SabberStoneState for equality.</param>
         /// <returns>Boolean indicating whether or not the argument SabberStoneState is equal to this SabberStoneState.
         public override bool Equals(State otherState) {
-            return this.HashMethod() == otherState.HashMethod();
+            return HashMethod() == otherState.HashMethod();
         }
 
         /// <summary>
