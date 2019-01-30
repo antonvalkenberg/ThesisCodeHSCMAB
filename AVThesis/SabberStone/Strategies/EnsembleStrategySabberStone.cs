@@ -16,8 +16,35 @@ namespace AVThesis.SabberStone.Strategies {
     /// </summary>
     public class EnsembleStrategySabberStone : IEnsembleStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> {
 
+        #region Properties
+
+        /// <summary>
+        /// Whether or not to replace cards in player's hand and/or deck with hidden cards.
+        /// </summary>
         public bool EnableStateObfuscation { get; set; }
+
+        /// <summary>
+        /// Whether or not to allow perfect information (i.e. play with open hands and face-up decks).
+        /// </summary>
         public bool EnablePerfectInformation { get; set; }
+
+        #endregion
+
+        #region Constructors
+
+        /// <summary>
+        /// Creates a new instance of the EnsembleStrategy for SabberStone.
+        /// </summary>
+        /// <param name="enableStateObfuscation">Whether or not to allow obfuscation of the game state.</param>
+        /// <param name="enablePerfectInformation">Whether or not to allow for perfect information.</param>
+        public EnsembleStrategySabberStone(bool enableStateObfuscation, bool enablePerfectInformation) {
+            EnableStateObfuscation = enableStateObfuscation;
+            EnablePerfectInformation = enablePerfectInformation;
+        }
+
+        #endregion
+
+        #region Public Methods
 
         /// <summary>
         /// Creates an ensemble of searches based on the provided search function.
@@ -40,7 +67,7 @@ namespace AVThesis.SabberStone.Strategies {
             knownRootCards.AddRange(gameState.Game.CurrentPlayer.HandZone.Select(i => i.Card.Id));
             // Cards that have been played
             var playedRootCards = gameState.Game.CurrentPlayer.PlayHistory.Select(i => i.SourceCard.Id).ToList();
-            
+
             // Determine known cards for opponent
             var knownOpponentCards = new List<string>();
             // If we are the starting player, we know the opponent has a Coin
@@ -57,10 +84,8 @@ namespace AVThesis.SabberStone.Strategies {
                 // For opponent
                 gameState.Obfuscate(gameState.Game.CurrentOpponent.Id, knownOpponentCards);
             }
-            
-            // So per search we'll need to:
-            for (var i = 0; i < ensembleSize; i++) {
 
+            for (var i = 0; i < ensembleSize; i++) {
                 // Clone the context
                 var clonedContext = context.Copy();
 
@@ -87,9 +112,10 @@ namespace AVThesis.SabberStone.Strategies {
                 }
 
                 // Call the search function
+                var solution = searchFunction(clonedContext, context.Source);
 
                 // Use domain in SearchContext to save solutions / task statistics
-
+                //TODO Ensemble -> save solution somewhere
             }
 
             throw new NotImplementedException();
@@ -98,6 +124,8 @@ namespace AVThesis.SabberStone.Strategies {
         public SabberStoneAction Solution(SearchContext<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context) {
             throw new NotImplementedException();
         }
+
+        #endregion
 
     }
 

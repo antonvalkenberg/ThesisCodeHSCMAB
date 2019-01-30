@@ -141,11 +141,33 @@ namespace AVThesis.SabberStone {
         /// <param name="knownOpponentCards">The known cards in the opponent's hand and the cards that player has played this game.</param>
         /// <param name="selectedDeck">The deck that had been selected to represent the unknown contents of the opponent's deck.</param>
         public void Determinise(List<string> knownRootPlayerCards, List<string> knownOpponentCards, List<Card> selectedDeck) {
-            
-            #region Root Player
-            var rootPlayerDeck = Game.CurrentPlayer.DeckCards;
+            // TODO There can be several strategies to do determinisation (random, best-case, worst-case)
+            // We are using random at the moment
 
-            // TODO Determinisation -> re-write method to also consider root player
+            #region Root Player
+            var player = Game.CurrentPlayer;
+            var rootPlayerDeck = new List<Card>(Game.CurrentPlayer.DeckCards);
+
+            // Remove any known cards from the player's deck, these are either in their hand or have been played already
+            var knownRootCardsCopy = new List<string>(knownRootPlayerCards);
+            foreach (var card in rootPlayerDeck) {
+                if (!knownRootCardsCopy.Contains(card.Id)) continue;
+                knownRootCardsCopy.Remove(card.Id);
+                rootPlayerDeck.Remove(card);
+            }
+
+            // The player's deck will now become whatever cards are left from the deck.
+            var rootPlayerGameDeck = player.DeckZone.GetAll();
+            // Small check to see if the sizes are compatible
+            if (rootPlayerGameDeck.Count() != rootPlayerDeck.Count())
+                Console.WriteLine($"WARNING: #cards in player's game-deck [{rootPlayerGameDeck.Count()}] do not match determined deck [{rootPlayerDeck.Count()}].");
+            foreach (var item in rootPlayerGameDeck) {
+                player.DeckZone.Remove(item);
+                var randomPosition = Util.RNG.Next(rootPlayerDeck.Count());
+                var randomDeckCard = rootPlayerDeck.ElementAt(randomPosition);
+                rootPlayerDeck.RemoveAt(randomPosition);
+                player.DeckZone.Add(Entity.FromCard(player, randomDeckCard));
+            }
 
             #endregion
 
@@ -154,20 +176,19 @@ namespace AVThesis.SabberStone {
 
             // Remove any known cards from the opponent's deck, those will already be in their correct place
             var knownCardsCopy = new List<string>(knownOpponentCards);
-            foreach (var item in selectedDeck) {
-                if (!knownCardsCopy.Contains(item.Id)) continue;
-                knownCardsCopy.Remove(item.Id);
-                selectedDeck.Remove(item);
+            foreach (var card in selectedDeck) {
+                if (!knownCardsCopy.Contains(card.Id)) continue;
+                knownCardsCopy.Remove(card.Id);
+                selectedDeck.Remove(card);
             }
 
             // Select an amount of cards from the deck that will replace the hidden-cards in the opponent's hand.
-            // TODO There can be several strategies to do determinisation (random, best-case, worst-case)
             var opponentCards = opponent.HandZone.GetAll();
             foreach (var item in opponentCards) {
                 // Don't replace if we know a card is supposed to be there.
                 if (!knownOpponentCards.Contains(item.Card.Id)) {
                     opponent.HandZone.Remove(item);
-                    var randomPosition = Util.RNG.Next(selectedDeck.Count);
+                    var randomPosition = Util.RNG.Next(selectedDeck.Count());
                     var randomDeckCard = selectedDeck.ElementAt(randomPosition);
                     selectedDeck.RemoveAt(randomPosition);
                     opponent.HandZone.Add(Entity.FromCard(opponent, randomDeckCard));
@@ -179,7 +200,6 @@ namespace AVThesis.SabberStone {
             }
 
             // The opponent's deck will now become whatever cards are left from the deck.
-            // This can be randomised, or a random card can be selected whenever a card is drawn from the deck.
             var opponentDeck = opponent.DeckZone.GetAll();
             // Small check to see if the sizes are compatible.
             if (opponentDeck.Count() > selectedDeck.Count())
@@ -188,7 +208,7 @@ namespace AVThesis.SabberStone {
                 // Don't replace if we know a card is supposed to be there.
                 if (!knownOpponentCards.Contains(item.Card.Id)) {
                     opponent.DeckZone.Remove(item);
-                    var randomPosition = Util.RNG.Next(selectedDeck.Count);
+                    var randomPosition = Util.RNG.Next(selectedDeck.Count());
                     var randomDeckCard = selectedDeck.ElementAt(randomPosition);
                     selectedDeck.RemoveAt(randomPosition);
                     opponent.DeckZone.Add(Entity.FromCard(opponent, randomDeckCard));
