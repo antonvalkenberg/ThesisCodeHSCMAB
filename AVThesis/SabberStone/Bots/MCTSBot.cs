@@ -31,7 +31,6 @@ namespace AVThesis.SabberStone.Bots {
         private const double UCT_C_CONSTANT_DEFAULT = 0.1;
         private const int PLAYOUT_TURN_CUTOFF = 3;
         private const string BOT_NAME = "MCTSBot";
-        private readonly Random _rng = new Random();
         private readonly bool _debug;
 
         #endregion
@@ -84,9 +83,9 @@ namespace AVThesis.SabberStone.Bots {
         public bool PerfectInformation { get; set; }
 
         /// <summary>
-        /// The amount of determinisations the search should use.
+        /// The size of the ensemble the search should use.
         /// </summary>
-        public int Determinisations { get; set; }
+        public int EnsembleSize { get; set; }
 
         /// <summary>
         /// The type of selection strategy used by the M.A.S.T. playout.
@@ -103,11 +102,11 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="player">The player.</param>
         /// <param name="hierarchicalExpansion">[Optional] Whether or not to use Hierarchical Expansion. Default value is true.</param>
         /// <param name="allowPerfectInformation">[Optional] Whether or not this bot is allowed perfect information about the game state (i.e. no obfuscation and therefore no determinisation). Default value is false.</param>
-        /// <param name="determinisations">[Optional] The amount of determinisations to use. Default value is 1.</param>
+        /// <param name="ensembleSize">[Optional] The size of the ensemble to use. Default value is 1.</param>
         /// <param name="mastSelectionType">[Optional] The type of selection strategy used by the M.A.S.T. playout. Default value is <see cref="MASTPlayoutBot.SelectionType.EGreedy"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
-        public MCTSBot(Controller player, bool hierarchicalExpansion = true, bool allowPerfectInformation = false, int determinisations = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool debugInfoToConsole = false)
-            : this(hierarchicalExpansion, allowPerfectInformation, determinisations, mastSelectionType, debugInfoToConsole) {
+        public MCTSBot(Controller player, bool hierarchicalExpansion = true, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool debugInfoToConsole = false)
+            : this(hierarchicalExpansion, allowPerfectInformation, ensembleSize, mastSelectionType, debugInfoToConsole) {
             Player = player;
 
             // Set the playout bots correctly if we are using PlayoutStrategySabberStone
@@ -124,13 +123,13 @@ namespace AVThesis.SabberStone.Bots {
         /// </summary>
         /// <param name="hierarchicalExpansion">[Optional] Whether or not to use Hierarchical Expansion. Default value is true.</param>
         /// <param name="allowPerfectInformation">[Optional] Whether or not this bot is allowed perfect information about the game state (i.e. no obfuscation and therefore no determinisation). Default value is false.</param>
-        /// <param name="determinisations">[Optional] The amount of determinisations to use. Default value is 1.</param>
+        /// <param name="ensembleSize">[Optional] The size of the ensemble to use. Default value is 1.</param>
         /// <param name="mastSelectionType">[Optional] The type of selection strategy used by the M.A.S.T. playout. Default value is <see cref="MASTPlayoutBot.SelectionType.EGreedy"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
-        public MCTSBot(bool hierarchicalExpansion = true, bool allowPerfectInformation = false, int determinisations = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool debugInfoToConsole = false) {
+        public MCTSBot(bool hierarchicalExpansion = true, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool debugInfoToConsole = false) {
             HierarchicalExpansion = hierarchicalExpansion;
             PerfectInformation = allowPerfectInformation;
-            Determinisations = determinisations;
+            EnsembleSize = ensembleSize;
             MASTSelectionType = mastSelectionType;
             _debug = debugInfoToConsole;
 
@@ -157,7 +156,7 @@ namespace AVThesis.SabberStone.Bots {
             Builder.ExpansionStrategy = new MinimumTExpansion<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>(MIN_T_VISIT_THRESHOLD_FOR_EXPANSION);
             Builder.SelectionStrategy = new BestNodeSelection<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>(SELECTION_VISIT_MINIMUM_FOR_EVALUATION, nodeEvaluation);
             Builder.EvaluationStrategy = sabberStoneStateEvaluation;
-            Builder.Iterations = Determinisations > 0 ? MCTS_NUMBER_OF_ITERATIONS / Determinisations : MCTS_NUMBER_OF_ITERATIONS; // Note: Integer division by design.
+            Builder.Iterations = EnsembleSize > 0 ? MCTS_NUMBER_OF_ITERATIONS / EnsembleSize : MCTS_NUMBER_OF_ITERATIONS; // Note: Integer division by design.
             Builder.BackPropagationStrategy = new EvaluateOnceAndColorBackPropagation<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>();
             Builder.FinalNodeSelectionStrategy = new BestRatioFinalNodeSelection<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>();
             Builder.SolutionStrategy = new SolutionStrategySabberStone(HierarchicalExpansion, nodeEvaluation);
@@ -191,23 +190,21 @@ namespace AVThesis.SabberStone.Bots {
             }
 
             var solution = context.Solution;
-            // Retrieve the value of the final node from the search, this will be important in the case of multiple determinisations
-            var solutionStrat = (SolutionStrategySabberStone) search.SolutionStrategy;
-            var taskValues = new List<Tuple<SabberStonePlayerTask, double>>(solutionStrat.TaskValues);
+            // Retrieve the value of the final node from the search, this will be important in the case of an ensemble-search
+            var solutionStrategy = (SolutionStrategySabberStone) search.SolutionStrategy;
+            var taskValues = new List<Tuple<SabberStonePlayerTask, double>>(solutionStrategy.TaskValues);
             // Make sure to clear the values for the next search
-            solutionStrat.ClearTaskValues();
+            solutionStrategy.ClearTaskValues();
 
             var time = timer.ElapsedMilliseconds;
             if (_debug) Console.WriteLine($"MCTS returned with solution: {solution}");
             if (_debug) Console.WriteLine($"Calculation time was: {time} ms.");
 
             // Check if the solution is a complete action.
-            if (!solution.IsComplete()) {
-                // Otherwise add an End-Turn task before returning.
-                if (_debug) Console.WriteLine("Solution was an incomplete action; adding End-Turn task.");
-                solution.Tasks.Add((SabberStonePlayerTask)EndTurnTask.Any(Player));
-            }
-
+            if (solution.IsComplete()) return new Tuple<SabberStoneAction, List<Tuple<SabberStonePlayerTask, double>>>(solution, taskValues);
+            // Otherwise add an End-Turn task before returning.
+            if (_debug) Console.WriteLine("Solution was an incomplete action; adding End-Turn task.");
+            solution.Tasks.Add((SabberStonePlayerTask)EndTurnTask.Any(Player));
             return new Tuple<SabberStoneAction, List<Tuple<SabberStonePlayerTask, double>>>(solution, taskValues);
         }
 
@@ -258,95 +255,19 @@ namespace AVThesis.SabberStone.Bots {
         /// Requests the bot to return a SabberStoneAction based on the current SabberStoneState.
         /// </summary>
         /// <param name="state">The current game state.</param>
-        /// <returns>SabberStoneAction that was voted as the best option through the Ensemble of determinisations.</returns>
+        /// <returns>SabberStoneAction that was voted as the best option by the ensemble.</returns>
         public SabberStoneAction Act(SabberStoneState state) {
             var timer = System.Diagnostics.Stopwatch.StartNew();
             var gameState = (SabberStoneState) state.Copy();
 
             if (_debug) Console.WriteLine();
             if (_debug) Console.WriteLine(Name());
-            if (_debug) Console.WriteLine($"Starting an ({Determinisations})Ensemble-MCTS-search in turn {(gameState.Game.Turn + 1) / 2}");
+            if (_debug) Console.WriteLine($"Starting an ({EnsembleSize})Ensemble-MCTS-search in turn {(gameState.Game.Turn + 1) / 2}");
 
-            #region Obfuscation
+            // TODO MCTS-bot -> setup Ensemble search
 
-            // In case we need to obfuscate the state ourselves:
-
-            // What we want to do is first check if we know of any cards in the opponent's deck/hand/secret-zone (e.g. quests)
-            // Those should not be replaced by random things
-            // Create a list of the IDs of those known cards and then obfuscate the state while supplying our list of known cards
-
-            // If we are the starting player, we know the opponent has a Coin
-            var knownCards = new List<string>();
-            if (gameState.Game.FirstPlayer.Id == gameState.CurrentPlayer()) {
-                knownCards.Add("GAME_005");
-            }
-
-            if (!PerfectInformation) {
-                gameState.Obfuscate(gameState.Game.CurrentOpponent.Id, knownCards);
-            }
-
-            // We can get the play history of our opponent (filter out Coin because it never starts in a deck)
-            var opponentHistory = gameState.Game.CurrentOpponent.PlayHistory;
-            var playedIds = opponentHistory.Where(i => i.SourceCard.Id != "GAME_005").Select(i => i.SourceCard.Id)
-                .ToList();
-            // TODO try to use these played cards to determine if anything was revealed so we know about it
-
-            #endregion
-
-            //Once the state is correctly obfuscated we can setup a search for each determinisation we are supposed to do
-
-            // Keep track of the solution from each determinisation
-            var solutions = new List<SabberStoneAction>();
-            var taskValues = new Dictionary<int, PlayerTaskStatistics>();
-            for (int i = 0; i < Determinisations; i++) {
-
-                // Copy the state before changing things
-                var stateCopy = (SabberStoneState)gameState.Copy();
-
-                #region Determinisation
-
-                if (!PerfectInformation) {
-                    // Try to predict / select what deck the opponent is playing
-                    var deckDictionary = Decks.AllDecks();
-                    var possibleDecks = new List<List<Card>>();
-                    foreach (var item in deckDictionary) {
-                        var deckIds = Decks.CardIDs(item.Value);
-                        // A deck can match if all of the cards we have seen played are present
-                        if (playedIds.All(j => deckIds.Contains(j))) {
-                            possibleDecks.Add(item.Value);
-                        }
-                    }
-
-                    List<Card> selectedDeck;
-                    // If only one deck matches, assume that is the correct deck
-                    if (possibleDecks.Count == 1)
-                        selectedDeck = possibleDecks.First();
-                    // If we can't,
-                    // either just assume the opponent is playing a pre-set dummy deck
-                    // or select one of the possible decks at random
-                    else selectedDeck = possibleDecks.RandomElementOrDefault();
-
-                    // Determinise the opponent's cards.
-                    stateCopy.Determinise(new List<string>(knownCards), selectedDeck, _rng);
-                }
-
-                #endregion
-
-                // Run a search and add the result to the collection of possible solutions
-                var searchResult = Search(stateCopy);
-                solutions.Add(searchResult.Item1);
-
-                // Also record data for each individual task
-                foreach (var tuple in searchResult.Item2) {
-                    var taskHash = tuple.Item1.GetHashCode();
-
-                    if (!taskValues.ContainsKey(taskHash)) taskValues.Add(taskHash, new PlayerTaskStatistics(tuple.Item1, tuple.Item2));
-                    else taskValues[taskHash].AddValue(tuple.Item2);
-                }
-            }
-
-            // We use the Root Parallelisation technique when there are multiple determinisations
-            var solution = Determinisations > 1 ? DetermineBestTasks(state, taskValues) : solutions.RandomElementOrDefault();
+            // We use the Root Parallelisation technique when an ensemble search is used
+            SabberStoneAction solution = null;//EnsembleSize > 1 ? DetermineBestTasks(state, taskValues) : solutions.RandomElementOrDefault();
 
             var time = timer.ElapsedMilliseconds;
             if (_debug) Console.WriteLine();
@@ -371,7 +292,7 @@ namespace AVThesis.SabberStone.Bots {
         public string Name() {
             var he = HierarchicalExpansion ? "_HE" : "";
             var pi = PerfectInformation ? "_PI" : "";
-            return $"{BOT_NAME}_{Builder.Iterations}it_{Determinisations}det{he}{pi}_p{MyPlayoutBot.Name()}_op{OpponentPlayoutBot.Name()}";
+            return $"{BOT_NAME}_{Builder.Iterations}it_es{EnsembleSize}{he}{pi}_p{MyPlayoutBot.Name()}_op{OpponentPlayoutBot.Name()}";
         }
 
         /// <summary>

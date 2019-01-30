@@ -14,7 +14,7 @@ namespace AVThesis.SabberStone.Strategies {
     /// <summary>
     /// Strategy to run an Ensemble-search for SabberStone.
     /// </summary>
-    public class EnsembleStrategySabberStone : IEnsembleStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> {
+    public class EnsembleStrategySabberStone : IEnsembleStrategy<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> {
 
         #region Properties
 
@@ -52,7 +52,7 @@ namespace AVThesis.SabberStone.Strategies {
         /// <param name="context">The current search context.</param>
         /// <param name="searchFunction">The function that runs the actual search.</param>
         /// <param name="ensembleSize">The amount of searches to perform in the ensemble.</param>
-        public void EnsembleSearch(SearchContext<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, Func<SearchContext<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>, SabberStoneState, SabberStoneAction> searchFunction, int ensembleSize) {
+        public void EnsembleSearch(SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, Func<SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>, SabberStoneState, SabberStoneAction> searchFunction, int ensembleSize) {
             var gameState = context.Source;
             var rootStartedPlaying = gameState.Game.FirstPlayer.Id == gameState.CurrentPlayer();
 
@@ -114,14 +114,13 @@ namespace AVThesis.SabberStone.Strategies {
                 // Call the search function
                 var solution = searchFunction(clonedContext, context.Source);
 
-                // Use domain in SearchContext to save solutions / task statistics
-                //TODO Ensemble -> save solution somewhere
+                // Use domain in SearchContext to save solutions
+                context.Domain.Add(solution);
             }
 
-            throw new NotImplementedException();
         }
 
-        public SabberStoneAction Solution(SearchContext<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context) {
+        public SabberStoneAction Solution(SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context) {
             throw new NotImplementedException();
         }
 
