@@ -119,7 +119,7 @@ namespace AVThesis.SabberStone {
 
             // Secrets
             removeItems = new List<IPlayable>();
-            for (int i = 0; i < obfuscatePlayer.SecretZone.Count; i++) {
+            for (var i = 0; i < obfuscatePlayer.SecretZone.Count; i++) {
                 if (!knownCardsCopy.Contains(obfuscatePlayer.SecretZone[i].Card.Id)) {
                     removeItems.Add(obfuscatePlayer.SecretZone[i]);
                 }
@@ -150,12 +150,13 @@ namespace AVThesis.SabberStone {
 
             // Remove any known cards from the player's deck, these are either in their hand or have been played already
             var knownRootCardsCopy = new List<string>(knownRootPlayerCards);
-            foreach (var card in rootPlayerDeck) {
+            for (var i = rootPlayerDeck.Count - 1; i >= 0; i--) {
+                var card = rootPlayerDeck[i];
                 if (!knownRootCardsCopy.Contains(card.Id)) continue;
                 knownRootCardsCopy.Remove(card.Id);
-                rootPlayerDeck.Remove(card);
+                rootPlayerDeck.RemoveAt(i);
             }
-
+            
             // The player's deck will now become whatever cards are left from the deck.
             var rootPlayerGameDeck = player.DeckZone.GetAll();
             // Small check to see if the sizes are compatible
@@ -176,12 +177,13 @@ namespace AVThesis.SabberStone {
 
             // Remove any known cards from the opponent's deck, those will already be in their correct place
             var knownCardsCopy = new List<string>(knownOpponentCards);
-            foreach (var card in selectedDeck) {
+            for (var i = selectedDeck.Count - 1; i >= 0; i--) {
+                var card = selectedDeck[i];
                 if (!knownCardsCopy.Contains(card.Id)) continue;
                 knownCardsCopy.Remove(card.Id);
-                selectedDeck.Remove(card);
+                selectedDeck.RemoveAt(i);
             }
-
+            
             // Select an amount of cards from the deck that will replace the hidden-cards in the opponent's hand.
             var opponentCards = opponent.HandZone.GetAll();
             foreach (var item in opponentCards) {

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using AVThesis.SabberStone;
 using SabberStoneCore.Config;
 using SabberStoneCore.Enums;
@@ -16,7 +14,7 @@ namespace AVThesis {
 
 		public static void Main(string[] args) {
             //RunTournamentMatch();
-            //RunQuickMatch();
+            RunQuickMatch();
 
 #pragma warning disable 219
             string catcher = null;
@@ -61,8 +59,8 @@ namespace AVThesis {
             }));
 
             // Create two bots to play
-            var bot1 = new MCTSBot(game.Player1, debugInfoToConsole: true);
-            var bot2 = new MCTSBot(game.Player2, mastSelectionType: MASTPlayoutBot.SelectionType.UCB, debugInfoToConsole: true);
+            var bot1 = new MCTSBot(game.Player1);
+            var bot2 = new LSIBot(game.Player2);
 
             game.Game.StartGame();
 

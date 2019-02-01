@@ -204,6 +204,7 @@
     <Compile Include="SabberStone\ISabberStoneBot.cs" />
     <Compile Include="SabberStone\SabberStoneAction.cs" />
     <Compile Include="SabberStone\SabberStonePlayerTask.cs" />
+    <Compile Include="SabberStone\SabberStoneSearch.cs" />
     <Compile Include="SabberStone\SabberStoneState.cs" />
     <Compile Include="SabberStone\Strategies\EnsembleStrategySabberStone.cs" />
     <Compile Include="SabberStone\Strategies\GoalStrategyTurnCutoff.cs" />

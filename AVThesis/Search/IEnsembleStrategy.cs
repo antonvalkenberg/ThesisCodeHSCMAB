@@ -24,13 +24,6 @@ namespace AVThesis.Search {
         /// <param name="ensembleSize">The size of the ensemble.</param>
         void EnsembleSearch(SearchContext<D, P, A, S, Sol> context, Func<SearchContext<D, P, A, S, Sol>, P, A> searchFunction, int ensembleSize);
 
-        /// <summary>
-        /// Returns the solution to the search.
-        /// </summary>
-        /// <param name="context">The context of the search.</param>
-        /// <returns>A solution to the search.</returns>
-        Sol Solution(SearchContext<D, P, A, S, Sol> context);
-
     }
 
 }

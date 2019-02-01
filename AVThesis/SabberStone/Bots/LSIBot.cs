@@ -23,7 +23,7 @@ namespace AVThesis.SabberStone.Bots {
 
         #region Inner Classes
 
-        private class SabberStoneSideInformationStrategy : ISideInformationStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction, OddmentTable<SabberStonePlayerTask>> {
+        private class SabberStoneSideInformationStrategy : ISideInformationStrategy<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction, OddmentTable<SabberStonePlayerTask>> {
 
             #region Properties
 
@@ -35,17 +35,17 @@ namespace AVThesis.SabberStone.Bots {
             /// <summary>
             /// The strategy used to play out a game in simulation.
             /// </summary>
-            private IPlayoutStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Playout { get; set; }
+            private IPlayoutStrategy<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Playout { get; set; }
 
             /// <summary>
             /// The evaluation strategy for determining the value of samples.
             /// </summary>
-            private IStateEvaluation<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction, TreeSearchNode<SabberStoneState, SabberStoneAction>> Evaluation { get; set; }
+            private IStateEvaluation<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction, TreeSearchNode<SabberStoneState, SabberStoneAction>> Evaluation { get; set; }
 
             /// <summary>
             /// The game specific logic required for searching through SabberStoneStates and SabberStoneActions.
             /// </summary>
-            private IGameLogic<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction, SabberStoneAction> GameLogic { get; set; }
+            private IGameLogic<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction, SabberStoneAction> GameLogic { get; set; }
 
             #endregion
 
@@ -57,7 +57,7 @@ namespace AVThesis.SabberStone.Bots {
             /// <param name="playout">The strategy used to play out a game in simulation.</param>
             /// <param name="evaluation">The evaluation strategy for determining the value of samples.</param>
             /// <param name="gameLogic">The game specific logic required for searching through SabberStoneStates and SabberStoneActions.</param>
-            public SabberStoneSideInformationStrategy(IPlayoutStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> playout, IStateEvaluation<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction, TreeSearchNode<SabberStoneState, SabberStoneAction>> evaluation, IGameLogic<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction, SabberStoneAction> gameLogic) {
+            public SabberStoneSideInformationStrategy(IPlayoutStrategy<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> playout, IStateEvaluation<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction, TreeSearchNode<SabberStoneState, SabberStoneAction>> evaluation, IGameLogic<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction, SabberStoneAction> gameLogic) {
                 PlayoutBot = new RandomBot();
                 Playout = playout;
                 Evaluation = evaluation;
@@ -69,7 +69,7 @@ namespace AVThesis.SabberStone.Bots {
             #region Public Methods
 
             /// <inheritdoc />
-            public OddmentTable<SabberStonePlayerTask> Create(SearchContext<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, int samplesForGeneration) {
+            public OddmentTable<SabberStonePlayerTask> Create(SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, int samplesForGeneration) {
 
                 // So we have an issue here, because it's Hearthstone we don't know in advance how many dimensions we have.
                 //      -> We can just evenly distribute budget over the currently available dimensions
@@ -129,7 +129,7 @@ namespace AVThesis.SabberStone.Bots {
             /// <summary>
             /// The game specific logic required for searching through SabberStoneStates and SabberStoneActions.
             /// </summary>
-            private IGameLogic<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction, SabberStoneAction> GameLogic { get; set; }
+            private IGameLogic<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction, SabberStoneAction> GameLogic { get; set; }
 
             #endregion
 
@@ -139,7 +139,7 @@ namespace AVThesis.SabberStone.Bots {
             /// Constructs a new instance.
             /// </summary>
             /// <param name="gameLogic">The game specific logic required for searching through SabberStoneStates and SabberStoneActions.</param>
-            public SabberStoneLSISamplingStrategy(IGameLogic<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction, SabberStoneAction> gameLogic) {
+            public SabberStoneLSISamplingStrategy(IGameLogic<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction, SabberStoneAction> gameLogic) {
                 GameLogic = gameLogic;
             }
 
@@ -197,8 +197,10 @@ namespace AVThesis.SabberStone.Bots {
 
         private const int LSI_SAMPLES_FOR_GENERATION = 250;
         private const int LSI_SAMPLES_FOR_EVALUATION = 750;
+        private const double LSI_SAMPLES_ADJUSTMENT_FACTOR = 1.0;
         private const int PLAYOUT_TURN_CUTOFF = 2;
         private const string BOT_NAME = "LSIBot";
+        private readonly bool _debug;
 
         #endregion
 
@@ -210,37 +212,89 @@ namespace AVThesis.SabberStone.Bots {
         public Controller Player { get; set; }
 
         /// <summary>
+        /// The bot that is used during the playouts.
+        /// </summary>
+        public ISabberStoneBot MyPlayoutBot { get; set; }
+
+        /// <summary>
+        /// The bot that is used for the opponent's playouts.
+        /// </summary>
+        public ISabberStoneBot OpponentPlayoutBot { get; set; }
+
+        /// <summary>
         /// The strategy used to determine if a playout has reached its goal state.
         /// </summary>
-        public IGoalStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Goal { get; set; }
+        public IGoalStrategy<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Goal { get; set; }
 
         /// <summary>
         /// The strategy used to play out a game in simulation.
         /// </summary>
-        public IPlayoutStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Playout { get; set; }
+        public IPlayoutStrategy<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Playout { get; set; }
 
         /// <summary>
         /// The evaluation strategy for determining the value of samples.
         /// </summary>
-        public IStateEvaluation<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction, TreeSearchNode<SabberStoneState, SabberStoneAction>> Evaluation { get; set; }
+        public IStateEvaluation<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction, TreeSearchNode<SabberStoneState, SabberStoneAction>> Evaluation { get; set; }
 
         /// <summary>
         /// The game specific logic required for searching through SabberStoneStates and SabberStoneActions
         /// </summary>
-        public IGameLogic<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction, SabberStoneAction> GameLogic { get; set; }
+        public IGameLogic<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction, SabberStoneAction> GameLogic { get; set; }
         
         /// <summary>
         /// The strategy for creating the side information.
         /// </summary>
-        public ISideInformationStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction, OddmentTable<SabberStonePlayerTask>> SideInformationStrategy { get; set; }
+        public ISideInformationStrategy<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction, OddmentTable<SabberStonePlayerTask>> SideInformationStrategy { get; set; }
 
         /// <summary>
         /// The strategy for sampling actions during the generation phase of LSI.
         /// </summary>
         public ILSISamplingStrategy<SabberStoneState, SabberStoneAction, OddmentTable<SabberStonePlayerTask>> SamplingStrategy { get; set; }
 
+        /// <summary>
+        /// Used to keep track of the actual number of samples LSI uses during the generation phase.
+        /// </summary>
         public int SamplesUsedGeneration { get; set; }
+
+        /// <summary>
+        /// Used to keep track of the actual number of samples LSI uses during the evaluation phase.
+        /// </summary>
         public int SamplesUsedEvaluation { get; set; }
+
+        /// <summary>
+        /// Whether or not this bot is allowed perfect information about the game state (i.e. no obfuscation and therefore no determinisation).
+        /// </summary>
+        public bool PerfectInformation { get; set; }
+
+        /// <summary>
+        /// The size of the ensemble the search should use.
+        /// </summary>
+        public int EnsembleSize { get; set; }
+
+        /// <summary>
+        /// The ensemble strategy to use.
+        /// </summary>
+        public EnsembleStrategySabberStone Ensemble { get; set; }
+
+        /// <summary>
+        /// The solutions received from the ensemble.
+        /// </summary>
+        public List<SabberStoneAction> EnsembleSolutions { get; set; }
+
+        /// <summary>
+        /// Does the administrative tasks around searching.
+        /// </summary>
+        public SabberStoneSearch Searcher { get; set; }
+
+        /// <summary>
+        /// Whether or not to retain the PlayerTask statistics between searches.
+        /// </summary>
+        public bool RetainTaskStatistics { get; set; }
+
+        /// <summary>
+        /// The type of selection strategy used by the M.A.S.T. playout.
+        /// </summary>
+        public MASTPlayoutBot.SelectionType MASTSelectionType { get; set; }
 
         #endregion
 
@@ -250,14 +304,56 @@ namespace AVThesis.SabberStone.Bots {
         /// Constructs a new instance of LSIBot with a <see cref="Controller"/> representing the player.
         /// </summary>
         /// <param name="player">The player.</param>
-        public LSIBot(Controller player) {
+        /// <param name="allowPerfectInformation">[Optional] Whether or not this bot is allowed perfect information about the game state (i.e. no obfuscation and therefore no determinisation). Default value is false.</param>
+        /// <param name="ensembleSize">[Optional] The size of the ensemble to use. Default value is 1.</param>
+        /// <param name="mastSelectionType">[Optional] The type of selection strategy used by the M.A.S.T. playout. Default value is <see cref="MASTPlayoutBot.SelectionType.EGreedy"/>.</param>
+        /// <param name="retainTaskStatistics">[Optional] Whether or not to retain the PlayerTask statistics between searches. Default value is false.</param>
+        /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
+        public LSIBot(Controller player, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool retainTaskStatistics = false, bool debugInfoToConsole = false)
+            : this(allowPerfectInformation, ensembleSize, mastSelectionType, retainTaskStatistics, debugInfoToConsole) {
             Player = player;
+
+            // Set the playout bots correctly if we are using PlayoutStrategySabberStone
+            if (Playout is PlayoutStrategySabberStone playout) {
+                MyPlayoutBot.SetController(Player);
+                playout.AddPlayoutBot(Player.Id, MyPlayoutBot);
+                OpponentPlayoutBot.SetController(Player.Opponent);
+                playout.AddPlayoutBot(Player.Id, MyPlayoutBot);
+            }
+
+            // Create the searcher that will handle the searching and some administrative tasks
+            Searcher = new SabberStoneSearch(Player, _debug);
+        }
+
+        /// <summary>
+        /// Constructs a new instance of LSIBot with default strategies.
+        /// </summary>
+        /// <param name="allowPerfectInformation">[Optional] Whether or not this bot is allowed perfect information about the game state (i.e. no obfuscation and therefore no determinisation). Default value is false.</param>
+        /// <param name="ensembleSize">[Optional] The size of the ensemble to use. Default value is 1.</param>
+        /// <param name="mastSelectionType">[Optional] The type of selection strategy used by the M.A.S.T. playout. Default value is <see cref="MASTPlayoutBot.SelectionType.EGreedy"/>.</param>
+        /// <param name="retainTaskStatistics">[Optional] Whether or not to retain the PlayerTask statistics between searches. Default value is false.</param>
+        /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
+        public LSIBot(bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool retainTaskStatistics = false, bool debugInfoToConsole = false) {
+            PerfectInformation = allowPerfectInformation;
+            EnsembleSize = ensembleSize;
+            MASTSelectionType = mastSelectionType;
+            RetainTaskStatistics = retainTaskStatistics;
+            _debug = debugInfoToConsole;
+
+            // Create the ensemble search
+            Ensemble = new EnsembleStrategySabberStone(enableStateObfuscation: true, enablePerfectInformation: PerfectInformation);
+
+            // Simulation will be handled by the Playout.
+            var sabberStoneStateEvaluation = new EvaluationStrategyHearthStone();
+            var playout = new PlayoutStrategySabberStone();
+            Playout = playout;
+
+            // Set the playout bots
+            MyPlayoutBot = new MASTPlayoutBot(MASTSelectionType, sabberStoneStateEvaluation, playout);
+            OpponentPlayoutBot = new MASTPlayoutBot(MASTSelectionType, sabberStoneStateEvaluation, playout);
 
             // LSI will need a goal-strategy to determine when a simulation is done
             Goal = new GoalStrategyTurnCutoff(PLAYOUT_TURN_CUTOFF);
-
-            // LSI will need a playout-strategy to run the simulations
-            Playout = new PlayoutStrategySabberStone();
 
             // LSI will need an evaluation-strategy to evaluate the strength of samples
             Evaluation = new EvaluationStrategyHearthStone();
@@ -284,47 +380,63 @@ namespace AVThesis.SabberStone.Bots {
             var timer = System.Diagnostics.Stopwatch.StartNew();
             var stateCopy = (SabberStoneState)state.Copy();
 
+            if (_debug) Console.WriteLine();
+            if (_debug) Console.WriteLine(Name());
+            if (_debug) Console.WriteLine("Starting an ({EnsembleSize})Ensemble-LSI-search in turn " + (stateCopy.Game.Turn + 1) / 2);
+
+            // Check if the task statistics in the searcher should be reset
+            if (!RetainTaskStatistics) Searcher.ResetTaskStatistics();
+
             // Let's keep track of how many samples LSI actually uses.
             SamplesUsedEvaluation = 0;
             SamplesUsedGeneration = 0;
             // Adjust the allowed budget for evaluation, because LSI will use more.
             // This factor is pre-set and empirically determined.
-            int adjustedSamplesForEvaluation = (int)(LSI_SAMPLES_FOR_EVALUATION * 1.0);
+            var samplesForEvaluation = (int)(LSI_SAMPLES_FOR_EVALUATION * LSI_SAMPLES_ADJUSTMENT_FACTOR);
+
+            // Adjust sample sizes again for use in the Ensemble
+            samplesForEvaluation = EnsembleSize > 0 ? samplesForEvaluation / EnsembleSize : samplesForEvaluation; // Note: Integer division by design.
+            var samplesForGeneration = EnsembleSize > 0 ? LSI_SAMPLES_FOR_GENERATION / EnsembleSize : LSI_SAMPLES_FOR_GENERATION; // Note: Integer division by design.
 
             // Create a new LSI search
-            var search = new LSI<object, SabberStoneState, SabberStoneAction, object, TreeSearchNode<SabberStoneState, SabberStoneAction>, OddmentTable<SabberStonePlayerTask>>(
-                LSI_SAMPLES_FOR_GENERATION,
-                adjustedSamplesForEvaluation,
+            var search = new LSI<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, TreeSearchNode<SabberStoneState, SabberStoneAction>, OddmentTable<SabberStonePlayerTask>>(
+                samplesForGeneration,
+                samplesForEvaluation,
                 SideInformationStrategy,
                 SamplingStrategy,
                 Playout,
                 Evaluation,
                 GameLogic);
+            
+            // Reset the solutions collection
+            EnsembleSolutions = new List<SabberStoneAction>();
 
             // Create a SearchContext that just holds the current state as Source and the Search.
-            var context = SearchContext<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>.Context(null, stateCopy,
-                null, null, search, null);
+            var context = SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>.Context(
+                EnsembleSolutions, stateCopy, null, null, search, null);
             // The Playout strategy will call the Goal strategy from the context, so we set it here
             context.Goal = Goal;
 
-            Console.WriteLine();
-            Console.WriteLine(Name());
-            Console.WriteLine("Starting an LSI-search in turn " + (stateCopy.Game.Turn + 1) / 2);
-
             // Execute the search
-            context.Execute();
+            Ensemble.EnsembleSearch(context, Searcher.Search, EnsembleSize);
 
-            var solution = context.Solution;
+            // Determine a solution
+            var solution = EnsembleSize > 1 ? Searcher.DetermineBestTasks(state) : EnsembleSolutions.First();
+
             var time = timer.ElapsedMilliseconds;
-            Console.WriteLine($"LSI returned with solution: {solution}");
-            Console.WriteLine($"My action calculation time was: {time} ms.");
-            Console.WriteLine();
+            if (_debug) Console.WriteLine();
+            if (_debug) Console.WriteLine($"LSI returned with solution: {solution}");
+            if (_debug) Console.WriteLine($"My total calculation time was: {time} ms");
+            if (_debug) Console.WriteLine($"Actual samples used: {SamplesUsedGeneration}g, {SamplesUsedEvaluation}e");
 
             // Check if the solution is a complete action.
-            if (solution.IsComplete()) return solution;
-            // Otherwise add an End-Turn task before returning.
-            Console.WriteLine("Solution was an incomplete action; adding End-Turn task.");
-            solution.Tasks.Add((SabberStonePlayerTask)EndTurnTask.Any(Player));
+            if (!solution.IsComplete()) {
+                // Otherwise add an End-Turn task before returning.
+                Console.WriteLine("Solution was an incomplete action; adding End-Turn task.");
+                solution.Tasks.Add((SabberStonePlayerTask)EndTurnTask.Any(Player));
+            }
+
+            if (_debug) Console.WriteLine();
             return solution;
         }
 

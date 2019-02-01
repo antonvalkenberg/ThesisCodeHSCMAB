@@ -120,10 +120,6 @@ namespace AVThesis.SabberStone.Strategies {
 
         }
 
-        public SabberStoneAction Solution(SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context) {
-            throw new NotImplementedException();
-        }
-
         #endregion
 
     }

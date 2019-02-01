@@ -92,6 +92,21 @@ namespace AVThesis.SabberStone.Bots {
         public EnsembleStrategySabberStone Ensemble { get; set; }
 
         /// <summary>
+        /// The solutions received from the ensemble.
+        /// </summary>
+        public List<SabberStoneAction> EnsembleSolutions { get; set; }
+
+        /// <summary>
+        /// Does the administrative tasks around searching.
+        /// </summary>
+        public SabberStoneSearch Searcher { get; set; }
+
+        /// <summary>
+        /// Whether or not to retain the PlayerTask statistics between searches.
+        /// </summary>
+        public bool RetainTaskStatistics { get; set; }
+
+        /// <summary>
         /// The type of selection strategy used by the M.A.S.T. playout.
         /// </summary>
         public MASTPlayoutBot.SelectionType MASTSelectionType { get; set; }
@@ -108,9 +123,10 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="allowPerfectInformation">[Optional] Whether or not this bot is allowed perfect information about the game state (i.e. no obfuscation and therefore no determinisation). Default value is false.</param>
         /// <param name="ensembleSize">[Optional] The size of the ensemble to use. Default value is 1.</param>
         /// <param name="mastSelectionType">[Optional] The type of selection strategy used by the M.A.S.T. playout. Default value is <see cref="MASTPlayoutBot.SelectionType.EGreedy"/>.</param>
+        /// <param name="retainTaskStatistics">[Optional] Whether or not to retain the PlayerTask statistics between searches. Default value is false.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
-        public MCTSBot(Controller player, bool hierarchicalExpansion = true, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool debugInfoToConsole = false)
-            : this(hierarchicalExpansion, allowPerfectInformation, ensembleSize, mastSelectionType, debugInfoToConsole) {
+        public MCTSBot(Controller player, bool hierarchicalExpansion = true, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool retainTaskStatistics = false, bool debugInfoToConsole = false)
+            : this(hierarchicalExpansion, allowPerfectInformation, ensembleSize, mastSelectionType, retainTaskStatistics, debugInfoToConsole) {
             Player = player;
 
             // Set the playout bots correctly if we are using PlayoutStrategySabberStone
@@ -120,6 +136,9 @@ namespace AVThesis.SabberStone.Bots {
                 OpponentPlayoutBot.SetController(Player.Opponent);
                 playout.AddPlayoutBot(Player.Id, MyPlayoutBot);
             }
+
+            // Create the searcher that will handle the searching and some administrative tasks
+            Searcher = new SabberStoneSearch(Player, _debug);
         }
 
         /// <summary>
@@ -129,12 +148,14 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="allowPerfectInformation">[Optional] Whether or not this bot is allowed perfect information about the game state (i.e. no obfuscation and therefore no determinisation). Default value is false.</param>
         /// <param name="ensembleSize">[Optional] The size of the ensemble to use. Default value is 1.</param>
         /// <param name="mastSelectionType">[Optional] The type of selection strategy used by the M.A.S.T. playout. Default value is <see cref="MASTPlayoutBot.SelectionType.EGreedy"/>.</param>
+        /// <param name="retainTaskStatistics">[Optional] Whether or not to retain the PlayerTask statistics between searches. Default value is false.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
-        public MCTSBot(bool hierarchicalExpansion = true, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool debugInfoToConsole = false) {
+        public MCTSBot(bool hierarchicalExpansion = true, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool retainTaskStatistics = false, bool debugInfoToConsole = false) {
             HierarchicalExpansion = hierarchicalExpansion;
             PerfectInformation = allowPerfectInformation;
             EnsembleSize = ensembleSize;
             MASTSelectionType = mastSelectionType;
+            RetainTaskStatistics = retainTaskStatistics;
             _debug = debugInfoToConsole;
 
             // Create the ensemble search
@@ -172,91 +193,6 @@ namespace AVThesis.SabberStone.Bots {
 
         #endregion
 
-        #region Private Methods
-
-        /// <summary>
-        /// Runs a single search.
-        /// </summary>
-        /// <param name="state">The state to search.</param>
-        /// <returns>Tuple of the selected SabberStoneAction and a list of values for the individual PlayerTasks.</returns>
-        private Tuple<SabberStoneAction, List<Tuple<SabberStonePlayerTask, double>>> Search(SabberStoneState state) {
-            var timer = System.Diagnostics.Stopwatch.StartNew();
-            if (_debug) Console.WriteLine();
-
-            // Setup a new search with the current state as source.
-            var search = (MCTS<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>)Builder.Build();
-            var context = SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>.GameSearchSetup(GameLogic, null, state, null, search);
-
-            // Execute the search
-            context.Execute();
-
-            // Check if the search was successful
-            if (context.Status != SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>.SearchStatus.Success) {
-                // TODO in case of search failure: throw exception, or print error.
-                return new Tuple<SabberStoneAction, List<Tuple<SabberStonePlayerTask, double>>>(SabberStoneAction.CreateNullMove(state.Game.CurrentPlayer), new List<Tuple<SabberStonePlayerTask, double>>());
-            }
-
-            var solution = context.Solution;
-            // Retrieve the value of the final node from the search, this will be important in the case of an ensemble-search
-            var solutionStrategy = (SolutionStrategySabberStone) search.SolutionStrategy;
-            var taskValues = new List<Tuple<SabberStonePlayerTask, double>>(solutionStrategy.TaskValues);
-            // Make sure to clear the values for the next search
-            solutionStrategy.ClearTaskValues();
-
-            var time = timer.ElapsedMilliseconds;
-            if (_debug) Console.WriteLine($"MCTS returned with solution: {solution}");
-            if (_debug) Console.WriteLine($"Calculation time was: {time} ms.");
-
-            // Check if the solution is a complete action.
-            if (solution.IsComplete()) return new Tuple<SabberStoneAction, List<Tuple<SabberStonePlayerTask, double>>>(solution, taskValues);
-            // Otherwise add an End-Turn task before returning.
-            if (_debug) Console.WriteLine("Solution was an incomplete action; adding End-Turn task.");
-            solution.Tasks.Add((SabberStonePlayerTask)EndTurnTask.Any(Player));
-            return new Tuple<SabberStoneAction, List<Tuple<SabberStonePlayerTask, double>>>(solution, taskValues);
-        }
-
-        /// <summary>
-        /// Determines the best tasks for the game state based on the provided statistics and creates a <see cref="SabberStoneAction"/> from them.
-        /// </summary>
-        /// <param name="state">The game state to create the best action for.</param>
-        /// <param name="taskStatistics">The statistics for individual tasks.</param>
-        /// <returns><see cref="SabberStoneAction"/> created from the best individual tasks available in the provided state.</returns>
-        private static SabberStoneAction DetermineBestTasks(SabberStoneState state, Dictionary<int, PlayerTaskStatistics> taskStatistics) {
-            // Clone game so that we can process the selected tasks and get an updated options list.
-            var clonedGame = state.Game.Clone();
-            var clonedPlayer = clonedGame.CurrentPlayer;
-
-            // We have to determine which tasks are the best to execute in this state, based on the provided values of the MCTS search.
-            // So we'll check the statistics table for the highest value among tasks that are currently available in the state.
-            // This continues until the end-turn task is selected.
-            var action = new SabberStoneAction();
-            KeyValuePair<int, PlayerTaskStatistics> bestTask;
-            do {
-                // Get the available options in this state and find which tasks we have statistics on.
-                var availableTasks = clonedPlayer.Options().Cast<SabberStonePlayerTask>().Select(i =>i.GetHashCode());
-                bestTask = taskStatistics.Where(i => availableTasks.Contains(i.Key)).OrderByDescending(i => i.Value.AverageValue()).FirstOrDefault();
-
-                // If we can't find any task, stop.
-                if (bestTask.IsDefault()) break;
-                
-                // If we found a task, add it to the Action and process it to progress the game.
-                var task = bestTask.Value.Task;
-                action.AddTask(task);
-                clonedGame.Process(task.Task);
-
-                // Continue while it is still our turn and we haven't yet selected to end the turn.
-            } while (clonedGame.CurrentPlayer.Id == clonedPlayer.Id && bestTask.Value.Task.Task.PlayerTaskType != PlayerTaskType.END_TURN);
-
-            // Return the created action consisting of the best action available at each point.
-            return action;
-        }
-
-        private SabberStoneAction Search(SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, SabberStoneState state) {
-            throw new NotImplementedException();
-        }
-
-        #endregion
-
         #region Public Methods
 
         #region ISabberStoneBot
@@ -275,14 +211,17 @@ namespace AVThesis.SabberStone.Bots {
             if (_debug) Console.WriteLine(Name());
             if (_debug) Console.WriteLine($"Starting an ({EnsembleSize})Ensemble-MCTS-search in turn {(gameState.Game.Turn + 1) / 2}");
 
-            // TODO MCTS-bot -> setup Ensemble search
+            // Check if the task statistics in the searcher should be reset
+            if(!RetainTaskStatistics) Searcher.ResetTaskStatistics();
+
+            // Setup and start the ensemble-search
+            EnsembleSolutions = new List<SabberStoneAction>();
             var search = (MCTS<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>)Builder.Build();
-            var context = SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>.GameSearchSetup(GameLogic, null, gameState, null, search);
-
-            Ensemble.EnsembleSearch(context, Search, EnsembleSize);
-
-            // We use the Root Parallelisation technique when an ensemble search is used
-            SabberStoneAction solution = null;//EnsembleSize > 1 ? DetermineBestTasks(state, taskValues) : solutions.RandomElementOrDefault();
+            var context = SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>.GameSearchSetup(GameLogic, EnsembleSolutions, gameState, null, search);
+            Ensemble.EnsembleSearch(context, Searcher.Search, EnsembleSize);
+            
+            // Determine the best tasks to play based on the ensemble search, or just take the one in case of a single search.
+            var solution = EnsembleSize > 1 ? Searcher.DetermineBestTasks(state) : EnsembleSolutions.First();
 
             var time = timer.ElapsedMilliseconds;
             if (_debug) Console.WriteLine();
