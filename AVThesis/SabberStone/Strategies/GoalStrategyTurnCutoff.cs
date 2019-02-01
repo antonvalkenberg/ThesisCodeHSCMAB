@@ -1,4 +1,5 @@
-﻿using AVThesis.Search;
+﻿using System.Collections.Generic;
+using AVThesis.Search;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -9,20 +10,14 @@ namespace AVThesis.SabberStone.Strategies {
     /// <summary>
     /// Goal strategy that cuts off after a set amount of turns.
     /// </summary>
-    public class GoalStrategyTurnCutoff : IGoalStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> {
-
-        #region Fields
-
-        private int _cutoffThreshold;
-
-        #endregion
+    public class GoalStrategyTurnCutoff : IGoalStrategy<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> {
 
         #region Properties
 
         /// <summary>
         /// The amount of turns after which this goal strategy cuts off.
         /// </summary>
-        public int CutoffThreshold { get => _cutoffThreshold; set => _cutoffThreshold = value; }
+        public int CutoffThreshold { get; set; }
 
         #endregion
 
@@ -47,7 +42,7 @@ namespace AVThesis.SabberStone.Strategies {
         /// <param name="context">The context of the search.</param>
         /// <param name="position">The Position.</param>
         /// <returns>Whether or not the search is done.</returns>
-        public bool Done(SearchContext<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, SabberStoneState position) {
+        public bool Done(SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, SabberStoneState position) {
 
             // Determine the turn in which the search started.
             int sourceTurn = context.Source.Game.Turn;

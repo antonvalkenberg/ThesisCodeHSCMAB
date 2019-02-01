@@ -7,7 +7,6 @@ using AVThesis.SabberStone.Strategies;
 using AVThesis.Search;
 using AVThesis.Search.Tree;
 using AVThesis.Search.Tree.MCTS;
-using SabberStoneCore.Model;
 using SabberStoneCore.Model.Entities;
 using SabberStoneCore.Tasks;
 using SabberStoneCore.Tasks.PlayerTasks;
@@ -55,22 +54,22 @@ namespace AVThesis.SabberStone.Bots {
         /// <summary>
         /// The strategy used to determine if a playout has reached its goal state.
         /// </summary>
-        public IGoalStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Goal { get; set; }
+        public IGoalStrategy<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Goal { get; set; }
 
         /// <summary>
         /// The game specific logic required for searching through SabberStoneStates and SabberStoneActions
         /// </summary>
-        public IGameLogic<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction, SabberStoneAction> GameLogic { get; set; }
+        public IGameLogic<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction, SabberStoneAction> GameLogic { get; set; }
 
         /// <summary>
         /// The strategy used to play out a game in simulation.
         /// </summary>
-        public IPlayoutStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Playout { get; set; }
+        public IPlayoutStrategy<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Playout { get; set; }
 
         /// <summary>
         /// The Monte Carlo Tree Search builder that creates a search-setup ready to use.
         /// </summary>
-        public MCTSBuilder<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Builder { get; set; }
+        public MCTSBuilder<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Builder { get; set; }
 
         /// <summary>
         /// Whether or not to use Hierarchical Expansion during the search.
@@ -86,6 +85,11 @@ namespace AVThesis.SabberStone.Bots {
         /// The size of the ensemble the search should use.
         /// </summary>
         public int EnsembleSize { get; set; }
+
+        /// <summary>
+        /// The ensemble strategy to use.
+        /// </summary>
+        public EnsembleStrategySabberStone Ensemble { get; set; }
 
         /// <summary>
         /// The type of selection strategy used by the M.A.S.T. playout.
@@ -133,6 +137,9 @@ namespace AVThesis.SabberStone.Bots {
             MASTSelectionType = mastSelectionType;
             _debug = debugInfoToConsole;
 
+            // Create the ensemble search
+            Ensemble = new EnsembleStrategySabberStone(enableStateObfuscation: true, enablePerfectInformation: PerfectInformation);
+
             // Simulation will be handled by the Playout.
             var sabberStoneStateEvaluation = new EvaluationStrategyHearthStone();
             var playout = new PlayoutStrategySabberStone();
@@ -152,13 +159,13 @@ namespace AVThesis.SabberStone.Bots {
             var nodeEvaluation = new ScoreUCB<SabberStoneState, SabberStoneAction>(UCT_C_CONSTANT_DEFAULT);
 
             // Build MCTS
-            Builder = MCTS<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>.Builder();
-            Builder.ExpansionStrategy = new MinimumTExpansion<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>(MIN_T_VISIT_THRESHOLD_FOR_EXPANSION);
-            Builder.SelectionStrategy = new BestNodeSelection<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>(SELECTION_VISIT_MINIMUM_FOR_EVALUATION, nodeEvaluation);
+            Builder = MCTS<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>.Builder();
+            Builder.ExpansionStrategy = new MinimumTExpansion<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>(MIN_T_VISIT_THRESHOLD_FOR_EXPANSION);
+            Builder.SelectionStrategy = new BestNodeSelection<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>(SELECTION_VISIT_MINIMUM_FOR_EVALUATION, nodeEvaluation);
             Builder.EvaluationStrategy = sabberStoneStateEvaluation;
             Builder.Iterations = EnsembleSize > 0 ? MCTS_NUMBER_OF_ITERATIONS / EnsembleSize : MCTS_NUMBER_OF_ITERATIONS; // Note: Integer division by design.
-            Builder.BackPropagationStrategy = new EvaluateOnceAndColorBackPropagation<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>();
-            Builder.FinalNodeSelectionStrategy = new BestRatioFinalNodeSelection<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>();
+            Builder.BackPropagationStrategy = new EvaluateOnceAndColorBackPropagation<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>();
+            Builder.FinalNodeSelectionStrategy = new BestRatioFinalNodeSelection<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>();
             Builder.SolutionStrategy = new SolutionStrategySabberStone(HierarchicalExpansion, nodeEvaluation);
             Builder.PlayoutStrategy = Playout;
         }
@@ -177,14 +184,14 @@ namespace AVThesis.SabberStone.Bots {
             if (_debug) Console.WriteLine();
 
             // Setup a new search with the current state as source.
-            var search = (MCTS<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>)Builder.Build();
-            var context = SearchContext<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>.GameSearchSetup(GameLogic, null, state, null, search);
+            var search = (MCTS<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>)Builder.Build();
+            var context = SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>.GameSearchSetup(GameLogic, null, state, null, search);
 
             // Execute the search
             context.Execute();
 
             // Check if the search was successful
-            if (context.Status != SearchContext<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>.SearchStatus.Success) {
+            if (context.Status != SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>.SearchStatus.Success) {
                 // TODO in case of search failure: throw exception, or print error.
                 return new Tuple<SabberStoneAction, List<Tuple<SabberStonePlayerTask, double>>>(SabberStoneAction.CreateNullMove(state.Game.CurrentPlayer), new List<Tuple<SabberStonePlayerTask, double>>());
             }
@@ -244,6 +251,10 @@ namespace AVThesis.SabberStone.Bots {
             return action;
         }
 
+        private SabberStoneAction Search(SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, SabberStoneState state) {
+            throw new NotImplementedException();
+        }
+
         #endregion
 
         #region Public Methods
@@ -265,6 +276,10 @@ namespace AVThesis.SabberStone.Bots {
             if (_debug) Console.WriteLine($"Starting an ({EnsembleSize})Ensemble-MCTS-search in turn {(gameState.Game.Turn + 1) / 2}");
 
             // TODO MCTS-bot -> setup Ensemble search
+            var search = (MCTS<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>)Builder.Build();
+            var context = SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>.GameSearchSetup(GameLogic, null, gameState, null, search);
+
+            Ensemble.EnsembleSearch(context, Search, EnsembleSize);
 
             // We use the Root Parallelisation technique when an ensemble search is used
             SabberStoneAction solution = null;//EnsembleSize > 1 ? DetermineBestTasks(state, taskValues) : solutions.RandomElementOrDefault();

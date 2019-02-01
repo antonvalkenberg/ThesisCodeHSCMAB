@@ -17,7 +17,7 @@ namespace AVThesis.SabberStone {
     /// <summary>
     /// Handles the game specific logic required for search in SabberStone.
     /// </summary>
-    public class SabberStoneGameLogic : IGameLogic<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction, SabberStoneAction> {
+    public class SabberStoneGameLogic : IGameLogic<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction, SabberStoneAction> {
         
         #region SabberStoneMoveGenerator
 
@@ -147,7 +147,7 @@ namespace AVThesis.SabberStone {
         #region Properties
 
         public bool HierarchicalExpansion { get; }
-        public IGoalStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Goal { get; }
+        public IGoalStrategy<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Goal { get; }
 
         #endregion
 
@@ -158,7 +158,7 @@ namespace AVThesis.SabberStone {
         /// </summary>
         /// <param name="hierarchicalExpansion">Whether or not expansion should be handled hierarchically.</param>
         /// <param name="goal">The goal strategy.</param>
-        public SabberStoneGameLogic(bool hierarchicalExpansion, IGoalStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> goal) {
+        public SabberStoneGameLogic(bool hierarchicalExpansion, IGoalStrategy<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> goal) {
             HierarchicalExpansion = hierarchicalExpansion;
             Goal = goal;
         }
@@ -174,7 +174,7 @@ namespace AVThesis.SabberStone {
         /// <param name="position">The state to which the action should be applied.</param>
         /// <param name="action">The action to apply.</param>
         /// <returns>SabberStoneState that is the result of applying the action.</returns>
-        public SabberStoneState Apply(SearchContext<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, SabberStoneState position, SabberStoneAction action) {
+        public SabberStoneState Apply(SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, SabberStoneState position, SabberStoneAction action) {
 
             // In case of hierarchical expansion, we'll arrive here with incomplete actions, i.e. actions that might not have end-turn tasks.
             // We'll still have to process these actions to move the state into a new state, ready for further expansion.
@@ -202,7 +202,7 @@ namespace AVThesis.SabberStone {
         /// <param name="context">The context of the search.</param>
         /// <param name="position">The game state.</param>
         /// <returns>Whether or not the game is completed.</returns>
-        public bool Done(SearchContext<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, SabberStoneState position) {
+        public bool Done(SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, SabberStoneState position) {
             return Goal.Done(context, position);
         }
 
@@ -212,7 +212,7 @@ namespace AVThesis.SabberStone {
         /// <param name="context">The context of the search.</param>
         /// <param name="position">The state to expand from.</param>
         /// <returns>An enumeration of possible actions from the argument state.</returns>
-        public IPositionGenerator<SabberStoneAction> Expand(SearchContext<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, SabberStoneState position) {
+        public IPositionGenerator<SabberStoneAction> Expand(SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, SabberStoneState position) {
             var availableActionSequences = new List<SabberStoneAction>();
             var activePlayer = position.Game.CurrentPlayer;
             var activePlayerId = activePlayer.Id;

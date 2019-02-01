@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using AVThesis.Search;
 using AVThesis.Search.Tree;
@@ -12,7 +13,7 @@ namespace AVThesis.SabberStone.Strategies {
     /// <summary>
     /// Represents a way of evaluating a board state in HearthStone.
     /// </summary>
-    public class EvaluationStrategyHearthStone : IStateEvaluation<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction, TreeSearchNode<SabberStoneState, SabberStoneAction>> {
+    public class EvaluationStrategyHearthStone : IStateEvaluation<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction, TreeSearchNode<SabberStoneState, SabberStoneAction>> {
 
         #region Public Methods
 
@@ -23,7 +24,7 @@ namespace AVThesis.SabberStone.Strategies {
         /// <param name="node">The node that provides the context to evaluate the state.</param>
         /// <param name="state">The state that should be evaluated.</param>
         /// <returns>Double representing the value of the state with respect to the node.</returns>
-        public double Evaluate(SearchContext<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, TreeSearchNode<SabberStoneState, SabberStoneAction> node, SabberStoneState state) {
+        public double Evaluate(SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, TreeSearchNode<SabberStoneState, SabberStoneAction> node, SabberStoneState state) {
 
             var rootPlayerId = context.Source.CurrentPlayer();
             var rootPlayer = state.Player1.Id == rootPlayerId ? state.Player1 : state.Player2;
@@ -116,7 +117,7 @@ namespace AVThesis.SabberStone.Strategies {
         /// <param name="state">The state that should be evaluated.</param>
         /// <returns>Double representing the value of the state with respect to the node.</returns>
         [Obsolete("EvaluateOld is deprecated and replaced by Evaluate.")]
-        public double EvaluateOld(SearchContext<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, TreeSearchNode<SabberStoneState, SabberStoneAction> node, SabberStoneState state) {
+        public double EvaluateOld(SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, TreeSearchNode<SabberStoneState, SabberStoneAction> node, SabberStoneState state) {
 
             var rootPlayerId = context.Source.CurrentPlayer();
             var rootPlayer = state.Player1.Id == rootPlayerId ? state.Player1 : state.Player2;

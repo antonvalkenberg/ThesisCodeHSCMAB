@@ -14,7 +14,7 @@ namespace AVThesis.SabberStone.Strategies {
     /// <summary>
     /// Represents a way of creating a solution to a search for SabberStone.
     /// </summary>
-    public class SolutionStrategySabberStone : ISolutionStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction, TreeSearchNode<SabberStoneState, SabberStoneAction>> {
+    public class SolutionStrategySabberStone : ISolutionStrategy<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction, TreeSearchNode<SabberStoneState, SabberStoneAction>> {
 
         private bool HierarchicalExpansion { get; }
 
@@ -33,14 +33,14 @@ namespace AVThesis.SabberStone.Strategies {
         }
 
         /// <inheritdoc cref="ISolutionStrategy{D,P,A,S,Sol,N}.Solution"/>
-        public SabberStoneAction Solution(SearchContext<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, TreeSearchNode<SabberStoneState, SabberStoneAction> node) {
+        public SabberStoneAction Solution(SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, TreeSearchNode<SabberStoneState, SabberStoneAction> node) {
             
             // Check if we're trying to make a solution for a search with Hierarchical Expansion (HE).
             if (HierarchicalExpansion) {
 
                 var solution = new SabberStoneAction();
                 var rootPlayerId = context.Source.CurrentPlayer();
-                var mcts = (MCTS<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction>) context.Search;
+                var mcts = (MCTS<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>) context.Search;
                 var selection = mcts.SelectionStrategy;
 
                 // The final-node selection strategy has chosen a child of the root as final-node.

@@ -13,7 +13,7 @@ namespace AVThesis.SabberStone.Strategies {
     /// <summary>
     /// Strategy to play out a game of SabberStone.
     /// </summary>
-    public class PlayoutStrategySabberStone : IPlayoutStrategy<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> {
+    public class PlayoutStrategySabberStone : IPlayoutStrategy<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> {
 
         #region Constants
 
@@ -44,9 +44,9 @@ namespace AVThesis.SabberStone.Strategies {
         /// Represents the data sent with the event of a simulation being completed.
         /// </summary>
         public class SimulationCompletedEventArgs : EventArgs {
-            public SearchContext<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Context { get; set; }
+            public SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Context { get; set; }
             public SabberStoneState EndState { get; set; }
-            public SimulationCompletedEventArgs(SearchContext<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, SabberStoneState endState) {
+            public SimulationCompletedEventArgs(SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, SabberStoneState endState) {
                 Context = context;
                 EndState = endState;
             }
@@ -90,7 +90,7 @@ namespace AVThesis.SabberStone.Strategies {
         /// <param name="context">The context of the search.</param>
         /// <param name="position">The position from which to play out the game.</param>
         /// <returns>The end position.</returns>
-        public SabberStoneState Playout(SearchContext<object, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, SabberStoneState position) {
+        public SabberStoneState Playout(SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, SabberStoneState position) {
             // Play out the game as long as the Goal strategy dictates.
             while (!context.Goal.Done(context, position)) {
                 PlayPlayerTurn(position);
