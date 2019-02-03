@@ -135,13 +135,11 @@ namespace AVThesis.Search.Tree {
             int numberOfChildren = node.Children.Count;
             int minVisitsOnParent = MinVisits * numberOfChildren;
 
-            // In default behavior, we will have iterated over all children once before arriving at the first call to the Selection Strategy.
+            // In default behaviour, we will have iterated over all children once before arriving at the first call to the Selection Strategy.
             // If the parent node hasn't been visited a minimum number of times, select the next appropriate child.
             if (minVisitsOnParent > node.Visits) {
                 return node.Children.ElementAt(node.Visits % numberOfChildren);
             } else if (minVisitsOnParent == node.Visits) {
-                //TODO check which of these methods is faster
-                //node.Children.Sort(NodeComparer1);
                 node.Children = node.Children.OrderByDescending(i => i.CalculateScore(NodeEvaluation)).ToList();
             } else {
                 // The first child is always the one picked; so it is the only node we need to sort to a new location.
@@ -161,7 +159,7 @@ namespace AVThesis.Search.Tree {
                 // Move everyone by one, and set the child at its newest index.
                 if (i>0) {
                     if (i == 1) {
-                        // Special case where we optimize for when we are just better than the second item (often).
+                        // Special case where we optimise for when we are just better than the second item (often).
                         var items = node.Children.ToArray();
                         items[0] = items[1];
                         items[1] = firstChild;

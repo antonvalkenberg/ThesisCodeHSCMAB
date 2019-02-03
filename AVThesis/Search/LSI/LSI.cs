@@ -77,6 +77,11 @@ namespace AVThesis.Search.LSI {
         /// </summary>
         public IGameLogic<D, P, A, S, A, A> GameLogic { get; set; }
 
+        /// <summary>
+        /// Used to keep track of the actual number of samples LSI uses during the evaluation phase.
+        /// </summary>
+        public int SamplesUsedEvaluation { get; set; }
+
         #endregion
 
         #region Constructors
@@ -177,6 +182,7 @@ namespace AVThesis.Search.LSI {
                 double value = 0;
                 for (var i = 0; i < samplesPerAction; i++) {
                     value += Evaluation.Evaluate(context, null, Playout.Playout(context, newState));
+                    SamplesUsedEvaluation++;
                 }
 
                 item.Value = value;
@@ -192,6 +198,9 @@ namespace AVThesis.Search.LSI {
         #region Public Methods
 
         public void Search(SearchContext<D, P, A, S, A> context) {
+            // Let's keep track of how many samples LSI actually uses during evaluation.
+            SamplesUsedEvaluation = 0;
+
             // LSI divides the search process into two separate phases
 
             // Generate a subset (C*) from all possible combined-actions (C)

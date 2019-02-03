@@ -4,10 +4,11 @@ using System.Linq;
 using AVThesis.Datastructures;
 using AVThesis.SabberStone.Strategies;
 using AVThesis.Search;
-using AVThesis.Search.Tree.MCTS;
+using AVThesis.Search.Tree;
 using SabberStoneCore.Model.Entities;
 using SabberStoneCore.Tasks;
 using SabberStoneCore.Tasks.PlayerTasks;
+using State = SabberStoneCore.Enums.State;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -16,7 +17,7 @@ using SabberStoneCore.Tasks.PlayerTasks;
 namespace AVThesis.SabberStone {
 
     /// <summary>
-    /// Represents a single search in SabberStone and fulfills some administrative tasks.
+    /// Represents a single search in SabberStone and fulfils some administrative tasks.
     /// </summary>
     public class SabberStoneSearch {
 
@@ -73,20 +74,25 @@ namespace AVThesis.SabberStone {
 
             // Check if the search was successful
             if (context.Status != SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>.SearchStatus.Success) {
-                // TODO in case of search failure: throw exception, or print error.
-                return SabberStoneAction.CreateNullMove(state.Game.CurrentPlayer);
+                throw new SearchException($"Search did not conclude correctly. Current Status {context.Status}");
             }
 
             var solution = context.Solution;
-            // Retrieve the task values from the solution strategy and process them into the property
-            var solutionStrategy = (SolutionStrategySabberStone)((MCTS<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>)context.Search).SolutionStrategy;
-            foreach (var tuple in solutionStrategy.TaskValues) {
-                var taskHash = tuple.Item1.GetHashCode();
-                if (!TaskStatistics.ContainsKey(taskHash)) TaskStatistics.Add(taskHash, new PlayerTaskStatistics(tuple.Item1, tuple.Item2));
-                else TaskStatistics[taskHash].AddValue(tuple.Item2);
+
+            // Check if the search has a SolutionStrategy so that task-values can be saved
+            // TODO should SabberStoneSearch check for the presence of a SolutionStrategySabberStone?
+            if (context.Search is TreeSearch<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> search) {
+                // Retrieve the task values from the solution strategy and process them into the property
+                var solutionStrategy = (SolutionStrategySabberStone)search.SolutionStrategy;
+                foreach (var tuple in solutionStrategy.TaskValues) {
+                    var taskHash = tuple.Item1.GetHashCode();
+                    if (!TaskStatistics.ContainsKey(taskHash)) TaskStatistics.Add(taskHash, new PlayerTaskStatistics(tuple.Item1, tuple.Item2));
+                    else TaskStatistics[taskHash].AddValue(tuple.Item2);
+                }
+
+                // Make sure to clear the values for the next search
+                solutionStrategy.ClearTaskValues();
             }
-            // Make sure to clear the values for the next search
-            solutionStrategy.ClearTaskValues();
 
             var time = timer.ElapsedMilliseconds;
             if (_debug) Console.WriteLine($"Searcher returned with solution: {solution}");
@@ -111,17 +117,15 @@ namespace AVThesis.SabberStone {
         public SabberStoneAction DetermineBestTasks(SabberStoneState state) {
             // Clone game so that we can process the selected tasks and get an updated options list.
             var clonedGame = state.Game.Clone();
-            var clonedPlayer = clonedGame.CurrentPlayer;
 
             // We have to determine which tasks are the best to execute in this state, based on the provided values of the MCTS search.
             // So we'll check the statistics table for the highest value among tasks that are currently available in the state.
             // This continues until the end-turn task is selected.
             var action = new SabberStoneAction();
-            KeyValuePair<int, PlayerTaskStatistics> bestTask;
-            do {
+            while (!action.IsComplete()) {
                 // Get the available options in this state and find which tasks we have statistics on.
-                var availableTasks = clonedPlayer.Options().Select(i => ((SabberStonePlayerTask)i).GetHashCode());
-                bestTask = TaskStatistics.Where(i => availableTasks.Contains(i.Key)).OrderByDescending(i => i.Value.AverageValue()).FirstOrDefault();
+                var availableTasks = clonedGame.CurrentPlayer.Options().Select(i => ((SabberStonePlayerTask)i).GetHashCode());
+                var bestTask = TaskStatistics.Where(i => availableTasks.Contains(i.Key)).OrderByDescending(i => i.Value.AverageValue()).FirstOrDefault();
 
                 // If we can't find any task, stop.
                 if (bestTask.IsDefault()) break;
@@ -130,9 +134,7 @@ namespace AVThesis.SabberStone {
                 var task = bestTask.Value.Task;
                 action.AddTask(task);
                 clonedGame.Process(task.Task);
-
-                // Continue while it is still our turn and we haven't yet selected to end the turn.
-            } while (clonedGame.CurrentPlayer.Id == clonedPlayer.Id && bestTask.Value.Task.Task.PlayerTaskType != PlayerTaskType.END_TURN);
+            }
 
             // Return the created action consisting of the best action available at each point.
             return action;
@@ -145,7 +147,57 @@ namespace AVThesis.SabberStone {
             TaskStatistics = new Dictionary<int, PlayerTaskStatistics>();
         }
 
+        /// <summary>
+        /// Creates a SabberStoneAction from a collection of possible solutions by voting for separate tasks.
+        /// </summary>
+        /// <param name="solutions">The available solutions.</param>
+        /// <param name="state">The game state.</param>
+        /// <returns>SabberStoneAction.</returns>
+        public SabberStoneAction VoteForSolution(List<SabberStoneAction> solutions, SabberStoneState state) {
+            // Clone game so that we can process the selected tasks and get an updated options list.
+            var clonedGame = state.Game.Clone();
+            var action = new SabberStoneAction();
+
+            // Have all solutions vote on tasks
+            var taskVotes = new Dictionary<int, int>();
+            foreach (var solution in solutions) {
+                foreach (var task in solution.Tasks) {
+                    var taskHash = task.GetHashCode();
+                    if (!taskVotes.ContainsKey(taskHash)) taskVotes.Add(taskHash, 0);
+                    taskVotes[taskHash]++;
+                }
+            }
+
+            // Keep selecting tasks until the action is complete or the game has ended
+            while (!action.IsComplete() && clonedGame.State != State.COMPLETE) {
+                // Make a dictionary of available tasks, indexed by their hashcode
+                var availableTasks = clonedGame.CurrentPlayer.Options().Select(i => (SabberStonePlayerTask)i).ToList();
+
+                // Pick the one with most votes
+                var votedOnTasks = availableTasks.Where(i => taskVotes.ContainsKey(i.GetHashCode())).ToList();
+                var mostVoted = votedOnTasks.OrderByDescending(i => taskVotes[i.GetHashCode()]).FirstOrDefault();
+                
+                // Check if anything was found
+                if (mostVoted == null) break; //TODO do something here
+
+                // Find any tasks tied for most votes
+                var mostVotes = taskVotes[mostVoted.GetHashCode()];
+                var ties = votedOnTasks.Where(i => taskVotes[i.GetHashCode()] == mostVotes);
+
+                // Add one of the tasks with the most votes to the action
+                //TODO voting ties can be handled differently
+                var chosenTask = ties.RandomElementOrDefault();
+                action.AddTask(chosenTask);
+
+                // Process the task so we have an updated options list next iteration
+                clonedGame.Process(chosenTask.Task);
+            }
+
+            return action;
+        }
+
         #endregion
+
     }
 
 }

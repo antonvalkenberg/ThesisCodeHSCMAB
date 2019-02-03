@@ -173,7 +173,8 @@ namespace AVThesis.SabberStone.Bots {
                     // Sample a task from the OddmentTable
                     var task = sideInformation.Next();
                     // Check if the task is available in the current state
-                    if (GetAvailablePlayerTasks(state).Contains(task)) {
+                    var availableTasks = GetAvailablePlayerTasks(state);
+                    if (availableTasks.Contains(task, PlayerTaskComparer.Comparer)) {
                         action.AddTask(task);
                         state.Game.Process(task.Task);
                     }
@@ -195,9 +196,9 @@ namespace AVThesis.SabberStone.Bots {
 
         #region Constants
 
-        private const int LSI_SAMPLES_FOR_GENERATION = 250;
-        private const int LSI_SAMPLES_FOR_EVALUATION = 750;
-        private const double LSI_SAMPLES_ADJUSTMENT_FACTOR = 1.0;
+        private const int LSI_SAMPLES_FOR_GENERATION = 2500;
+        private const int LSI_SAMPLES_FOR_EVALUATION = 7500;
+        private const double LSI_SAMPLES_ADJUSTMENT_FACTOR = .4;
         private const int PLAYOUT_TURN_CUTOFF = 2;
         private const string BOT_NAME = "LSIBot";
         private readonly bool _debug;
@@ -252,16 +253,6 @@ namespace AVThesis.SabberStone.Bots {
         public ILSISamplingStrategy<SabberStoneState, SabberStoneAction, OddmentTable<SabberStonePlayerTask>> SamplingStrategy { get; set; }
 
         /// <summary>
-        /// Used to keep track of the actual number of samples LSI uses during the generation phase.
-        /// </summary>
-        public int SamplesUsedGeneration { get; set; }
-
-        /// <summary>
-        /// Used to keep track of the actual number of samples LSI uses during the evaluation phase.
-        /// </summary>
-        public int SamplesUsedEvaluation { get; set; }
-
-        /// <summary>
         /// Whether or not this bot is allowed perfect information about the game state (i.e. no obfuscation and therefore no determinisation).
         /// </summary>
         public bool PerfectInformation { get; set; }
@@ -287,11 +278,6 @@ namespace AVThesis.SabberStone.Bots {
         public SabberStoneSearch Searcher { get; set; }
 
         /// <summary>
-        /// Whether or not to retain the PlayerTask statistics between searches.
-        /// </summary>
-        public bool RetainTaskStatistics { get; set; }
-
-        /// <summary>
         /// The type of selection strategy used by the M.A.S.T. playout.
         /// </summary>
         public MASTPlayoutBot.SelectionType MASTSelectionType { get; set; }
@@ -307,10 +293,9 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="allowPerfectInformation">[Optional] Whether or not this bot is allowed perfect information about the game state (i.e. no obfuscation and therefore no determinisation). Default value is false.</param>
         /// <param name="ensembleSize">[Optional] The size of the ensemble to use. Default value is 1.</param>
         /// <param name="mastSelectionType">[Optional] The type of selection strategy used by the M.A.S.T. playout. Default value is <see cref="MASTPlayoutBot.SelectionType.EGreedy"/>.</param>
-        /// <param name="retainTaskStatistics">[Optional] Whether or not to retain the PlayerTask statistics between searches. Default value is false.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
-        public LSIBot(Controller player, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool retainTaskStatistics = false, bool debugInfoToConsole = false)
-            : this(allowPerfectInformation, ensembleSize, mastSelectionType, retainTaskStatistics, debugInfoToConsole) {
+        public LSIBot(Controller player, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool debugInfoToConsole = false)
+            : this(allowPerfectInformation, ensembleSize, mastSelectionType, debugInfoToConsole) {
             Player = player;
 
             // Set the playout bots correctly if we are using PlayoutStrategySabberStone
@@ -331,13 +316,11 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="allowPerfectInformation">[Optional] Whether or not this bot is allowed perfect information about the game state (i.e. no obfuscation and therefore no determinisation). Default value is false.</param>
         /// <param name="ensembleSize">[Optional] The size of the ensemble to use. Default value is 1.</param>
         /// <param name="mastSelectionType">[Optional] The type of selection strategy used by the M.A.S.T. playout. Default value is <see cref="MASTPlayoutBot.SelectionType.EGreedy"/>.</param>
-        /// <param name="retainTaskStatistics">[Optional] Whether or not to retain the PlayerTask statistics between searches. Default value is false.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
-        public LSIBot(bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool retainTaskStatistics = false, bool debugInfoToConsole = false) {
+        public LSIBot(bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool debugInfoToConsole = false) {
             PerfectInformation = allowPerfectInformation;
             EnsembleSize = ensembleSize;
             MASTSelectionType = mastSelectionType;
-            RetainTaskStatistics = retainTaskStatistics;
             _debug = debugInfoToConsole;
 
             // Create the ensemble search
@@ -382,14 +365,8 @@ namespace AVThesis.SabberStone.Bots {
 
             if (_debug) Console.WriteLine();
             if (_debug) Console.WriteLine(Name());
-            if (_debug) Console.WriteLine("Starting an ({EnsembleSize})Ensemble-LSI-search in turn " + (stateCopy.Game.Turn + 1) / 2);
-
-            // Check if the task statistics in the searcher should be reset
-            if (!RetainTaskStatistics) Searcher.ResetTaskStatistics();
-
-            // Let's keep track of how many samples LSI actually uses.
-            SamplesUsedEvaluation = 0;
-            SamplesUsedGeneration = 0;
+            if (_debug) Console.WriteLine($"Starting an ({EnsembleSize})Ensemble-LSI-search in turn " + (stateCopy.Game.Turn + 1) / 2);
+            
             // Adjust the allowed budget for evaluation, because LSI will use more.
             // This factor is pre-set and empirically determined.
             var samplesForEvaluation = (int)(LSI_SAMPLES_FOR_EVALUATION * LSI_SAMPLES_ADJUSTMENT_FACTOR);
@@ -412,8 +389,7 @@ namespace AVThesis.SabberStone.Bots {
             EnsembleSolutions = new List<SabberStoneAction>();
 
             // Create a SearchContext that just holds the current state as Source and the Search.
-            var context = SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>.Context(
-                EnsembleSolutions, stateCopy, null, null, search, null);
+            var context = SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>.Context(EnsembleSolutions, stateCopy, null, null, search, null);
             // The Playout strategy will call the Goal strategy from the context, so we set it here
             context.Goal = Goal;
 
@@ -421,13 +397,13 @@ namespace AVThesis.SabberStone.Bots {
             Ensemble.EnsembleSearch(context, Searcher.Search, EnsembleSize);
 
             // Determine a solution
-            var solution = EnsembleSize > 1 ? Searcher.DetermineBestTasks(state) : EnsembleSolutions.First();
+            var solution = Searcher.VoteForSolution(EnsembleSolutions, state);
 
             var time = timer.ElapsedMilliseconds;
             if (_debug) Console.WriteLine();
             if (_debug) Console.WriteLine($"LSI returned with solution: {solution}");
             if (_debug) Console.WriteLine($"My total calculation time was: {time} ms");
-            if (_debug) Console.WriteLine($"Actual samples used: {SamplesUsedGeneration}g, {SamplesUsedEvaluation}e");
+            if (_debug) Console.WriteLine($"Actual evaluation samples used during last search: {search.SamplesUsedEvaluation}");
 
             // Check if the solution is a complete action.
             if (!solution.IsComplete()) {

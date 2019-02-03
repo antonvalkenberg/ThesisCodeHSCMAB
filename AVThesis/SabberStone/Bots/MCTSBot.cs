@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using AVThesis.Datastructures;
 using AVThesis.Game;
 using AVThesis.SabberStone.Strategies;
 using AVThesis.Search;
 using AVThesis.Search.Tree;
 using AVThesis.Search.Tree.MCTS;
 using SabberStoneCore.Model.Entities;
-using SabberStoneCore.Tasks;
 using SabberStoneCore.Tasks.PlayerTasks;
 
 /// <summary>

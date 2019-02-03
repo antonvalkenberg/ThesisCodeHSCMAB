@@ -59,8 +59,8 @@ namespace AVThesis {
             }));
 
             // Create two bots to play
-            var bot1 = new MCTSBot(game.Player1);
-            var bot2 = new LSIBot(game.Player2);
+            var bot1 = new MCTSBot(game.Player1, ensembleSize: 2, debugInfoToConsole: true);
+            var bot2 = new LSIBot(game.Player2, ensembleSize: 2, debugInfoToConsole: true);
 
             game.Game.StartGame();
 

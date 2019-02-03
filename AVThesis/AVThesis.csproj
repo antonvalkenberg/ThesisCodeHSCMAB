@@ -229,6 +229,7 @@
     <Compile Include="Search\LSI\ISideInformationStrategy.cs" />
     <Compile Include="Search\LSI\LSI.cs" />
     <Compile Include="Search\SearchContext.cs" />
+    <Compile Include="Search\SearchException.cs" />
     <Compile Include="Search\SearchNode.cs" />
     <Compile Include="Search\State.cs" />
     <Compile Include="Search\Tree\ITreeBackPropagation.cs" />
