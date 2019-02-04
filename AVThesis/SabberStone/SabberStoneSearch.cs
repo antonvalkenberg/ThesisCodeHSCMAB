@@ -122,13 +122,17 @@ namespace AVThesis.SabberStone {
             // So we'll check the statistics table for the highest value among tasks that are currently available in the state.
             // This continues until the end-turn task is selected.
             var action = new SabberStoneAction();
-            while (!action.IsComplete()) {
-                // Get the available options in this state and find which tasks we have statistics on.
-                var availableTasks = clonedGame.CurrentPlayer.Options().Select(i => ((SabberStonePlayerTask)i).GetHashCode());
+            while (!action.IsComplete() && clonedGame.State != State.COMPLETE) {
+                // Get the available options in this state and find which tasks we have statistics on, but ignore the END-TURN task for now
+                var availableTasks = clonedGame.CurrentPlayer.Options().Where(i => i.PlayerTaskType != PlayerTaskType.END_TURN).Select(i => ((SabberStonePlayerTask)i).GetHashCode());
                 var bestTask = TaskStatistics.Where(i => availableTasks.Contains(i.Key)).OrderByDescending(i => i.Value.AverageValue()).FirstOrDefault();
 
                 // If we can't find any task, stop.
-                if (bestTask.IsDefault()) break;
+                if (bestTask.IsDefault()) {
+                    // End the turn
+                    action.AddTask((SabberStonePlayerTask)EndTurnTask.Any(clonedGame.CurrentPlayer));
+                    break;
+                }
 
                 // If we found a task, add it to the Action and process it to progress the game.
                 var task = bestTask.Value.Task;
@@ -170,22 +174,26 @@ namespace AVThesis.SabberStone {
 
             // Keep selecting tasks until the action is complete or the game has ended
             while (!action.IsComplete() && clonedGame.State != State.COMPLETE) {
-                // Make a dictionary of available tasks, indexed by their hashcode
-                var availableTasks = clonedGame.CurrentPlayer.Options().Select(i => (SabberStonePlayerTask)i).ToList();
+                // Make a dictionary of available tasks, indexed by their hashcode, but ignore the END-TURN task for now
+                var availableTasks = clonedGame.CurrentPlayer.Options().Where(i => i.PlayerTaskType != PlayerTaskType.END_TURN).Select(i => (SabberStonePlayerTask)i).ToList();
 
                 // Pick the one with most votes
                 var votedOnTasks = availableTasks.Where(i => taskVotes.ContainsKey(i.GetHashCode())).ToList();
                 var mostVoted = votedOnTasks.OrderByDescending(i => taskVotes[i.GetHashCode()]).FirstOrDefault();
                 
-                // Check if anything was found
-                if (mostVoted == null) break; //TODO do something here
+                // If this is null, it means none of the tasks that are available appear in any of the solutions
+                if (mostVoted == null) {
+                    // End the turn
+                    action.AddTask((SabberStonePlayerTask)EndTurnTask.Any(clonedGame.CurrentPlayer));
+                    break;
+                }
 
                 // Find any tasks tied for most votes
                 var mostVotes = taskVotes[mostVoted.GetHashCode()];
                 var ties = votedOnTasks.Where(i => taskVotes[i.GetHashCode()] == mostVotes);
 
                 // Add one of the tasks with the most votes to the action
-                //TODO voting ties can be handled differently
+                //TODO Ties during voting can be handled differently than random
                 var chosenTask = ties.RandomElementOrDefault();
                 action.AddTask(chosenTask);
 
