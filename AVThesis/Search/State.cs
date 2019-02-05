@@ -63,7 +63,7 @@ namespace AVThesis.Search {
         /// Returns the State's hash code.
         /// </summary>
         /// <returns>The State's hash code.</returns>
-        public abstract long HashMethod();
+        public abstract int HashMethod();
 
         /// <summary>
         /// Returns the number of players in the game.

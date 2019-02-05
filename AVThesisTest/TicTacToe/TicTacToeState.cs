@@ -61,7 +61,7 @@ namespace AVThesisTest.TicTacToe {
             return HashMethod() == otherState.HashMethod();
         }
 
-        public override long HashMethod() {
+        public override int HashMethod() {
             unchecked { // overflow is fine, the number just wraps
                 var hash = (int)Constants.HASH_OFFSET_BASIS;
                 hash = Constants.HASH_FNV_PRIME * (hash ^ State.GetHashCode());

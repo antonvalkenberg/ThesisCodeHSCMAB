@@ -28,18 +28,12 @@ namespace AVThesis.Search {
     /// <typeparam name="A"><see cref="TreeSearchNode{A}"/></typeparam>
     public class ScoreUCB<P, A> : INodeEvaluation<TreeSearchNode<P, A>> where P : class where A : class {
 
-        #region Fields
-
-        private double _C;
-
-        #endregion
-
         #region Properties
 
         /// <summary>
         /// A constant value to be used in the UCB formula. Note: this value should be tuned experimentally per domain.
         /// </summary>
-        public double C { get => _C; set => _C = value; }
+        public double C { get; set; }
 
         #endregion
 
@@ -64,6 +58,25 @@ namespace AVThesis.Search {
         /// <returns>Double representing the node's UCB score.</returns>
         public double Score(TreeSearchNode<P, A> node) {
             return Util.UCB(node.Score, node.Visits, node.Parent.Visits, C);
+        }
+
+        #endregion
+
+    }
+
+    /// <summary>
+    /// Evaluates a <see cref="TreeSearchNode{S,A}"/> based on its average score.
+    /// </summary>
+    /// <typeparam name="P"><see cref="TreeSearchNode{S}"/></typeparam>
+    /// <typeparam name="A"><see cref="TreeSearchNode{A}"/></typeparam>
+    public class AverageScore<P, A> : INodeEvaluation<TreeSearchNode<P, A>> where P : class where A : class {
+
+        #region Public Methods
+
+        /// <inheritdoc />
+        public double Score(TreeSearchNode<P, A> node) {
+            if (node.Visits <= 0) return 0;
+            return node.Score / node.Visits;
         }
 
         #endregion

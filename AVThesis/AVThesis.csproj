@@ -186,6 +186,7 @@
     <Compile Include="SabberStone\Bots\LSIBot.cs" />
     <Compile Include="SabberStone\Bots\MASTPlayoutBot.cs" />
     <Compile Include="SabberStone\Bots\MCTSBot.cs" />
+    <Compile Include="SabberStone\Bots\NMCTSBot.cs" />
     <Compile Include="SabberStone\Bots\RandomBot.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Datastructures\Deque.cs" />

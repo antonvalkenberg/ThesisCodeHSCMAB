@@ -258,7 +258,7 @@ namespace AVThesis.SabberStone {
         /// Returns the SabberStoneState's hash code.
         /// </summary>
         /// <returns>The SabberStoneState's hash code.</returns>
-        public override long HashMethod() {
+        public override int HashMethod() {
             return Game.Hash().GetHashCode();
         }
 

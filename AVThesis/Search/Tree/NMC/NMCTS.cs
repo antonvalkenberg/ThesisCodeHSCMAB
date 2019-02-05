@@ -48,7 +48,7 @@ namespace AVThesis.Search.Tree.NMC {
         /// <summary>
         /// Random Number Generator.
         /// </summary>
-        private Random _rng = new Random();
+        private readonly Random _rng = new Random();
 
         #endregion
 
@@ -142,7 +142,7 @@ namespace AVThesis.Search.Tree.NMC {
             }
 
             // Set up a global MAB, to hold the value combinations created during the naïve-sampling process.
-            var gMAB = new Dictionary<P, List<LocalArm>>();
+            var gMAB = new Dictionary<long, Dictionary<int, LocalArm>>();
 
             while ((Time == Constants.NO_LIMIT_ON_THINKING_TIME || DateTime.Now < endTime) && (Iterations == Constants.NO_LIMIT_ON_ITERATIONS || it < Iterations)) {
 
@@ -175,27 +175,34 @@ namespace AVThesis.Search.Tree.NMC {
         /// <param name="node">The node from which to expand the tree.</param>
         /// <param name="gMAB">The global Multi-Armed-Bandit collection.</param>
         /// <returns>A <see cref="TreeSearchNode{S,A}"/> from which represents the selected node for the Simulation phase.</returns>
-        private TreeSearchNode<P, A> NaïveSelectAndExpand(SearchContext<D, P, A, S, Sol> context, TreeSearchNode<P, A> node, Dictionary<P, List<LocalArm>> gMAB) {
+        private TreeSearchNode<P, A> NaïveSelectAndExpand(SearchContext<D, P, A, S, Sol> context, TreeSearchNode<P, A> node, Dictionary<long, Dictionary<int, LocalArm>> gMAB) {
             var clone = context.Cloner;
             var state = clone.Clone(node.State);
             var apply = context.Application;
 
-            //      a = NaïveSampling(node.state, player)
-            A action = NaïveSampling(context, node, state, gMAB);
-            P newState = apply.Apply(context, state, action);
+            // a = NaïveSampling(node.state, player)
+            // if `a' leads to a child of `node'
+            // then
+            //      return SelectAndExpand(node.GetChild(a))
+            // else
+            //      newNode = Apply(node.state, a)
+            //      node.AddChild(newNode, a)
+            //      return newNode
 
-            //      if `a' leads to a child of `node'
-            var childStates = node.Children.ToDictionary(i => i.State, i => i);
-            if (childStates.ContainsKey(newState)) {
-                //  then
-                //      return SelectAndExpand(node.GetChild(a))
-                return NaïveSelectAndExpand(context, childStates[newState], gMAB);
+            // Find an action through the NaïveSampling process
+            A action = NaïveSampling(context, node, state, gMAB);
+            var actionHash = action.GetHashCode();
+
+            // Check if any of the children of the current node have the sampled action as their payload
+            if (node.Children.Any(i => i.Payload.GetHashCode() == actionHash)) {
+                var child = node.Children.First(i => i.Payload.GetHashCode() == actionHash);
+                return NaïveSelectAndExpand(context, child, gMAB);
             }
-            //      else
-            //          newNode = Apply(node.state, a)
-            //          node.AddChild(newNode, a)
-            //          return newNode
-            var newNode = new TreeSearchNode<P, A>(newState, action);
+
+            // If none of the current children on the node have the action as payload, create a new child
+            P newState = apply.Apply(context, state, action);
+            var newNode = new TreeSearchNode<P, A>(node, newState, action);
+            // Add it to the node's children and return the child
             node.AddChild(newNode);
             return newNode;
         }
@@ -208,10 +215,11 @@ namespace AVThesis.Search.Tree.NMC {
         /// <param name="state">The game state for the node.</param>
         /// <param name="gMAB">The global Multi-Armed-Bandit.</param>
         /// <returns>An <see cref="A"/> that was selected from the global Multi-Armed-Bandit.</returns>
-        private A NaïveSampling(SearchContext<D, P, A, S, Sol> context, TreeSearchNode<P, A> node, P state, Dictionary<P, List<LocalArm>> gMAB) {
+        private A NaïveSampling(SearchContext<D, P, A, S, Sol> context, TreeSearchNode<P, A> node, P state, Dictionary<long, Dictionary<int, LocalArm>> gMAB) {
             var apply = context.Application;
-            if (!gMAB.ContainsKey(state))
-                gMAB.Add(state, new List<LocalArm>());
+            var stateHash = state.HashMethod();
+            if (!gMAB.ContainsKey(stateHash))
+                gMAB.Add(stateHash, new Dictionary<int, LocalArm>());
 
             // Use a policy p_0 to determine whether to explore or exploit
             // If explore was selected
@@ -221,28 +229,29 @@ namespace AVThesis.Search.Tree.NMC {
             //      x_1...x_n is sampled by using a policy p_g to select a value combination using MAB_g.
 
             // Can only exploit if there is anything to exploit in the first place
-            if (gMAB[state].IsNullOrEmpty() || ExplorationStrategy.Policy(context, 0)) {
+            if (gMAB[stateHash].IsNullOrEmpty() || ExplorationStrategy.Policy(context, 0)) {
                 // Explore
                 
                 // Create an action according to policy p_1
                 A action = SamplingStrategy.Sample(state);
+                var actionHash = action.GetHashCode();
                 // Evaluate the sampled action
                 P newState = apply.Apply(context, state, action);
                 double reward = EvaluationStrategy.Evaluate(context, node, newState);
                 // Add the action to the global MAB
-                if (gMAB[state].Any(i => i.Action.Equals(action)))
-                    gMAB[state].First(i => i.Action.Equals(action)).Visit(reward);
+                if (gMAB[stateHash].ContainsKey(actionHash))
+                    gMAB[stateHash][actionHash].Visit(reward);
                 else {
                     var newArm = new LocalArm(action);
                     newArm.Visit(reward);
-                    gMAB[state].Add(newArm);
+                    gMAB[stateHash].Add(actionHash, newArm);
                 }
 
                 return action;
             }
             
             // Exploit; epsilon-greedy by returning the action with the highest expected reward with probability 1-e, otherwise returning random.
-            return _rng.NextDouble() > PolicyGlobal ? gMAB[state].OrderByDescending(i => i.ExpectedReward).First().Action : gMAB[state].RandomElementOrDefault().Action;
+            return _rng.NextDouble() > PolicyGlobal ? gMAB[stateHash].Values.OrderByDescending(i => i.ExpectedReward).First().Action : gMAB[stateHash].RandomElementOrDefault().Value.Action;
         }
 
         #endregion
