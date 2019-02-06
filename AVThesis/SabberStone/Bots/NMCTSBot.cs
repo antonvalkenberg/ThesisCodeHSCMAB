@@ -99,11 +99,6 @@ namespace AVThesis.SabberStone.Bots {
 
         #region Constants
 
-        private const int NMCTS_NUMBER_OF_ITERATIONS = 10000;
-        private const int PLAYOUT_TURN_CUTOFF = 3;
-        private const double NMCTS_GLOBAL_POLICY = 0.2;
-        private const double NMCTS_LOCAL_POLICY = 0.2;
-        private const double UCT_C_CONSTANT_DEFAULT = 0.1;
         private const string BOT_NAME = "NMCTSBot";
         private readonly bool _debug;
 
@@ -181,6 +176,26 @@ namespace AVThesis.SabberStone.Bots {
         /// </summary>
         public MASTPlayoutBot.SelectionType MASTSelectionType { get; set; }
 
+        /// <summary>
+        /// The cutoff for amount of turns simulated during playout.
+        /// </summary>
+        public int PlayoutTurnCutoff { get; set; }
+
+        /// <summary>
+        /// The budget for the amount of iterations NMCTS can use.
+        /// </summary>
+        public int Iterations { get; set; }
+
+        /// <summary>
+        /// The exploration-threshold for the e-greedy global policy.
+        /// </summary>
+        public double GlobalPolicy { get; set; }
+
+        /// <summary>
+        /// The exploration-threshold for the e-greedy local policy.
+        /// </summary>
+        public double LocalPolicy { get; set; }
+
         #endregion
 
         #region Constructors
@@ -192,9 +207,13 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="allowPerfectInformation">[Optional] Whether or not this bot is allowed perfect information about the game state (i.e. no obfuscation and therefore no determinisation). Default value is false.</param>
         /// <param name="ensembleSize">[Optional] The size of the ensemble to use. Default value is 1.</param>
         /// <param name="mastSelectionType">[Optional] The type of selection strategy used by the MAST playout. Default value is <see cref="MASTPlayoutBot.SelectionType.EGreedy"/>.</param>
+        /// <param name="iterations">[Optional] The budget for the amount of iterations NMCTS can use. Default value is <see cref="Constants.DEFAULT_NMCTS_ITERATIONS"/>.</param>
+        /// <param name="playoutTurnCutoff">[Optional] The amount of turns after which to stop a simulation. Default value is <see cref="Constants.DEFAULT_PLAYOUT_TURN_CUTOFF"/>.</param>
+        /// <param name="globalPolicy">[Optional] The exploration-threshold for the e-greedy global policy. Default value is <see cref="Constants.DEFAULT_NMCTS_GLOBAL_POLICY"/>.</param>
+        /// <param name="localPolicy">[Optional] The exploration-threshold for the e-greedy local policy. Default value is <see cref="Constants.DEFAULT_NMCTS_LOCAL_POLICY"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
-        public NMCTSBot(Controller player, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool debugInfoToConsole = false)
-            : this(allowPerfectInformation, ensembleSize, mastSelectionType, debugInfoToConsole) {
+        public NMCTSBot(Controller player, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, int iterations = Constants.DEFAULT_NMCTS_ITERATIONS, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, double globalPolicy = Constants.DEFAULT_NMCTS_GLOBAL_POLICY, double localPolicy = Constants.DEFAULT_NMCTS_LOCAL_POLICY, bool debugInfoToConsole = false)
+            : this(allowPerfectInformation, ensembleSize, mastSelectionType, iterations, playoutTurnCutoff, globalPolicy, localPolicy, debugInfoToConsole) {
             Player = player;
 
             // Set the playout bots correctly if we are using PlayoutStrategySabberStone
@@ -218,11 +237,19 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="allowPerfectInformation">[Optional] Whether or not this bot is allowed perfect information about the game state (i.e. no obfuscation and therefore no determinisation). Default value is false.</param>
         /// <param name="ensembleSize">[Optional] The size of the ensemble to use. Default value is 1.</param>
         /// <param name="mastSelectionType">[Optional] The type of selection strategy used by the MAST playout. Default value is <see cref="MASTPlayoutBot.SelectionType.EGreedy"/>.</param>
+        /// <param name="iterations">[Optional] The budget for the amount of iterations NMCTS can use. Default value is <see cref="Constants.DEFAULT_NMCTS_ITERATIONS"/>.</param>
+        /// <param name="playoutTurnCutoff">[Optional] The amount of turns after which to stop a simulation. Default value is <see cref="Constants.DEFAULT_PLAYOUT_TURN_CUTOFF"/>.</param>
+        /// <param name="globalPolicy">[Optional] The exploration-threshold for the e-greedy global policy. Default value is <see cref="Constants.DEFAULT_NMCTS_GLOBAL_POLICY"/>.</param>
+        /// <param name="localPolicy">[Optional] The exploration-threshold for the e-greedy local policy. Default value is <see cref="Constants.DEFAULT_NMCTS_LOCAL_POLICY"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
-        public NMCTSBot(bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool debugInfoToConsole = false) {
+        public NMCTSBot(bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, int iterations = Constants.DEFAULT_NMCTS_ITERATIONS, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, double globalPolicy = Constants.DEFAULT_NMCTS_GLOBAL_POLICY, double localPolicy = Constants.DEFAULT_NMCTS_LOCAL_POLICY, bool debugInfoToConsole = false) {
             PerfectInformation = allowPerfectInformation;
             EnsembleSize = ensembleSize;
             MASTSelectionType = mastSelectionType;
+            Iterations = iterations;
+            PlayoutTurnCutoff = playoutTurnCutoff;
+            GlobalPolicy = globalPolicy;
+            LocalPolicy = localPolicy;
             _debug = debugInfoToConsole;
 
             // Create the ensemble search
@@ -240,20 +267,20 @@ namespace AVThesis.SabberStone.Bots {
             RandomSamplingBot = new RandomBot();
 
             // We'll be cutting off the simulations after X turns, using a GoalStrategy
-            Goal = new GoalStrategyTurnCutoff(PLAYOUT_TURN_CUTOFF);
+            Goal = new GoalStrategyTurnCutoff(PlayoutTurnCutoff);
 
             // Application and Goal will be handled by the GameLogic
             GameLogic = new SabberStoneGameLogic(false, Goal);
 
             // Build NMCTS
             Builder = NMCTS<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>.Builder();
-            Builder.ExplorationStrategy = new SabberStoneNMCTSExplorationStrategy(NMCTS_LOCAL_POLICY);
+            Builder.ExplorationStrategy = new SabberStoneNMCTSExplorationStrategy(LocalPolicy);
             Builder.PlayoutStrategy = Playout;
-            Builder.PolicyGlobal = NMCTS_GLOBAL_POLICY;
+            Builder.PolicyGlobal = GlobalPolicy;
             Builder.SamplingStrategy = new SabberStoneNMCSamplingStrategy(RandomSamplingBot);
             Builder.SolutionStrategy = new SolutionStrategySabberStone(false, new AverageScore<SabberStoneState, SabberStoneAction>());
             Builder.EvaluationStrategy = sabberStoneStateEvaluation;
-            Builder.Iterations = EnsembleSize > 0 ? NMCTS_NUMBER_OF_ITERATIONS / EnsembleSize : NMCTS_NUMBER_OF_ITERATIONS; // Note: Integer division by design.
+            Builder.Iterations = EnsembleSize > 0 ? Iterations / EnsembleSize : Iterations; // Note: Integer division by design.
         }
 
         #endregion
@@ -269,7 +296,7 @@ namespace AVThesis.SabberStone.Bots {
 
             if (_debug) Console.WriteLine();
             if (_debug) Console.WriteLine(Name());
-            if (_debug) Console.WriteLine($"Starting an ({EnsembleSize})Ensemble-NMCTS-search in turn {(gameState.Game.Turn + 1) / 2}");
+            if (_debug) Console.WriteLine($"Starting a NMCTS search in turn {(gameState.Game.Turn + 1) / 2}");
 
             // Setup and start the ensemble-search
             EnsembleSolutions = new List<SabberStoneAction>();
@@ -282,7 +309,7 @@ namespace AVThesis.SabberStone.Bots {
 
             var time = timer.ElapsedMilliseconds;
             if (_debug) Console.WriteLine();
-            if (_debug) Console.WriteLine($"Ensemble-NMCTS returned with solution: {solution}");
+            if (_debug) Console.WriteLine($"NMCTS returned with solution: {solution}");
             if (_debug) Console.WriteLine($"My total calculation time was: {time} ms.");
 
             // Check if the solution is a complete action.
@@ -309,7 +336,7 @@ namespace AVThesis.SabberStone.Bots {
         /// <inheritdoc />
         public string Name() {
             var pi = PerfectInformation ? "_PI" : "";
-            return $"{BOT_NAME}_{Builder.Iterations}it_es{EnsembleSize}{pi}_p{MyPlayoutBot.Name()}_op{OpponentPlayoutBot.Name()}";
+            return $"{BOT_NAME}_{Iterations}it_es{EnsembleSize}_{GlobalPolicy}gp_{LocalPolicy}lp_{PlayoutTurnCutoff}tc_p{MyPlayoutBot.Name()}_op{OpponentPlayoutBot.Name()}{pi}";
         }
         
         #endregion

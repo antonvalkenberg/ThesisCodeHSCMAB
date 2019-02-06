@@ -5,7 +5,6 @@ using AVThesis.Datastructures;
 using AVThesis.SabberStone.Strategies;
 using SabberStoneCore.Enums;
 using SabberStoneCore.Model.Entities;
-using SabberStoneCore.Tasks;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -29,13 +28,10 @@ namespace AVThesis.SabberStone.Bots {
 
         #endregion
 
-        #region Fields
+        #region Constants
 
-        private const double EGREEDY_E = 0.2;
-        private const double UCB_C = 0.7;
         private const string BOT_NAME = "MASTPlayoutBot";
-        private readonly Random _rng = new Random();
-
+        
         #endregion
 
         #region Properties
@@ -75,6 +71,17 @@ namespace AVThesis.SabberStone.Bots {
         /// </summary>
         public List<SabberStoneAction> ActionsTaken { get; set; }
 
+        /// <summary>
+        /// The setting for when the e-greedy strategy should exploit the best action (i.e. be greedy).
+        /// Note: the chance of selecting greedily is 1 minus this threshold.
+        /// </summary>
+        public double EGreedyThreshold { get; set; }
+
+        /// <summary>
+        /// The value for the `C' constant in the UCB1 formula.
+        /// </summary>
+        public double UCBConstantC { get; set; }
+
         #endregion
 
         #region Constuctors
@@ -85,12 +92,18 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="selection">The type of selection to use.</param>
         /// <param name="evaluation">The EvaluationStrategy used for evaluating a SabberStoneState.</param>
         /// <param name="playout">The PlayoutStrategy used for simulating a game.</param>
-        public MASTPlayoutBot(SelectionType selection, EvaluationStrategyHearthStone evaluation, PlayoutStrategySabberStone playout) {
+        /// <param name="eGreedyThreshold">[Optional] Threshold for e-greedy selection. Default value is <see cref="Constants.DEFAULT_E_GREEDY_THRESHOLD"/>.</param>
+        /// <param name="ucbConstantC">[Optional] Value for the c-constant in the UCB1 formula. Default value is <see cref="Constants.DEFAULT_UCB1_C"/>.</param>
+        public MASTPlayoutBot(SelectionType selection, EvaluationStrategyHearthStone evaluation, PlayoutStrategySabberStone playout, double eGreedyThreshold = Constants.DEFAULT_E_GREEDY_THRESHOLD, double ucbConstantC = Constants.DEFAULT_UCB1_C) {
             Selection = selection;
             RandomPlayoutBot = new RandomBot();
             Evaluation = evaluation;
             Playout = playout;
+            EGreedyThreshold = eGreedyThreshold;
+            UCBConstantC = ucbConstantC;
+
             playout.SimulationCompleted += SimulationCompleted;
+
             MASTTable = new Dictionary<int, PlayerTaskStatistics>();
             ActionsTaken = new List<SabberStoneAction>();
         }
@@ -128,7 +141,7 @@ namespace AVThesis.SabberStone.Bots {
         /// <returns><see cref="SabberStoneAction"/>.</returns>
         private SabberStoneAction SelectEGreedy(SabberStoneState state) {
             // Determine whether or not to be greedy (chance is 1-e to use best action)
-            if (_rng.NextDouble() < EGREEDY_E)
+            if (Util.RNG.NextDouble() < EGreedyThreshold)
                 // Explore a random action
                 return RandomPlayoutBot.CreateRandomAction(state);
 
@@ -156,7 +169,7 @@ namespace AVThesis.SabberStone.Bots {
                     // Find all available tasks that have an average value similar to the best
                     var bestValue = bestTask.Value.AverageValue();
                     var compTasks = availableStatistics.Where(i =>
-                        Math.Abs(i.Value.AverageValue() - bestValue) < Constants.DOUBLE_EQUALITY_TOLERANCE).ToList();
+                        Math.Abs(i.Value.AverageValue() - bestValue) < AVThesis.Constants.DOUBLE_EQUALITY_TOLERANCE).ToList();
                     // Select one of the tasks
                     selectedTask = compTasks.RandomElementOrDefault().Value.Task;
                 }
@@ -191,7 +204,7 @@ namespace AVThesis.SabberStone.Bots {
                 var totalVisits = availableStatistics.Sum(i => i.Value.Visits);
 
                 // Find the task with the highest UCB value
-                var bestTask = availableStatistics.OrderByDescending(i => i.Value.UCB(totalVisits, UCB_C)).FirstOrDefault();
+                var bestTask = availableStatistics.OrderByDescending(i => i.Value.UCB(totalVisits, UCBConstantC)).FirstOrDefault();
 
                 // If no best task was found, randomly choose an available task
                 if (bestTask.IsDefault()) {
@@ -202,9 +215,9 @@ namespace AVThesis.SabberStone.Bots {
                 }
                 else {
                     // Find all available tasks that have an UCB value similar to the best
-                    var bestValue = bestTask.Value.UCB(totalVisits, UCB_C);
+                    var bestValue = bestTask.Value.UCB(totalVisits, UCBConstantC);
                     var compTasks = availableStatistics.Where(i =>
-                        Math.Abs(i.Value.UCB(totalVisits, UCB_C) - bestValue) < Constants.DOUBLE_EQUALITY_TOLERANCE).ToList();
+                        Math.Abs(i.Value.UCB(totalVisits, UCBConstantC) - bestValue) < AVThesis.Constants.DOUBLE_EQUALITY_TOLERANCE).ToList();
                     // Select one of the tasks
                     selectedTask = compTasks.RandomElementOrDefault().Value.Task;
                 }
@@ -293,7 +306,16 @@ namespace AVThesis.SabberStone.Bots {
         /// </summary>
         /// <returns>String representing the Bot's name.</returns>
         public string Name() {
-            return $"{BOT_NAME}_{Selection}";
+            var setting = "";
+            switch (Selection) {
+                case SelectionType.EGreedy:
+                    setting = $"{EGreedyThreshold}";
+                    break;
+                case SelectionType.UCB:
+                    setting = $"{UCBConstantC}";
+                    break;
+            }
+            return $"{BOT_NAME}_{Selection}_{setting}";
         }
 
         #endregion

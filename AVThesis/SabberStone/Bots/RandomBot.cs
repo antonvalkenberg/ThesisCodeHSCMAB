@@ -13,7 +13,7 @@ namespace AVThesis.SabberStone.Bots {
     /// </summary>
     public class RandomBot : ISabberStoneBot {
 
-        #region Fields
+        #region Constants
 
         private const string BOT_NAME = "RandomBot";
 

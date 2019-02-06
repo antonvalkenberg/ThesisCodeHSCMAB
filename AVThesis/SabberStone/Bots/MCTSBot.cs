@@ -22,11 +22,6 @@ namespace AVThesis.SabberStone.Bots {
 
         #region Constants
 
-        private const int MCTS_NUMBER_OF_ITERATIONS = 10000;
-        private const int MIN_T_VISIT_THRESHOLD_FOR_EXPANSION = 20;
-        private const int SELECTION_VISIT_MINIMUM_FOR_EVALUATION = 50;
-        private const double UCT_C_CONSTANT_DEFAULT = 0.1;
-        private const int PLAYOUT_TURN_CUTOFF = 3;
         private const string BOT_NAME = "MCTSBot";
         private readonly bool _debug;
 
@@ -109,6 +104,31 @@ namespace AVThesis.SabberStone.Bots {
         /// </summary>
         public MASTPlayoutBot.SelectionType MASTSelectionType { get; set; }
 
+        /// <summary>
+        /// The budget for the amount of iterations MCTS can use.
+        /// </summary>
+        public int Iterations { get; set; }
+
+        /// <summary>
+        /// The minimum amount of times a node has to be visited before it can be expanded.
+        /// </summary>
+        public int MinimumVisitThresholdForExpansion { get; set; }
+
+        /// <summary>
+        /// The minimum number of visits before using the NodeEvaluation to select the best node.
+        /// </summary>
+        public int MinimumVisitThresholdForSelection { get; set; }
+
+        /// <summary>
+        /// The cutoff for amount of turns simulated during playout.
+        /// </summary>
+        public int PlayoutTurnCutoff { get; set; }
+
+        /// <summary>
+        /// The value for the `C' constant in the UCB1 formula.
+        /// </summary>
+        public double UCBConstantC { get; set; }
+
         #endregion
 
         #region Constructor
@@ -122,9 +142,14 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="ensembleSize">[Optional] The size of the ensemble to use. Default value is 1.</param>
         /// <param name="mastSelectionType">[Optional] The type of selection strategy used by the M.A.S.T. playout. Default value is <see cref="MASTPlayoutBot.SelectionType.EGreedy"/>.</param>
         /// <param name="retainTaskStatistics">[Optional] Whether or not to retain the PlayerTask statistics between searches. Default value is false.</param>
+        /// <param name="iterations">[Optional] The budget for the amount of iterations MCTS can use. Default value is <see cref="Constants.DEFAULT_MCTS_ITERATIONS"/>.</param>
+        /// <param name="minimumVisitThresholdForExpansion">[Optional] The minimum amount of times a node has to be visited before it can be expanded. Default value is <see cref="Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_EXPANSION"/>.</param>
+        /// <param name="minimumVisitThresholdForSelection">[Optional] The minimum number of visits before using the NodeEvaluation to select the best node. Default value is <see cref="Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_SELECTION"/>.</param>
+        /// <param name="playoutTurnCutoff">[Optional] The amount of turns after which to stop a simulation. Default value is <see cref="Constants.DEFAULT_PLAYOUT_TURN_CUTOFF"/>.</param>
+        /// <param name="ucbConstantC">[Optional] Value for the c-constant in the UCB1 formula. Default value is <see cref="Constants.DEFAULT_UCB1_C"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
-        public MCTSBot(Controller player, bool hierarchicalExpansion = true, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool retainTaskStatistics = false, bool debugInfoToConsole = false)
-            : this(hierarchicalExpansion, allowPerfectInformation, ensembleSize, mastSelectionType, retainTaskStatistics, debugInfoToConsole) {
+        public MCTSBot(Controller player, bool hierarchicalExpansion = true, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool retainTaskStatistics = false, int iterations = Constants.DEFAULT_MCTS_ITERATIONS, int minimumVisitThresholdForExpansion = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_EXPANSION, int minimumVisitThresholdForSelection = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_SELECTION, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, double ucbConstantC = Constants.DEFAULT_UCB1_C, bool debugInfoToConsole = false)
+            : this(hierarchicalExpansion, allowPerfectInformation, ensembleSize, mastSelectionType, retainTaskStatistics, iterations, minimumVisitThresholdForExpansion, minimumVisitThresholdForSelection, playoutTurnCutoff, ucbConstantC, debugInfoToConsole) {
             Player = player;
 
             // Set the playout bots correctly if we are using PlayoutStrategySabberStone
@@ -147,13 +172,23 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="ensembleSize">[Optional] The size of the ensemble to use. Default value is 1.</param>
         /// <param name="mastSelectionType">[Optional] The type of selection strategy used by the MAST playout. Default value is <see cref="MASTPlayoutBot.SelectionType.EGreedy"/>.</param>
         /// <param name="retainTaskStatistics">[Optional] Whether or not to retain the PlayerTask statistics between searches. Default value is false.</param>
+        /// <param name="iterations">[Optional] The budget for the amount of iterations MCTS can use. Default value is <see cref="Constants.DEFAULT_MCTS_ITERATIONS"/>.</param>
+        /// <param name="minimumVisitThresholdForExpansion">[Optional] The minimum amount of times a node has to be visited before it can be expanded. Default value is <see cref="Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_EXPANSION"/>.</param>
+        /// <param name="minimumVisitThresholdForSelection">[Optional] The minimum number of visits before using the NodeEvaluation to select the best node. Default value is <see cref="Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_SELECTION"/>.</param>
+        /// <param name="playoutTurnCutoff">[Optional] The amount of turns after which to stop a simulation. Default value is <see cref="Constants.DEFAULT_PLAYOUT_TURN_CUTOFF"/>.</param>
+        /// <param name="ucbConstantC">[Optional] Value for the c-constant in the UCB1 formula. Default value is <see cref="Constants.DEFAULT_UCB1_C"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
-        public MCTSBot(bool hierarchicalExpansion = true, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool retainTaskStatistics = false, bool debugInfoToConsole = false) {
+        public MCTSBot(bool hierarchicalExpansion = true, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool retainTaskStatistics = false, int iterations = Constants.DEFAULT_MCTS_ITERATIONS, int minimumVisitThresholdForExpansion = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_EXPANSION, int minimumVisitThresholdForSelection = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_SELECTION, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, double ucbConstantC = Constants.DEFAULT_UCB1_C, bool debugInfoToConsole = false) {
             HierarchicalExpansion = hierarchicalExpansion;
             PerfectInformation = allowPerfectInformation;
             EnsembleSize = ensembleSize;
             MASTSelectionType = mastSelectionType;
             RetainTaskStatistics = retainTaskStatistics;
+            Iterations = iterations;
+            MinimumVisitThresholdForExpansion = minimumVisitThresholdForExpansion;
+            MinimumVisitThresholdForSelection = minimumVisitThresholdForSelection;
+            PlayoutTurnCutoff = playoutTurnCutoff;
+            UCBConstantC = ucbConstantC;
             _debug = debugInfoToConsole;
 
             // Create the ensemble search
@@ -169,20 +204,20 @@ namespace AVThesis.SabberStone.Bots {
             OpponentPlayoutBot = new MASTPlayoutBot(MASTSelectionType, sabberStoneStateEvaluation, playout);
 
             // We'll be cutting off the simulations after X turns, using a GoalStrategy.
-            Goal = new GoalStrategyTurnCutoff(PLAYOUT_TURN_CUTOFF);
+            Goal = new GoalStrategyTurnCutoff(PlayoutTurnCutoff);
 
             // Expansion, Application and Goal will be handled by the GameLogic.
             GameLogic = new SabberStoneGameLogic(HierarchicalExpansion, Goal);
 
             // Create the INodeEvaluation strategy used in the selection phase.
-            var nodeEvaluation = new ScoreUCB<SabberStoneState, SabberStoneAction>(UCT_C_CONSTANT_DEFAULT);
+            var nodeEvaluation = new ScoreUCB<SabberStoneState, SabberStoneAction>(UCBConstantC);
 
             // Build MCTS
             Builder = MCTS<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>.Builder();
-            Builder.ExpansionStrategy = new MinimumTExpansion<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>(MIN_T_VISIT_THRESHOLD_FOR_EXPANSION);
-            Builder.SelectionStrategy = new BestNodeSelection<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>(SELECTION_VISIT_MINIMUM_FOR_EVALUATION, nodeEvaluation);
+            Builder.ExpansionStrategy = new MinimumTExpansion<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>(MinimumVisitThresholdForExpansion);
+            Builder.SelectionStrategy = new BestNodeSelection<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>(MinimumVisitThresholdForSelection, nodeEvaluation);
             Builder.EvaluationStrategy = sabberStoneStateEvaluation;
-            Builder.Iterations = EnsembleSize > 0 ? MCTS_NUMBER_OF_ITERATIONS / EnsembleSize : MCTS_NUMBER_OF_ITERATIONS; // Note: Integer division by design.
+            Builder.Iterations = EnsembleSize > 0 ? Iterations / EnsembleSize : Iterations; // Note: Integer division by design.
             Builder.BackPropagationStrategy = new EvaluateOnceAndColorBackPropagation<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>();
             Builder.FinalNodeSelectionStrategy = new BestRatioFinalNodeSelection<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>();
             Builder.SolutionStrategy = new SolutionStrategySabberStone(HierarchicalExpansion, nodeEvaluation);
@@ -207,7 +242,7 @@ namespace AVThesis.SabberStone.Bots {
 
             if (_debug) Console.WriteLine();
             if (_debug) Console.WriteLine(Name());
-            if (_debug) Console.WriteLine($"Starting an ({EnsembleSize})Ensemble-MCTS-search in turn {(gameState.Game.Turn + 1) / 2}");
+            if (_debug) Console.WriteLine($"Starting a MCTS search in turn {(gameState.Game.Turn + 1) / 2}");
 
             // Check if the task statistics in the searcher should be reset
             if(!RetainTaskStatistics) Searcher.ResetTaskStatistics();
@@ -223,7 +258,7 @@ namespace AVThesis.SabberStone.Bots {
 
             var time = timer.ElapsedMilliseconds;
             if (_debug) Console.WriteLine();
-            if (_debug) Console.WriteLine($"Ensemble-MCTS returned with solution: {solution}");
+            if (_debug) Console.WriteLine($"MCTS returned with solution: {solution}");
             if (_debug) Console.WriteLine($"My total calculation time was: {time} ms.");
 
             // Check if the solution is a complete action.
@@ -244,7 +279,8 @@ namespace AVThesis.SabberStone.Bots {
         public string Name() {
             var he = HierarchicalExpansion ? "_HE" : "";
             var pi = PerfectInformation ? "_PI" : "";
-            return $"{BOT_NAME}_{Builder.Iterations}it_es{EnsembleSize}{he}{pi}_p{MyPlayoutBot.Name()}_op{OpponentPlayoutBot.Name()}";
+            var rts = RetainTaskStatistics ? "_RTS" : "";
+            return $"{BOT_NAME}_{Iterations}it_es{EnsembleSize}{he}_{MinimumVisitThresholdForExpansion}mve_{MinimumVisitThresholdForSelection}mvs_{PlayoutTurnCutoff}tc_p{MyPlayoutBot.Name()}_op{OpponentPlayoutBot.Name()}{pi}{rts}";
         }
 
         /// <summary>

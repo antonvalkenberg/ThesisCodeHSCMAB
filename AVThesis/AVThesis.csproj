@@ -183,6 +183,7 @@
   <ItemGroup>
     <Compile Include="Agent\IAgent.cs" />
     <Compile Include="Agent\RandomAgent.cs" />
+    <Compile Include="SabberStone\Bots\Constants.cs" />
     <Compile Include="SabberStone\Bots\LSIBot.cs" />
     <Compile Include="SabberStone\Bots\MASTPlayoutBot.cs" />
     <Compile Include="SabberStone\Bots\MCTSBot.cs" />

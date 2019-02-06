@@ -196,10 +196,6 @@ namespace AVThesis.SabberStone.Bots {
 
         #region Constants
 
-        private const int LSI_SAMPLES_FOR_GENERATION = 2500;
-        private const int LSI_SAMPLES_FOR_EVALUATION = 7500;
-        private const double LSI_SAMPLES_ADJUSTMENT_FACTOR = .4;
-        private const int PLAYOUT_TURN_CUTOFF = 2;
         private const string BOT_NAME = "LSIBot";
         private readonly bool _debug;
 
@@ -221,6 +217,11 @@ namespace AVThesis.SabberStone.Bots {
         /// The bot that is used for the opponent's playouts.
         /// </summary>
         public ISabberStoneBot OpponentPlayoutBot { get; set; }
+
+        /// <summary>
+        /// The amount of turns after which to stop a simulation.
+        /// </summary>
+        public int PlayoutTurnCutoff { get; set; }
 
         /// <summary>
         /// The strategy used to determine if a playout has reached its goal state.
@@ -282,6 +283,16 @@ namespace AVThesis.SabberStone.Bots {
         /// </summary>
         public MASTPlayoutBot.SelectionType MASTSelectionType { get; set; }
 
+        /// <summary>
+        /// The amount of samples to use during the generation phase.
+        /// </summary>
+        public int SamplesForGeneration { get; set; }
+
+        /// <summary>
+        /// The amount of samples to use during the evaluation phase.
+        /// </summary>
+        public int SamplesForEvaluation { get; set; }
+
         #endregion
 
         #region Constructor
@@ -293,9 +304,12 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="allowPerfectInformation">[Optional] Whether or not this bot is allowed perfect information about the game state (i.e. no obfuscation and therefore no determinisation). Default value is false.</param>
         /// <param name="ensembleSize">[Optional] The size of the ensemble to use. Default value is 1.</param>
         /// <param name="mastSelectionType">[Optional] The type of selection strategy used by the M.A.S.T. playout. Default value is <see cref="MASTPlayoutBot.SelectionType.EGreedy"/>.</param>
+        /// <param name="playoutTurnCutoff">[Optional] The amount of turns after which to stop a simulation. Default value is <see cref="Constants.DEFAULT_PLAYOUT_TURN_CUTOFF"/>.</param>
+        /// <param name="samplesForGeneration">[Optional] The amount of samples to use during the generation phase. Default value is <see cref="Constants.DEFAULT_LSI_SAMPLES_FOR_GENERATION"/>.</param>
+        /// <param name="samplesForEvaluation">[Optional] The amount of samples to use during the evaluation phase. Default value is <see cref="Constants.DEFAULT_LSI_SAMPLES_FOR_EVALUATION"/> * <see cref="Constants.DEFAULT_LSI_EVALUATION_SAMPLES_ADJUSTMENT_FACTOR"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
-        public LSIBot(Controller player, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool debugInfoToConsole = false)
-            : this(allowPerfectInformation, ensembleSize, mastSelectionType, debugInfoToConsole) {
+        public LSIBot(Controller player, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, int samplesForGeneration = Constants.DEFAULT_LSI_SAMPLES_FOR_GENERATION, int samplesForEvaluation = (int)(Constants.DEFAULT_LSI_SAMPLES_FOR_EVALUATION * Constants.DEFAULT_LSI_EVALUATION_SAMPLES_ADJUSTMENT_FACTOR), bool debugInfoToConsole = false)
+            : this(allowPerfectInformation, ensembleSize, mastSelectionType, playoutTurnCutoff, samplesForGeneration, samplesForEvaluation, debugInfoToConsole) {
             Player = player;
 
             // Set the playout bots correctly if we are using PlayoutStrategySabberStone
@@ -316,11 +330,17 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="allowPerfectInformation">[Optional] Whether or not this bot is allowed perfect information about the game state (i.e. no obfuscation and therefore no determinisation). Default value is false.</param>
         /// <param name="ensembleSize">[Optional] The size of the ensemble to use. Default value is 1.</param>
         /// <param name="mastSelectionType">[Optional] The type of selection strategy used by the M.A.S.T. playout. Default value is <see cref="MASTPlayoutBot.SelectionType.EGreedy"/>.</param>
+        /// <param name="playoutTurnCutoff">[Optional] The amount of turns after which to stop a simulation. Default value is <see cref="Constants.DEFAULT_PLAYOUT_TURN_CUTOFF"/>.</param>
+        /// <param name="samplesForGeneration">[Optional] The amount of samples to use during the generation phase. Default value is <see cref="Constants.DEFAULT_LSI_SAMPLES_FOR_GENERATION"/>.</param>
+        /// <param name="samplesForEvaluation">[Optional] The amount of samples to use during the evaluation phase. Default value is <see cref="Constants.DEFAULT_LSI_SAMPLES_FOR_EVALUATION"/> * <see cref="Constants.DEFAULT_LSI_EVALUATION_SAMPLES_ADJUSTMENT_FACTOR"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
-        public LSIBot(bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool debugInfoToConsole = false) {
+        public LSIBot(bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, int samplesForGeneration = Constants.DEFAULT_LSI_SAMPLES_FOR_GENERATION, int samplesForEvaluation = (int)(Constants.DEFAULT_LSI_SAMPLES_FOR_EVALUATION * Constants.DEFAULT_LSI_EVALUATION_SAMPLES_ADJUSTMENT_FACTOR), bool debugInfoToConsole = false) {
             PerfectInformation = allowPerfectInformation;
             EnsembleSize = ensembleSize;
             MASTSelectionType = mastSelectionType;
+            PlayoutTurnCutoff = playoutTurnCutoff;
+            SamplesForGeneration = samplesForGeneration;
+            SamplesForEvaluation = samplesForEvaluation;
             _debug = debugInfoToConsole;
 
             // Create the ensemble search
@@ -336,7 +356,7 @@ namespace AVThesis.SabberStone.Bots {
             OpponentPlayoutBot = new MASTPlayoutBot(MASTSelectionType, sabberStoneStateEvaluation, playout);
 
             // LSI will need a goal-strategy to determine when a simulation is done
-            Goal = new GoalStrategyTurnCutoff(PLAYOUT_TURN_CUTOFF);
+            Goal = new GoalStrategyTurnCutoff(PlayoutTurnCutoff);
 
             // LSI will need an evaluation-strategy to evaluate the strength of samples
             Evaluation = new EvaluationStrategyHearthStone();
@@ -365,15 +385,11 @@ namespace AVThesis.SabberStone.Bots {
 
             if (_debug) Console.WriteLine();
             if (_debug) Console.WriteLine(Name());
-            if (_debug) Console.WriteLine($"Starting an ({EnsembleSize})Ensemble-LSI-search in turn " + (stateCopy.Game.Turn + 1) / 2);
+            if (_debug) Console.WriteLine($"Starting an LSI search in turn " + (stateCopy.Game.Turn + 1) / 2);
             
-            // Adjust the allowed budget for evaluation, because LSI will use more.
-            // This factor is pre-set and empirically determined.
-            var samplesForEvaluation = (int)(LSI_SAMPLES_FOR_EVALUATION * LSI_SAMPLES_ADJUSTMENT_FACTOR);
-
             // Adjust sample sizes again for use in the Ensemble
-            samplesForEvaluation = EnsembleSize > 0 ? samplesForEvaluation / EnsembleSize : samplesForEvaluation; // Note: Integer division by design.
-            var samplesForGeneration = EnsembleSize > 0 ? LSI_SAMPLES_FOR_GENERATION / EnsembleSize : LSI_SAMPLES_FOR_GENERATION; // Note: Integer division by design.
+            var samplesForEvaluation = EnsembleSize > 0 ? SamplesForEvaluation / EnsembleSize : SamplesForEvaluation; // Note: Integer division by design.
+            var samplesForGeneration = EnsembleSize > 0 ? SamplesForGeneration / EnsembleSize : SamplesForGeneration; // Note: Integer division by design.
 
             // Create a new LSI search
             var search = new LSI<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, TreeSearchNode<SabberStoneState, SabberStoneAction>, OddmentTable<SabberStonePlayerTask>>(
@@ -428,7 +444,8 @@ namespace AVThesis.SabberStone.Bots {
 
         /// <inheritdoc />
         public string Name() {
-            return BOT_NAME;
+            var pi = PerfectInformation ? "_PI" : "";
+            return $"{BOT_NAME}_{SamplesForGeneration}g_{SamplesForEvaluation}e_{EnsembleSize}es_{PlayoutTurnCutoff}tc_p{MyPlayoutBot.Name()}_op{OpponentPlayoutBot.Name()}{pi}";
         }
 
         #endregion
