@@ -217,8 +217,6 @@ namespace AVThesis.SabberStone {
             var activePlayer = position.Game.CurrentPlayer;
             var activePlayerId = activePlayer.Id;
 
-            //TODO: not create all options at once when expanding, but one by one as the iterator asks for them
-
             // When expanding on a position, we'll have a number of tasks to choose from.
             // The problem is that each task isn't exclusive with other tasks and/or may lead to more available tasks when processed.
 

@@ -59,7 +59,7 @@ namespace AVThesis {
             }));
 
             // Create two bots to play
-            var bot1 = new NMCTSBot(game.Player1, ensembleSize: 2, debugInfoToConsole: true);
+            var bot1 = new MCTSBot(game.Player1);
             var bot2 = new RandomBot(game.Player2);
 
             game.Game.StartGame();

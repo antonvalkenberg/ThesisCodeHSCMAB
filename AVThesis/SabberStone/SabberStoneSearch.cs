@@ -125,7 +125,8 @@ namespace AVThesis.SabberStone {
             while (!action.IsComplete() && clonedGame.State != State.COMPLETE) {
                 // Get the available options in this state and find which tasks we have statistics on, but ignore the END-TURN task for now
                 var availableTasks = clonedGame.CurrentPlayer.Options().Where(i => i.PlayerTaskType != PlayerTaskType.END_TURN).Select(i => ((SabberStonePlayerTask)i).GetHashCode());
-                var bestTask = TaskStatistics.Where(i => availableTasks.Contains(i.Key)).OrderByDescending(i => i.Value.AverageValue()).FirstOrDefault();
+                var stats = TaskStatistics.Where(i => availableTasks.Contains(i.Key)).ToList();
+                var bestTask = stats.OrderByDescending(i => i.Value.AverageValue()).FirstOrDefault();
 
                 // If we can't find any task, stop.
                 if (bestTask.IsDefault()) {
@@ -133,6 +134,12 @@ namespace AVThesis.SabberStone {
                     action.AddTask((SabberStonePlayerTask)EndTurnTask.Any(clonedGame.CurrentPlayer));
                     break;
                 }
+
+                // Handle the possibility of tasks with tied average value.
+                var bestValue = bestTask.Value.AverageValue();
+                var tiedTasks = stats.Where(i => Math.Abs(i.Value.AverageValue() - bestValue) < Constants.DOUBLE_EQUALITY_TOLERANCE);
+                var orderedTies = tiedTasks.OrderByDescending(i => i.Value.Visits);
+                bestTask = orderedTies.First();
 
                 // If we found a task, add it to the Action and process it to progress the game.
                 var task = bestTask.Value.Task;
