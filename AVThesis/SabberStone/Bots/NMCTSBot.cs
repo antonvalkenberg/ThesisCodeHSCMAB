@@ -270,7 +270,7 @@ namespace AVThesis.SabberStone.Bots {
             Goal = new GoalStrategyTurnCutoff(PlayoutTurnCutoff);
 
             // Application and Goal will be handled by the GameLogic
-            GameLogic = new SabberStoneGameLogic(false, Goal);
+            GameLogic = new SabberStoneGameLogic(Goal, false);
 
             // Build NMCTS
             Builder = NMCTS<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>.Builder();

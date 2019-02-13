@@ -363,7 +363,7 @@ namespace AVThesis.SabberStone.Bots {
 
             // Application will be handled by the GameLogic
             // Hierarchical Expansion is set to TRUE because of incremental task validation during action sampling.
-            GameLogic = new SabberStoneGameLogic(true, Goal);
+            GameLogic = new SabberStoneGameLogic(Goal);
 
             // The side information strategy needs access to several of these.
             SideInformationStrategy = new SabberStoneSideInformationStrategy(Playout, Evaluation, GameLogic);

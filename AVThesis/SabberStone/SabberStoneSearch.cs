@@ -97,14 +97,6 @@ namespace AVThesis.SabberStone {
             var time = timer.ElapsedMilliseconds;
             if (_debug) Console.WriteLine($"Searcher returned with solution: {solution}");
             if (_debug) Console.WriteLine($"Calculation time was: {time} ms.");
-
-            // Check if the solution is a complete action.
-            if (!solution.IsComplete()) {
-                // Otherwise add an End-Turn task before returning.
-                if (_debug) Console.WriteLine("Solution was an incomplete action; adding End-Turn task.");
-                solution.Tasks.Add((SabberStonePlayerTask)EndTurnTask.Any(Player));
-            }
-
             if (_debug) Console.WriteLine();
             return solution;
         }

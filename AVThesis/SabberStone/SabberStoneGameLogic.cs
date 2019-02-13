@@ -5,6 +5,7 @@ using System.Linq;
 using AVThesis.Datastructures;
 using AVThesis.Game;
 using AVThesis.Search;
+using SabberStoneCore.Tasks;
 using SabberStoneCore.Tasks.PlayerTasks;
 using State = SabberStoneCore.Enums.State;
 
@@ -137,6 +138,17 @@ namespace AVThesis.SabberStone {
 
         #endregion
 
+        #region Enums
+
+        /// <summary>
+        /// Describes the types of dimensional ordering available when using Hierarchical Expansion.
+        /// </summary>
+        public enum DimensionalOrderingType {
+            EntropyAsc, EntropyDesc, TaskType, ManaAsc, ManaDesc, None
+        }
+
+        #endregion
+
         #region Constants
 
         private const double PLAYER_WIN_SCORE = 1.0;
@@ -146,8 +158,26 @@ namespace AVThesis.SabberStone {
 
         #region Properties
 
-        public bool HierarchicalExpansion { get; }
+        /// <summary>
+        /// The goal strategy.
+        /// </summary>
         public IGoalStrategy<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Goal { get; }
+
+        /// <summary>
+        /// Whether or not expansion should be handled hierarchically.
+        /// </summary>
+        public bool HierarchicalExpansion { get; }
+
+        /// <summary>
+        /// The way of ordering dimensions when using Hierarchical Expansion.
+        /// </summary>
+        public DimensionalOrderingType DimensionalOrdering { get; set; }
+
+        /// <summary>
+        /// The searcher being used to pull statistics on individual tasks from.
+        /// Note: this is only relevant when ordering dimensions by entropy.
+        /// </summary>
+        public SabberStoneSearch Searcher { get; set; }
 
         #endregion
 
@@ -156,11 +186,83 @@ namespace AVThesis.SabberStone {
         /// <summary>
         /// Constructs a new instance of SabberStoneGameLogic.
         /// </summary>
-        /// <param name="hierarchicalExpansion">Whether or not expansion should be handled hierarchically.</param>
         /// <param name="goal">The goal strategy.</param>
-        public SabberStoneGameLogic(bool hierarchicalExpansion, IGoalStrategy<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> goal) {
-            HierarchicalExpansion = hierarchicalExpansion;
+        /// <param name="hierarchicalExpansion">[Optional] Whether or not expansion should be handled hierarchically. Default value is true.</param>
+        /// <param name="dimensionalOrdering">[Optional] The type of Dimensional Ordering to use in the case of Hierarchical Expansion. Default value is <see cref="DimensionalOrderingType.None"/>.</param>
+        /// <param name="searcher">[Optional] A searcher that can provide individual task statistics when using one of the Entropy orderings. Default value is null.</param>
+        public SabberStoneGameLogic(IGoalStrategy<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> goal, bool hierarchicalExpansion = true, DimensionalOrderingType dimensionalOrdering = DimensionalOrderingType.None, SabberStoneSearch searcher = null) {
             Goal = goal;
+            HierarchicalExpansion = hierarchicalExpansion;
+            DimensionalOrdering = dimensionalOrdering;
+            Searcher = searcher;
+        }
+
+        #endregion
+
+        #region Private Methods
+
+        /// <summary>
+        /// Creates a <see cref="SabberStoneAction"/> from a single <see cref="PlayerTask"/>.
+        /// </summary>
+        /// <param name="task">The task to include in the action.</param>
+        /// <returns>SabberStoneAction that includes a single <see cref="SabberStonePlayerTask"/>.</returns>
+        private SabberStoneAction CreateActionFromSingleTask(PlayerTask task) {
+            var action = new SabberStoneAction();
+            action.AddTask((SabberStonePlayerTask)task);
+            return action;
+        }
+
+        /// <summary>
+        /// Orders a collection of tasks using the <see cref="DimensionalOrdering"/> set in this <see cref="SabberStoneGameLogic"/> and returns them as <see cref="SabberStoneAction"/>s containing single tasks.
+        /// </summary>
+        /// <param name="tasks">The tasks to order.</param>
+        /// <returns>Collection of <see cref="SabberStoneAction"/>.</returns>
+        private List<SabberStoneAction> OrderTasks(ICollection<PlayerTask> tasks) {
+            var returnActions = new List<SabberStoneAction>();
+            switch (DimensionalOrdering) {
+                case DimensionalOrderingType.EntropyAsc:
+                    // Get the task statistics from the Searchers
+                    var taskStatistics = Searcher.TaskStatistics;
+                    var tasksWithoutStatistics = tasks.Where(i => !taskStatistics.ContainsKey(((SabberStonePlayerTask)i).GetHashCode()));
+                    var tasksWithStatistics = tasks.Where(i => taskStatistics.ContainsKey(((SabberStonePlayerTask) i).GetHashCode()));
+                    var orderedTasks = tasksWithStatistics.OrderBy(i => Util.ShannonEntropy(taskStatistics[((SabberStonePlayerTask) i).GetHashCode()].ValueCollection));
+                    returnActions.AddRange(orderedTasks.Select(CreateActionFromSingleTask));
+                    returnActions.AddRange(tasksWithoutStatistics.Select(CreateActionFromSingleTask));
+                    break;
+                case DimensionalOrderingType.EntropyDesc:
+                    taskStatistics = Searcher.TaskStatistics;
+                    tasksWithoutStatistics = tasks.Where(i => !taskStatistics.ContainsKey(((SabberStonePlayerTask)i).GetHashCode()));
+                    tasksWithStatistics = tasks.Where(i => taskStatistics.ContainsKey(((SabberStonePlayerTask)i).GetHashCode()));
+                    orderedTasks = tasksWithStatistics.OrderByDescending(i => Util.ShannonEntropy(taskStatistics[((SabberStonePlayerTask)i).GetHashCode()].ValueCollection));
+                    returnActions.AddRange(orderedTasks.Select(CreateActionFromSingleTask));
+                    returnActions.AddRange(tasksWithoutStatistics.Select(CreateActionFromSingleTask));
+                    break;
+                case DimensionalOrderingType.TaskType:
+                    // Arbitrary order, but this should make some sense.
+                    returnActions.AddRange(tasks.Where(i => i.PlayerTaskType == PlayerTaskType.PLAY_CARD).Select(CreateActionFromSingleTask));
+                    returnActions.AddRange(tasks.Where(i => i.PlayerTaskType == PlayerTaskType.HERO_POWER).Select(CreateActionFromSingleTask));
+                    returnActions.AddRange(tasks.Where(i => i.PlayerTaskType == PlayerTaskType.MINION_ATTACK).Select(CreateActionFromSingleTask));
+                    returnActions.AddRange(tasks.Where(i => i.PlayerTaskType == PlayerTaskType.HERO_ATTACK).Select(CreateActionFromSingleTask));
+                    returnActions.AddRange(tasks.Where(i => i.PlayerTaskType == PlayerTaskType.CHOOSE).Select(CreateActionFromSingleTask));
+                    returnActions.AddRange(tasks.Where(i => i.PlayerTaskType == PlayerTaskType.END_TURN).Select(CreateActionFromSingleTask));
+                    returnActions.AddRange(tasks.Where(i => i.PlayerTaskType == PlayerTaskType.CONCEDE).Select(CreateActionFromSingleTask));
+                    break;
+                case DimensionalOrderingType.ManaAsc:
+                    // We can find the cost of playing a card and sort by that
+                    returnActions.AddRange(tasks.Where(i => i.PlayerTaskType == PlayerTaskType.PLAY_CARD).OrderBy(i => i.Source.Card.Cost).Select(CreateActionFromSingleTask));
+                    returnActions.AddRange(tasks.Where(i => i.PlayerTaskType != PlayerTaskType.PLAY_CARD).Select(CreateActionFromSingleTask));
+                    break;
+                case DimensionalOrderingType.ManaDesc:
+                    returnActions.AddRange(tasks.Where(i => i.PlayerTaskType == PlayerTaskType.PLAY_CARD).OrderByDescending(i => i.Source.Card.Cost).Select(CreateActionFromSingleTask));
+                    returnActions.AddRange(tasks.Where(i => i.PlayerTaskType != PlayerTaskType.PLAY_CARD).Select(CreateActionFromSingleTask));
+                    break;
+                case DimensionalOrderingType.None:
+                    returnActions.AddRange(tasks.Select(CreateActionFromSingleTask));
+                    break;
+                default:
+                    throw new SearchException($"Unsupported DimensionalOrderingType supplied: {DimensionalOrdering}");
+            }
+            return returnActions;
         }
 
         #endregion
@@ -219,23 +321,26 @@ namespace AVThesis.SabberStone {
 
             // When expanding on a position, we'll have a number of tasks to choose from.
             // The problem is that each task isn't exclusive with other tasks and/or may lead to more available tasks when processed.
-
-            // So one thing we can do is make an action that has each of the currently available tasks as its first task.
-            var topLevelActions = new List<SabberStoneAction>();
             var availableOptions = activePlayer.Options();
+
+            // Filter out duplicate actions with different zone positions.
+            // This significantly reduces complexity at a minor loss of game theoretic optimality.
             availableOptions = availableOptions.Where(i => i.ZonePosition <= 0).ToList();
-            foreach (var item in availableOptions) {
-                var action = new SabberStoneAction();
-                action.AddTask((SabberStonePlayerTask)item);
-                topLevelActions.Add(action);
+
+            // If we are expanding hierarchically we can just return the individual tasks.
+            if (HierarchicalExpansion) {
+                // Order the dimensions
+                var orderedTasks = OrderTasks(availableOptions);
+                return new SabberStoneMoveGenerator(orderedTasks);
             }
 
-            // If we are expanding hierarchically we can just return the top level actions.
-            if (HierarchicalExpansion) return new SabberStoneMoveGenerator(topLevelActions);
-
             // If we are not expanding hierarchically, we'll need to generate all action sequences at once.
+            var topLevelActions = new List<SabberStoneAction>();
+            foreach (var task in availableOptions) {
+                topLevelActions.Add(CreateActionFromSingleTask(task));
+            }
 
-            // Recursively expand the available actions.
+            // Recursively expand the top-level actions.
             foreach (var action in topLevelActions) {
                 ExpandAction(position, action, activePlayerId, ref availableActionSequences);
             }

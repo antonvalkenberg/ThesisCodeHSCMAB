@@ -52,7 +52,7 @@ namespace AVThesis.SabberStone.Bots {
         /// <summary>
         /// The game specific logic required for searching through SabberStoneStates and SabberStoneActions
         /// </summary>
-        public IGameLogic<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction, SabberStoneAction> GameLogic { get; set; }
+        public SabberStoneGameLogic GameLogic { get; set; }
 
         /// <summary>
         /// The strategy used to play out a game in simulation.
@@ -129,6 +129,11 @@ namespace AVThesis.SabberStone.Bots {
         /// </summary>
         public double UCBConstantC { get; set; }
 
+        /// <summary>
+        /// The ordering for dimensions when using Hierarchical Expansion.
+        /// </summary>
+        public SabberStoneGameLogic.DimensionalOrderingType DimensionalOrdering { get; set; }
+
         #endregion
 
         #region Constructor
@@ -147,9 +152,10 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="minimumVisitThresholdForSelection">[Optional] The minimum number of visits before using the NodeEvaluation to select the best node. Default value is <see cref="Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_SELECTION"/>.</param>
         /// <param name="playoutTurnCutoff">[Optional] The amount of turns after which to stop a simulation. Default value is <see cref="Constants.DEFAULT_PLAYOUT_TURN_CUTOFF"/>.</param>
         /// <param name="ucbConstantC">[Optional] Value for the c-constant in the UCB1 formula. Default value is <see cref="Constants.DEFAULT_UCB1_C"/>.</param>
+        /// <param name="dimensionalOrdering">[Optional] The ordering for dimensions when using Hierarchical Expansion. Default value is <see cref="SabberStoneGameLogic.DimensionalOrderingType.None"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
-        public MCTSBot(Controller player, bool hierarchicalExpansion = true, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool retainTaskStatistics = false, int iterations = Constants.DEFAULT_MCTS_ITERATIONS, int minimumVisitThresholdForExpansion = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_EXPANSION, int minimumVisitThresholdForSelection = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_SELECTION, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, double ucbConstantC = Constants.DEFAULT_UCB1_C, bool debugInfoToConsole = false)
-            : this(hierarchicalExpansion, allowPerfectInformation, ensembleSize, mastSelectionType, retainTaskStatistics, iterations, minimumVisitThresholdForExpansion, minimumVisitThresholdForSelection, playoutTurnCutoff, ucbConstantC, debugInfoToConsole) {
+        public MCTSBot(Controller player, bool hierarchicalExpansion = true, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool retainTaskStatistics = false, int iterations = Constants.DEFAULT_MCTS_ITERATIONS, int minimumVisitThresholdForExpansion = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_EXPANSION, int minimumVisitThresholdForSelection = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_SELECTION, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, double ucbConstantC = Constants.DEFAULT_UCB1_C, SabberStoneGameLogic.DimensionalOrderingType dimensionalOrdering = SabberStoneGameLogic.DimensionalOrderingType.None, bool debugInfoToConsole = false)
+            : this(hierarchicalExpansion, allowPerfectInformation, ensembleSize, mastSelectionType, retainTaskStatistics, iterations, minimumVisitThresholdForExpansion, minimumVisitThresholdForSelection, playoutTurnCutoff, ucbConstantC, dimensionalOrdering, debugInfoToConsole) {
             Player = player;
 
             // Set the playout bots correctly if we are using PlayoutStrategySabberStone
@@ -162,6 +168,7 @@ namespace AVThesis.SabberStone.Bots {
 
             // Create the searcher that will handle the searching and some administrative tasks
             Searcher = new SabberStoneSearch(Player, _debug);
+            GameLogic.Searcher = Searcher;
         }
 
         /// <summary>
@@ -177,8 +184,9 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="minimumVisitThresholdForSelection">[Optional] The minimum number of visits before using the NodeEvaluation to select the best node. Default value is <see cref="Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_SELECTION"/>.</param>
         /// <param name="playoutTurnCutoff">[Optional] The amount of turns after which to stop a simulation. Default value is <see cref="Constants.DEFAULT_PLAYOUT_TURN_CUTOFF"/>.</param>
         /// <param name="ucbConstantC">[Optional] Value for the c-constant in the UCB1 formula. Default value is <see cref="Constants.DEFAULT_UCB1_C"/>.</param>
+        /// <param name="dimensionalOrdering">[Optional] The ordering for dimensions when using Hierarchical Expansion. Default value is <see cref="SabberStoneGameLogic.DimensionalOrderingType.None"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
-        public MCTSBot(bool hierarchicalExpansion = true, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool retainTaskStatistics = false, int iterations = Constants.DEFAULT_MCTS_ITERATIONS, int minimumVisitThresholdForExpansion = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_EXPANSION, int minimumVisitThresholdForSelection = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_SELECTION, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, double ucbConstantC = Constants.DEFAULT_UCB1_C, bool debugInfoToConsole = false) {
+        public MCTSBot(bool hierarchicalExpansion = true, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool retainTaskStatistics = false, int iterations = Constants.DEFAULT_MCTS_ITERATIONS, int minimumVisitThresholdForExpansion = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_EXPANSION, int minimumVisitThresholdForSelection = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_SELECTION, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, double ucbConstantC = Constants.DEFAULT_UCB1_C, SabberStoneGameLogic.DimensionalOrderingType dimensionalOrdering = SabberStoneGameLogic.DimensionalOrderingType.None, bool debugInfoToConsole = false) {
             HierarchicalExpansion = hierarchicalExpansion;
             PerfectInformation = allowPerfectInformation;
             EnsembleSize = ensembleSize;
@@ -189,6 +197,7 @@ namespace AVThesis.SabberStone.Bots {
             MinimumVisitThresholdForSelection = minimumVisitThresholdForSelection;
             PlayoutTurnCutoff = playoutTurnCutoff;
             UCBConstantC = ucbConstantC;
+            DimensionalOrdering = dimensionalOrdering;
             _debug = debugInfoToConsole;
 
             // Create the ensemble search
@@ -207,7 +216,7 @@ namespace AVThesis.SabberStone.Bots {
             Goal = new GoalStrategyTurnCutoff(PlayoutTurnCutoff);
 
             // Expansion, Application and Goal will be handled by the GameLogic.
-            GameLogic = new SabberStoneGameLogic(HierarchicalExpansion, Goal);
+            GameLogic = new SabberStoneGameLogic(Goal, HierarchicalExpansion, DimensionalOrdering);
 
             // Create the INodeEvaluation strategy used in the selection phase.
             var nodeEvaluation = new ScoreUCB<SabberStoneState, SabberStoneAction>(UCBConstantC);
@@ -222,6 +231,32 @@ namespace AVThesis.SabberStone.Bots {
             Builder.FinalNodeSelectionStrategy = new BestRatioFinalNodeSelection<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>();
             Builder.SolutionStrategy = new SolutionStrategySabberStone(HierarchicalExpansion, nodeEvaluation);
             Builder.PlayoutStrategy = Playout;
+        }
+
+        #endregion
+
+        #region Private Methods
+
+        /// <summary>
+        /// Completes an incomplete move caused by Hierarchical Expansion.
+        /// </summary>
+        /// <param name="state">The game state to create an action for.</param>
+        /// <param name="action">The currently created action.</param>
+        private void CompleteHEMove(SabberStoneState state, SabberStoneAction action) {
+            // Copy state so that we can process the tasks and get an updated options list.
+            var copyState = (SabberStoneState)state.Copy();
+            
+            // Process the currently selected tasks
+            foreach (var task in action.Tasks) {
+                copyState.Game.Process(task.Task);
+            }
+            // Ask the Searcher to determine the best tasks to complete the action
+            var completingAction = Searcher.DetermineBestTasks(copyState);
+
+            // Add the tasks to the provided action
+            foreach (var task in completingAction.Tasks) {
+                action.AddTask(task);
+            }
         }
 
         #endregion
@@ -263,9 +298,15 @@ namespace AVThesis.SabberStone.Bots {
 
             // Check if the solution is a complete action.
             if (!solution.IsComplete()) {
-                // Otherwise add an End-Turn task before returning.
-                if (_debug) Console.WriteLine("Solution was an incomplete action; adding End-Turn task.");
-                solution.Tasks.Add((SabberStonePlayerTask)EndTurnTask.Any(Player));
+                if (!HierarchicalExpansion) {
+                    // Otherwise add an End-Turn task before returning.
+                    if (_debug) Console.WriteLine("Solution was an incomplete action; adding End-Turn task.");
+                    solution.Tasks.Add((SabberStonePlayerTask)EndTurnTask.Any(Player));
+                }
+                else {
+                    // If we are using HE, call move completion function.
+                    CompleteHEMove(state, solution);
+                }
             }
 
             if (_debug) Console.WriteLine();

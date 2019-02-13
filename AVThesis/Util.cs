@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using AVThesis.Datastructures;
 using SabberStoneCore.Enums;
 using SabberStoneCore.Model;
-using SabberStoneCore.Tasks;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -74,6 +74,36 @@ namespace AVThesis {
         /// <returns>Normalised value of x.</returns>
         public static double Normalise(double x, double min, double max) {
             return (x - min) / (max - min);
+        }
+
+        /// <summary>
+        /// Calculates the Shannon entropy of a collection of double values.
+        /// See <see cref="http://mathworld.wolfram.com/Entropy.html"/>
+        /// </summary>
+        /// <param name="values">The values to calculate the entropy over.</param>
+        /// <returns></returns>
+        public static double ShannonEntropy(ICollection<double> values) {
+            if (values.IsNullOrEmpty()) return 0;
+
+            // The (Shannon) entropy of a variable X is defined as:
+            // H(X) = -1 * Sum-over-x(P(x) * Log_b(P(x)))
+            // where b is the base of the logarithm (2 is said to be a commonly used value)
+            
+            // Create a table of counts for the values
+            var table = new Dictionary<double, int>();
+            foreach (var value in values) {
+                if (!table.ContainsKey(value)) table.Add(value, 0);
+                table[value]++;
+            }
+
+            var runningSummation = 0d;
+            foreach (var tableKey in table.Keys) {
+                // Get the chance of the value occurring
+                var pX = table[tableKey] / (values.Count * 1.0);
+                runningSummation += pX * Math.Log(pX, 2);
+            }
+
+            return -1 * runningSummation;
         }
 
     }

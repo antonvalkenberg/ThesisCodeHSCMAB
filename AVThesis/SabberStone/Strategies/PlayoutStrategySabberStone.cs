@@ -108,7 +108,7 @@ namespace AVThesis.SabberStone.Strategies {
 
         /// <summary>
         /// Plays out a player's turn.
-        /// Note: this method continously asks the playoutbots to Act and stops when 'null' is returned.
+        /// Note: this method asks the playoutbot of the current player to Act and processes the returned action.
         /// </summary>
         /// <param name="game">The current game state.</param>
         private void PlayPlayerTurn(SabberStoneState game) {
@@ -123,18 +123,10 @@ namespace AVThesis.SabberStone.Strategies {
 
             // Ask the bot to act.
             var action = turnBot.Act(game);
-
-            // Check if the action is valid.
-            if (action.IsComplete()) {
-
-                // Process each task.
-                foreach (var item in action.Tasks) {
-                    game.Game.Process(item.Task);
-                }
-            }
-            // If not, just pass the turn.
-            else {
-                game.Game.Process(EndTurnTask.Any(game.Game.CurrentPlayer));
+            
+            // Process each task.
+            foreach (var item in action.Tasks) {
+                game.Game.Process(item.Task);
             }
             
         }

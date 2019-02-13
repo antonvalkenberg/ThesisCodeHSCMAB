@@ -1,4 +1,7 @@
-﻿/// <summary>
+﻿using System.Collections.Generic;
+using System.Linq;
+
+/// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
 /// In parts inspired by a code framework written by G.J. Roelofs and T. Aliyev.
 /// </summary>
@@ -19,12 +22,17 @@ namespace AVThesis.SabberStone {
         /// <summary>
         /// The total amount of value that has been recorded for this SabberStonePlayerTask.
         /// </summary>
-        public double TotalValue { get; private set; }
+        public double TotalValue => ValueCollection.Sum();
 
         /// <summary>
         /// The number of times this SabberStonePlayerTask has been visited.
         /// </summary>
         public int Visits { get; private set; }
+
+        /// <summary>
+        /// The collection of values.
+        /// </summary>
+        public List<double> ValueCollection { get; set; }
 
         #endregion
 
@@ -37,7 +45,7 @@ namespace AVThesis.SabberStone {
         /// <param name="value">The initial value for this task.</param>
         public PlayerTaskStatistics(SabberStonePlayerTask task, double value) {
             Task = task;
-            TotalValue = value;
+            ValueCollection = new List<double> {value};
             Visits = 1;
         }
 
@@ -50,7 +58,7 @@ namespace AVThesis.SabberStone {
         /// </summary>
         /// <param name="value">The value to be added to this task.</param>
         public void AddValue(double value) {
-            TotalValue += value;
+            ValueCollection.Add(value);
             Visits++;
         }
 
