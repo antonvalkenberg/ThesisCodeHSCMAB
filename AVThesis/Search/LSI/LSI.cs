@@ -19,7 +19,7 @@ namespace AVThesis.Search.LSI {
     /// <typeparam name="S">S in <see cref="SearchContext{D, P, A, S, Sol}"/></typeparam>
     /// <typeparam name="N">A Type of node that the search uses.</typeparam>
     /// <typeparam name="T">The Type of side information that the search uses.</typeparam>
-    public class LSI<D, P, A, S, N, T> : ISearchStrategy<D, P, A, S, A> where D : class where P : State where A : class where S : class where N : Node<A> where T : class {
+    public class LSI<D, P, A, S, N, T> : ISearchStrategy<D, P, A, S, A> where D : class where P : State where A : class where S : class where N : Node<A>, new() where T : class {
         
         #region Helper Class
 
@@ -30,6 +30,10 @@ namespace AVThesis.Search.LSI {
             public ActionValue(A action, double value) {
                 Action = action;
                 Value = value;
+            }
+
+            public override string ToString() {
+                return $"{Action} -> {Value}";
             }
         }
 
@@ -177,11 +181,13 @@ namespace AVThesis.Search.LSI {
             // Evaluate each action by running a playout for it.
             foreach (var item in actions) {
 
+                var tempNode = new N { Payload = item.Action };
                 var newState = GameLogic.Apply(context, (P)context.Source.Copy(), item.Action);
 
                 double value = 0;
                 for (var i = 0; i < samplesPerAction; i++) {
-                    value += Evaluation.Evaluate(context, null, Playout.Playout(context, newState));
+                    var endState = Playout.Playout(context, (P)newState.Copy());
+                    value += Evaluation.Evaluate(context, tempNode, endState);
                     SamplesUsedEvaluation++;
                 }
 

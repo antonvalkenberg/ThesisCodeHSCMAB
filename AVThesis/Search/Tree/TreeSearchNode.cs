@@ -68,6 +68,13 @@ namespace AVThesis.Search.Tree {
         #region Constructors
 
         /// <summary>
+        /// Default constructor.
+        /// </summary>
+        public TreeSearchNode() : base() {
+
+        }
+
+        /// <summary>
         /// Constructor that creates a TreeSearchNode without an internal state. The state should be constructor from the root/parent state and the provided action.
         /// </summary>
         /// <param name="payload">The action that this TreeSearchNode holds.</param>

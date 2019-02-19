@@ -1,4 +1,5 @@
-﻿using AVThesis.Search;
+﻿using System;
+using AVThesis.Search;
 using Constants = AVThesis.Constants;
 
 /// <summary>
@@ -38,7 +39,7 @@ namespace AVThesisTest.TicTacToe {
         }
 
         public static int SwitchPlayerID(int playerID) {
-            return playerID == PLAYER_ONE_ID ? PLAYER_TWO_ID : PLAYER_ONE_ID;
+            return Math.Abs(playerID-1);
         }
 
         public override string ToString() {

@@ -40,9 +40,9 @@ namespace AVThesisTest {
         public void TestFlatMCS() {
             // Search setup
             var builder = FlatMCS<D, P, A, S, A>.Builder();
-            builder.EvaluationStrategy = new WinLossDrawStateEvaluation<D, P, A, S, A, TreeSearchNode<P, A>>(1, -10, 0);
             builder.Iterations = 10000;
             builder.PlayoutStrategy = new AgentPlayout<D, P, A, S, A>(Agent);
+            builder.EvaluationStrategy = new WinLossDrawStateEvaluation<D, P, A, S, A, TreeSearchNode<P, A>>(1, -10, 0);
             builder.SelectionStrategy = new BestNodeSelection<D, P, A, S, A>(1000, new ScoreUCB<P, A>(1 / Math.Sqrt(2)));
             builder.SolutionStrategy = new ActionSolution<D, P, A, S, A, TreeSearchNode<P, A>>();
 
@@ -68,7 +68,7 @@ namespace AVThesisTest {
             builder.ExplorationStrategy = new ChanceExploration<D, P, A, S, A>(0.5);
             builder.Iterations = 10000;
             builder.PlayoutStrategy = new AgentPlayout<D, P, A, S, A>(Agent);
-            builder.PolicyGlobal = 0;
+            builder.PolicyGlobal = 0.2;
             builder.SamplingStrategy = samplingStrategy;
             builder.SolutionStrategy = new ActionSolution<D, P, A, S, A, TreeSearchNode<P, A>>();
 
@@ -78,15 +78,14 @@ namespace AVThesisTest {
 
         public void TestLSI(ISideInformationStrategy<D, P, A, S, A, SI> sideInformationStrategy, ILSISamplingStrategy<P, A, SI> samplingStrategy) {
             // Search setup
-            var samplesForGeneration = 1000;
-            var samplesForEvaluation = 1000;
+            var samplesForGeneration = 2500;
+            var samplesForEvaluation = 4000;
             var playoutStrategy = new AgentPlayout<D, P, A, S, A>(Agent);
             var evaluationStrategy = new WinLossDrawStateEvaluation<D, P, A, S, A, TreeSearchNode<P, A>>(1, -10, 0);
             var search = new LSI<D, P, A, S, TreeSearchNode<P, A>, SI>(samplesForGeneration, samplesForEvaluation, sideInformationStrategy, samplingStrategy, playoutStrategy, evaluationStrategy, GameLogic);
 
             // Test if the AI finds the correct solution.
-            var context = SearchContext<D, P, A, S, A>.Context(null, State, null, null, search, null);
-            TestAI(context);
+            TestAI(SearchContext<D, P, A, S, A>.GameSearchSetup(GameLogic, null, State, null, search));
         }
 
         /// <summary>

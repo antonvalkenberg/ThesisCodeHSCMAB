@@ -1,5 +1,4 @@
 ﻿using AVThesis.Agent;
-using AVThesis.Datastructures;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.

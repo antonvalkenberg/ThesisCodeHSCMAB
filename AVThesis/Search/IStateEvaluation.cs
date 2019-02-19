@@ -94,14 +94,15 @@ namespace AVThesis.Search {
             int playerWon = state.PlayerWon;
             A move = node.Payload;
 
-            if (move == null || playerWon == State.DRAW) {
+            if (move == null || playerWon == State.DRAW)
                 return Draw;
-            } else {
-                return move.Player() == playerWon ? Win : Loss;
-            }
+
+            // Check the payload of the node to see for which player we are evaluating
+            return move.Player() == playerWon ? Win : Loss;
         }
         
         #endregion
+
     }
 
     /// <summary>

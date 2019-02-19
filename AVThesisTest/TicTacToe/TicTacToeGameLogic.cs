@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using AVThesis;
 using AVThesis.Agent;
 using AVThesis.Datastructures;
 using AVThesis.Game;
@@ -24,6 +27,11 @@ namespace AVThesisTest.TicTacToe {
         /// </summary>
         public const int TICTACTOE_ROWS = 3;
 
+        public static readonly List<int> CornerPositions = new List<int> {0, 2, 6, 8};
+        public static readonly List<int> EdgePositions = new List<int> { 1, 3, 5, 7 };
+
+        private static readonly Random rng = new Random();
+
         public TicTacToeState Apply(SearchContext<object, TicTacToeState, TicTacToeMove, object, TicTacToeMove> context, TicTacToeState position, TicTacToeMove action) {
             // Play the move in the argument action on the argument state
             StringBuilder newState = new StringBuilder(position.State);
@@ -40,6 +48,7 @@ namespace AVThesisTest.TicTacToe {
         }
 
         public bool Done(SearchContext<object, TicTacToeState, TicTacToeMove, object, TicTacToeMove> context, TicTacToeState position) {
+            UpdateState(position);
             return position.Done;
         }
 
@@ -51,37 +60,192 @@ namespace AVThesisTest.TicTacToe {
             return new double[] { 1 - position.PlayerWon, position.PlayerWon };
         }
 
+        /// <inheritdoc />
+        /// <summary>
+        /// See <see cref="https://en.wikipedia.org/wiki/Tic-tac-toe#Strategy"/>
+        /// </summary>
         public TicTacToeMove Act(SearchContext<object, TicTacToeState, TicTacToeMove, object, TicTacToeMove> context, TicTacToeState state) {
-            List<int> possibilities = TicTacToeMoveGenerator.AllEmptyPositions(state);
+            var possibilities = TicTacToeMoveGenerator.AllEmptyPositions(state);
+            var myID = state.ActivePlayerID;
+            var oppID = TicTacToeState.SwitchPlayerID(myID);
+            var oppMove = oppID == TicTacToeState.PLAYER_ONE_ID ? TicTacToeState.PLAYER_ONE_MOVE : TicTacToeState.PLAYER_TWO_MOVE;
+            var openCorners = possibilities.Where(i => CornerPositions.Contains(i)).ToList();
+            var openEdges = possibilities.Where(i => EdgePositions.Contains(i)).ToList();
+
+            #region Opening and response
+
+            // Opening move to corner or middle position
+            // Debatable which is better, but we assume perfect play, so any corner is good
+            if (possibilities.Count == 9) {
+                return new TicTacToeMove(CornerPositions.RandomElementOrDefault(), myID);
+                //return new TicTacToeMove(4, myID);
+            }
+
+            // If the middle position was opened with, play corner
+            if (possibilities.Count == 8 && !possibilities.Contains(4)) {
+                return new TicTacToeMove(CornerPositions.RandomElementOrDefault(), myID);
+            }
+
+            // If a corner or an edge was opened with, play middle
+            if (possibilities.Count == 8)
+                return new TicTacToeMove(4, myID);
+
+            #endregion
+
+            #region 1. Win
 
             // Check for own winning moves
-            var myID = state.ActivePlayerID;
-            foreach (var possibility in possibilities) {
-                var testMove = new TicTacToeMove(possibility, myID);
-                var clone = (TicTacToeState) state.Copy();
-                clone = Apply(null, clone, testMove);
-                if (clone.Done && clone.PlayerWon == myID)
-                    return testMove;
-            }
+            var myWins = CheckWinningPositions(state, myID);
+            // Take the win
+            if (!myWins.IsNullOrEmpty()) return new TicTacToeMove(myWins.RandomElementOrDefault(), myID);
+
+            #endregion
+
+            #region 2. Block
 
             // Check for opponent's winning moves
-            var oppID = myID == TicTacToeState.PLAYER_ONE_ID
-                ? TicTacToeState.PLAYER_ONE_ID
-                : TicTacToeState.PLAYER_TWO_ID;
-            foreach (var possibility in possibilities) {
-                var testMove = new TicTacToeMove(possibility, oppID);
-                var clone = (TicTacToeState)state.Copy();
-                clone = Apply(null, clone, testMove);
-                if (clone.Done && clone.PlayerWon == oppID)
-                    return new TicTacToeMove(possibility, myID);
+            var oppWins = CheckWinningPositions(state, oppID);
+            // Prevent the loss
+            if (!oppWins.IsNullOrEmpty()) return new TicTacToeMove(oppWins.RandomElementOrDefault(), myID);
+
+            #endregion
+
+            #region 3. Fork
+
+            // Check if we have any forks available
+            var forks = CheckForks(state, myID);
+            // Move to one of the available forks
+            if (!forks.IsNullOrEmpty()) return new TicTacToeMove(forks.RandomElementOrDefault(), myID);
+
+            #endregion
+
+            #region 4. Blocking an opponent's fork
+
+            // Check if the opponent has any forks available
+            var oppForks = CheckForks(state, oppID);
+            if (!oppForks.IsNullOrEmpty()) {
+                // If there is only one possible fork for the opponent, the player should block it.
+                if (oppForks.Count == 1)
+                    return new TicTacToeMove(oppForks[0], myID);
+                // Otherwise, the player should block any forks in any way that simultaneously allows them to create two in a row, as long as it doesn't result in them creating a fork.
+                var threats = CheckThreats(state, myID);
+                var safeThreats = threats.Where(i => !DoesThisThreatCreateAForkForOpponent(state, i, myID)).ToList();
+                var safeBlockingThreats = safeThreats.Where(i => oppForks.Contains(i)).ToList();
+                if (!safeBlockingThreats.IsNullOrEmpty())
+                    return new TicTacToeMove(safeBlockingThreats.RandomElementOrDefault(), myID);
+                // Otherwise, the player should create a two in a row to force the opponent into defending, as long as it doesn't result in them creating a fork.
+                if (!safeThreats.IsNullOrEmpty())
+                    return new TicTacToeMove(safeThreats.RandomElementOrDefault(), myID);
             }
 
-            // Otherwise, act random
-            int index = new System.Random().Next(possibilities.Count);
-            int randomPosition = possibilities.ToArray()[index];
+            #endregion
 
+            #region 5. Center
+
+            // If middle is open, play it
+            if (possibilities.Contains(4))
+                return new TicTacToeMove(4, myID);
+
+            #endregion
+
+            #region 6. Opposite corner
+
+            // If the opponent is in a corner and the opposite corner is available, move there
+            foreach (var cornerPosition in CornerPositions) {
+                var oppositeCorner = OppositeCorner(cornerPosition);
+                if (state.State[cornerPosition] == oppMove && openCorners.Contains(oppositeCorner))
+                    return new TicTacToeMove(oppositeCorner, myID);
+            }
+
+            #endregion
+
+            #region 7. Empty corner
+
+            // If a corner is open, play it
+            if (!openCorners.IsNullOrEmpty())
+                return new TicTacToeMove(openCorners.RandomElementOrDefault(), myID);
+
+            #endregion
+
+            #region 8. Empty side
+
+            // If an edge is open, play it
+            if (!openEdges.IsNullOrEmpty())
+                return new TicTacToeMove(openEdges.RandomElementOrDefault(), myID);
+
+            #endregion
+
+            // Otherwise, act random
+            int index = rng.Next(possibilities.Count);
+            int randomPosition = possibilities.ToArray()[index];
             // Return a random position to play for the active player
-            return new TicTacToeMove(randomPosition, state.ActivePlayerID);
+            return new TicTacToeMove(randomPosition, myID);
+        }
+
+        public List<int> CheckWinningPositions(TicTacToeState state, int playerID) {
+            var possibilities = TicTacToeMoveGenerator.AllEmptyPositions(state);
+            var wins = new List<int>();
+
+            foreach (var possibility in possibilities) {
+                var testMove = new TicTacToeMove(possibility, playerID);
+                var clone = (TicTacToeState)state.Copy();
+                clone = Apply(null, clone, testMove);
+                if (clone.Done && clone.PlayerWon == playerID)
+                    wins.Add(possibility);
+            }
+
+            return wins;
+        }
+
+        public List<int> CheckForks(TicTacToeState state, int playerID) {
+            var possibilities = TicTacToeMoveGenerator.AllEmptyPositions(state);
+            var forks = new List<int>();
+
+            foreach (var possibility in possibilities) {
+                var testMove = new TicTacToeMove(possibility, playerID);
+                var clone = (TicTacToeState) state.Copy();
+                clone = Apply(null, clone, testMove);
+                var wins = CheckWinningPositions(clone, playerID);
+                if (wins.Count >= 2)
+                    forks.Add(possibility);
+            }
+
+            return forks;
+        }
+
+        public List<int> CheckThreats(TicTacToeState state, int playerID) {
+            var possibilities = TicTacToeMoveGenerator.AllEmptyPositions(state);
+            var threats = new List<int>();
+
+            foreach (var possibility in possibilities) {
+                var testMove = new TicTacToeMove(possibility, playerID);
+                var clone = (TicTacToeState)state.Copy();
+                clone = Apply(null, clone, testMove);
+                if (!CheckWinningPositions(clone, playerID).IsNullOrEmpty())
+                    threats.Add(possibility);
+            }
+
+            return threats;
+        }
+
+        public bool DoesThisThreatCreateAForkForOpponent(TicTacToeState state, int position, int playerID) {
+            var clone = (TicTacToeState)state.Copy();
+            clone = Apply(null, clone, new TicTacToeMove(position, playerID));
+            // This move should be a threat, so see how the opponent must block
+            var blocks = CheckWinningPositions(clone, playerID);
+            clone = Apply(null, clone, new TicTacToeMove(blocks[0], TicTacToeState.SwitchPlayerID(playerID)));
+            // A fork will be created for the opponent if this block gives them 2 or more winning positions
+            return CheckWinningPositions(clone, TicTacToeState.SwitchPlayerID(playerID)).Count >= 2;
+        }
+
+        public int OppositeCorner(int cornerPosition) {
+            switch (cornerPosition) {
+                case 0: return 8;
+                case 2: return 6;
+                case 6: return 2;
+                case 8: return 0;
+                default: throw new ArgumentException($"Unknown corner position -> {cornerPosition}");
+            }
         }
 
         public void UpdateState(TicTacToeState state) {
@@ -193,14 +357,18 @@ namespace AVThesisTest.TicTacToe {
                     var action = new TicTacToeMove(TicTacToeMoveGenerator.AllEmptyPositions(context.Source).RandomElementOrDefault(), context.Source.ActivePlayerID);
                     var newState = GameLogic.Apply(context, (TicTacToeState) context.Source.Copy(), action);
                     var endState = PlayoutStrategy.Playout(context, newState);
-                    var value = EvaluationStrategy.Evaluate(context, null, endState);
+                    var value = EvaluationStrategy.Evaluate(context, new TreeSearchNode<TicTacToeState, TicTacToeMove>(action), endState);
                     if (!table.ContainsKey(action.PositionToPlace)) table.Add(action.PositionToPlace, 0);
                     table[action.PositionToPlace] += value;
                 }
 
+                var maxValue = table.Values.Max();
+                var minValue = table.Values.Min();
+
                 var oddmentTable = new OddmentTable<int>();
                 foreach (var kvPair in table) {
-                    oddmentTable.Add(kvPair.Key, kvPair.Value, recalculate: false);
+                    var normalisedValue = Util.Normalise(kvPair.Value, minValue, maxValue);
+                    oddmentTable.Add(kvPair.Key, normalisedValue, recalculate: false);
                 }
                 oddmentTable.Recalculate();
 

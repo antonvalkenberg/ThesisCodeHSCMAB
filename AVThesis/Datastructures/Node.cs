@@ -16,9 +16,9 @@ namespace AVThesis.Datastructures {
         #region Properties
 
         /// <summary>
-        /// The Node's subject matter (e.g. a gamestate or gameaction).
+        /// The Node's subject matter (e.g. a game state or game action).
         /// </summary>
-        public A Payload { get; private set; }
+        public A Payload { get; set; }
 
         /// <summary>
         /// The Node that this is a child of.
