@@ -39,6 +39,9 @@ namespace AVThesis.Search.Tree.NMC {
                 TotalReward += reward;
                 Visits++;
             }
+            public override string ToString() {
+                return $"{Action} - v{Visits} - r{TotalReward}";
+            }
         }
 
         #endregion
@@ -152,7 +155,7 @@ namespace AVThesis.Search.Tree.NMC {
                 var selectedNode = NaïveSelectAndExpand(context, root, gMAB);
 
                 // Simulate
-                P endState = PlayoutStrategy.Playout(context, selectedNode.State);
+                P endState = PlayoutStrategy.Playout(context, selectedNode.State.Copy());
 
                 // Backpropagation
                 BackPropagationStrategy.BackPropagate(context, EvaluationStrategy, selectedNode, endState);
@@ -196,7 +199,10 @@ namespace AVThesis.Search.Tree.NMC {
             // Check if any of the children of the current node have the sampled action as their payload
             if (node.Children.Any(i => i.Payload.GetHashCode() == actionHash)) {
                 var child = node.Children.First(i => i.Payload.GetHashCode() == actionHash);
-                return NaïveSelectAndExpand(context, child, gMAB);
+                // Check if taking this action still has the same player as active
+                if (child.State.CurrentPlayer() == node.State.CurrentPlayer())
+                    return NaïveSelectAndExpand(context, child, gMAB);
+                return child;
             }
 
             // If none of the current children on the node have the action as payload, create a new child
@@ -236,8 +242,9 @@ namespace AVThesis.Search.Tree.NMC {
                 A action = SamplingStrategy.Sample(state);
                 var actionHash = action.GetHashCode();
                 // Evaluate the sampled action
-                P newState = apply.Apply(context, state, action);
-                double reward = EvaluationStrategy.Evaluate(context, node, newState);
+                P endState = PlayoutStrategy.Playout(context, apply.Apply(context, state.Copy(), action));
+                var tempNode = new TreeSearchNode<P, A> { Payload = action };
+                double reward = EvaluationStrategy.Evaluate(context, tempNode, endState);
                 // Add the action to the global MAB
                 if (gMAB[stateHash].ContainsKey(actionHash))
                     gMAB[stateHash][actionHash].Visit(reward);
