@@ -186,7 +186,7 @@ namespace AVThesis.Search.LSI {
 
                 double value = 0;
                 for (var i = 0; i < samplesPerAction; i++) {
-                    var endState = Playout.Playout(context, (P)newState.Copy());
+                    var endState = Playout.Playout(context, newState);
                     value += Evaluation.Evaluate(context, tempNode, endState);
                     SamplesUsedEvaluation++;
                 }

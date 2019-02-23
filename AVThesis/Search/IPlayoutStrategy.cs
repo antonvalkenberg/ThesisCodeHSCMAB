@@ -72,16 +72,17 @@ namespace AVThesis.Search {
         /// <param name="position">The position from which to play out the game.</param>
         /// <returns>The end position.</returns>
         public P Playout(SearchContext<D, P, A, S, Sol> context, P position) {
+            P positionCopy = position.Copy();
             var goal = context.Goal;
             var actor = context.Application;
 
             // Ask the agent to play a move until we have reached the goal.
-            while (!goal.Done(context, position)) {
-                A action = Agent.Act(context, position);
-                position = actor.Apply(context, position, action);
+            while (!goal.Done(context, positionCopy)) {
+                A action = Agent.Act(context, positionCopy);
+                positionCopy = actor.Apply(context, positionCopy, action);
             }
 
-            return position;
+            return positionCopy;
         }
 
         #endregion

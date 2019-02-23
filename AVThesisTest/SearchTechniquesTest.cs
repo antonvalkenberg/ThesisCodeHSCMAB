@@ -10,14 +10,16 @@ namespace AVThesisTest {
         public void TestFlatMCSTicTacToe() {
             var test = new TicTacToeSearchTest();
             test.Setup();
-            test.TestFlatMCS();
+            var search = test.SetupFlatMCS();
+            test.TestFlatMCS(search);
         }
 
         [TestMethod]
         public void TestMCTSTicTacToe() {
             var test = new TicTacToeSearchTest();
             test.Setup();
-            test.TestMCTS();
+            var search = test.SetupMCTS();
+            test.TestMCTS(search);
         }
 
         [TestMethod]
@@ -25,7 +27,8 @@ namespace AVThesisTest {
             var test = new TicTacToeSearchTest();
             test.Setup();
             var samplingStrategy = new TicTacToeGameLogic.RandomTicTacToeMoveSampler();
-            test.TestNMCTS(samplingStrategy);
+            var search = test.SetupNMCTS(samplingStrategy);
+            test.TestNMCTS(search);
         }
 
         [TestMethod]
@@ -35,7 +38,8 @@ namespace AVThesisTest {
             var sideInformationStrategy = new TicTacToeGameLogic.LSITicTacToeSideInformation();
             sideInformationStrategy.Setup(test.GameLogic, test.PlayoutStrategy, test.EvaluationStrategy);
             var samplingStrategy = new TicTacToeGameLogic.LSITicTacToeMoveSampler();
-            test.TestLSI(sideInformationStrategy, samplingStrategy);
+            var search = test.SetupLSI(sideInformationStrategy, samplingStrategy);
+            test.TestLSI(search);
         }
 
     }

@@ -5,8 +5,6 @@ using AVThesis.Game;
 using AVThesis.Search;
 using AVThesis.Search.LSI;
 using AVThesis.Search.Tree;
-using AVThesis.Search.Tree.MCTS;
-using AVThesis.Search.Tree.NMC;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -37,56 +35,29 @@ namespace AVThesisTest {
 
         #region Public Methods
 
-        public void TestFlatMCS() {
-            // Search setup
-            var builder = FlatMCS<D, P, A, S, A>.Builder();
-            builder.Iterations = 10000;
-            builder.PlayoutStrategy = new AgentPlayout<D, P, A, S, A>(Agent);
-            builder.EvaluationStrategy = new WinLossDrawStateEvaluation<D, P, A, S, A, TreeSearchNode<P, A>>(1, -10, 0);
-            builder.SelectionStrategy = new BestNodeSelection<D, P, A, S, A>(1000, new ScoreUCB<P, A>(1 / Math.Sqrt(2)));
-            builder.SolutionStrategy = new ActionSolution<D, P, A, S, A, TreeSearchNode<P, A>>();
-
-            // Test if the AI finds the correct solution.
-            TestAI(SearchContext<D, P, A, S, A>.GameSearchSetup(GameLogic, null, State, null, builder.Build()));
-        }
-
-        public void TestMCTS() {
-            // Search setup
-            var builder = MCTS<D, P, A, S, A>.Builder();
-            builder.ExpansionStrategy = new MinimumTExpansion<D, P, A, S, A>(5);
-            builder.Iterations = 10000;
-            builder.PlayoutStrategy = new AgentPlayout<D, P, A, S, A>(Agent);
-            builder.SolutionStrategy = new ActionSolution<D, P, A, S, A, TreeSearchNode<P, A>>();
-
-            // Test if the AI finds the correct solution.
-            TestAI(SearchContext<D, P, A, S, A>.GameSearchSetup(GameLogic, null, State, null, builder.Build()));
-        }
-
-        public void TestNMCTS(ISamplingStrategy<P, A> samplingStrategy) {
-            // Search setup
-            var builder = NMCTS<D, P, A, S, A>.Builder();
-            builder.ExplorationStrategy = new ChanceExploration<D, P, A, S, A>(0.5);
-            builder.Iterations = 10000;
-            builder.PlayoutStrategy = new AgentPlayout<D, P, A, S, A>(Agent);
-            builder.PolicyGlobal = 0.2;
-            builder.SamplingStrategy = samplingStrategy;
-            builder.SolutionStrategy = new ActionSolution<D, P, A, S, A, TreeSearchNode<P, A>>();
-
-            // Test if the AI finds the correct solution.
-            TestAI(SearchContext<D, P, A, S, A>.GameSearchSetup(GameLogic, null, State, null, builder.Build()));
-        }
-
-        public void TestLSI(ISideInformationStrategy<D, P, A, S, A, SI> sideInformationStrategy, ILSISamplingStrategy<P, A, SI> samplingStrategy) {
-            // Search setup
-            var samplesForGeneration = 2500;
-            var samplesForEvaluation = 4000;
-            var playoutStrategy = new AgentPlayout<D, P, A, S, A>(Agent);
-            var evaluationStrategy = new WinLossDrawStateEvaluation<D, P, A, S, A, TreeSearchNode<P, A>>(1, -10, 0);
-            var search = new LSI<D, P, A, S, TreeSearchNode<P, A>, SI>(samplesForGeneration, samplesForEvaluation, sideInformationStrategy, samplingStrategy, playoutStrategy, evaluationStrategy, GameLogic);
-
-            // Test if the AI finds the correct solution.
+        public void TestFlatMCS(ISearchStrategy<D, P, A, S, A> search) {
             TestAI(SearchContext<D, P, A, S, A>.GameSearchSetup(GameLogic, null, State, null, search));
         }
+
+        public void TestMCTS(ISearchStrategy<D, P, A, S, A> search) {
+            TestAI(SearchContext<D, P, A, S, A>.GameSearchSetup(GameLogic, null, State, null, search));
+        }
+
+        public void TestNMCTS(ISearchStrategy<D, P, A, S, A> search) {
+            TestAI(SearchContext<D, P, A, S, A>.GameSearchSetup(GameLogic, null, State, null, search));
+        }
+
+        public void TestLSI(LSI<D, P, A, S, TreeSearchNode<P, A>, SI> search) {
+            TestAI(SearchContext<D, P, A, S, A>.GameSearchSetup(GameLogic, null, State, null, search));
+        }
+
+        public abstract ISearchStrategy<D, P, A, S, A> SetupFlatMCS();
+
+        public abstract ISearchStrategy<D, P, A, S, A> SetupMCTS();
+
+        public abstract ISearchStrategy<D, P, A, S, A> SetupNMCTS(ISamplingStrategy<P, A> samplingStrategy);
+
+        public abstract LSI<D, P, A, S, TreeSearchNode<P, A>, SI> SetupLSI(ISideInformationStrategy<D, P, A, S, A, SI> sideInformationStrategy, ILSISamplingStrategy<P, A, SI> samplingStrategy);
 
         /// <summary>
         /// Test an AI on the argument search context.

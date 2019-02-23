@@ -75,20 +75,19 @@ namespace AVThesisTest.TicTacToe {
             #region Opening and response
 
             // Opening move to corner or middle position
-            // Debatable which is better, but we assume perfect play, so any corner is good
             if (possibilities.Count == 9) {
-                return new TicTacToeMove(CornerPositions.RandomElementOrDefault(), myID);
-                //return new TicTacToeMove(4, myID);
-            }
-
-            // If the middle position was opened with, play corner
-            if (possibilities.Count == 8 && !possibilities.Contains(4)) {
-                return new TicTacToeMove(CornerPositions.RandomElementOrDefault(), myID);
-            }
-
-            // If a corner or an edge was opened with, play middle
-            if (possibilities.Count == 8)
+                //return new TicTacToeMove(CornerPositions.RandomElementOrDefault(), myID);
                 return new TicTacToeMove(4, myID);
+            }
+
+            // Second turn
+            if (possibilities.Count == 8) {
+                // If the middle position was opened with, play corner
+                if (!possibilities.Contains(4))
+                    return new TicTacToeMove(CornerPositions.RandomElementOrDefault(), myID);
+                // If a corner or an edge was opened with, play middle
+                return new TicTacToeMove(4, myID);
+            }
 
             #endregion
 
