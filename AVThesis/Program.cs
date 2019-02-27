@@ -13,8 +13,8 @@ namespace AVThesis {
     public class Program {
 
 		public static void Main(string[] args) {
-            //RunTournamentMatch();
-            RunQuickMatch();
+            RunTournamentMatch();
+            //RunQuickMatch();
 
 #pragma warning disable 219
             string catcher = null;
@@ -26,10 +26,10 @@ namespace AVThesis {
             var gameConfig = new GameConfig {
                 Player1Name = "Player1",
                 Player1HeroClass = CardClass.HUNTER,
-                Player1Deck = Decks.TestDeck,
+                Player1Deck = Decks.ControlHunter,
                 Player2Name = "Player2",
                 Player2HeroClass = CardClass.HUNTER,
-                Player2Deck = Decks.TestDeck,
+                Player2Deck = Decks.MidrangeHunter,
                 FillDecks = false,
                 Shuffle = true,
                 SkipMulligan = true,
@@ -37,7 +37,7 @@ namespace AVThesis {
             };
 
             // Create a new tournament match
-            var match = new Tournament.TournamentMatch(new MCTSBot(hierarchicalExpansion: true), new RandomBot(), gameConfig, 50);
+            var match = new Tournament.TournamentMatch(new RandomBot(), new RandomBot(), gameConfig, 50);
 
             match.RunMatch();
         }
@@ -48,10 +48,10 @@ namespace AVThesis {
                 StartPlayer = 1,
                 Player1Name = "Player1",
                 Player1HeroClass = CardClass.HUNTER,
-                Player1Deck = Decks.TestDeck,
+                Player1Deck = Decks.DefaultDeck,
                 Player2Name = "Player2",
                 Player2HeroClass = CardClass.HUNTER,
-                Player2Deck = Decks.TestDeck,
+                Player2Deck = Decks.AggroHunter,
                 FillDecks = false,
                 Shuffle = true,
                 SkipMulligan = true,
@@ -59,7 +59,7 @@ namespace AVThesis {
             }));
 
             // Create two bots to play
-            var bot1 = new MCTSBot(game.Player1, debugInfoToConsole: true);
+            var bot1 = new RandomBot(game.Player1);
             var bot2 = new RandomBot(game.Player2);
 
             game.Game.StartGame();

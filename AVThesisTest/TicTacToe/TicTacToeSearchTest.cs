@@ -108,7 +108,7 @@ namespace AVThesisTest.TicTacToe {
             Assert.IsTrue(result.PlayerWon == -1);
             
             // If the first player plays an edge position, the game is a draw.
-            // (second player should play a corner position)
+            // (second player should play the middle position)
             source = new TicTacToeState("---X-----");
             source.EndTurn();
             context.Reset();

@@ -265,6 +265,66 @@ namespace AVThesis.SabberStone {
             return returnActions;
         }
 
+        /// <summary>
+        /// Recursively expands an action by creating new actions and adding possible tasks to them.
+        /// </summary>
+        /// <param name="rootState">The game state at the root of the recursive call.</param>
+        /// <param name="action">The action.</param>
+        /// <param name="playerId">The unique identifier of the player that will play the action.</param>
+        /// <param name="completeActions">A reference to a collection of completely expanded actions.</param>
+        private void ExpandAction(SabberStoneState rootState, SabberStoneAction action, int playerId, ref List<SabberStoneAction> completeActions) {
+
+            // If the latest option added was the end-turn task, return
+            if (action.IsComplete()) {
+                completeActions.Add(action);
+                return;
+            }
+
+            // Go through all available options
+            foreach (var option in CreateCurrentOptions(rootState, action, playerId)) {
+                // Create a new action that is a copy of the current action
+                var nextLevelAction = new SabberStoneAction(action.Tasks);
+                // Add that task as the latest task
+                nextLevelAction.AddTask(option);
+                // Recursively call this method to find all combinations
+                ExpandAction(rootState, nextLevelAction, playerId, ref completeActions);
+            }
+        }
+
+        /// <summary>
+        /// Creates the currently available options for a player after a specific action is executed.
+        /// </summary>
+        /// <param name="rootState">The game state before any tasks in the action are processed.</param>
+        /// <param name="action">The action containing a list of tasks to process.</param>
+        /// <param name="playerId">The unique identifier of the player that will play the action.</param>
+        /// <param name="ignorePositioning">[Optional] Whether or not to treat minion play tasks with different positions as the same and ignore the extras. Default is true.</param>
+        /// <returns>Collection of available tasks, potentially having minion play tasks with different positions filtered out.</returns>
+        private static IEnumerable<SabberStonePlayerTask> CreateCurrentOptions(SabberStoneState rootState, SabberStoneAction action, int playerId, bool ignorePositioning = true) {
+
+            // Clone the root state before tampering with it
+            var clonedState = (SabberStoneState)rootState.Copy();
+            // Apply the tasks in the current action to the root state
+            foreach (var task in action.Tasks) {
+                clonedState.Game.Process(task.Task);
+            }
+
+            // If it's no longer our player's turn, or if the game has ended return an empty list
+            // Note: this will happen if the last task processed was an end-turn task or if that task ended the game
+            if (clonedState.Game.CurrentPlayer.Id != playerId || clonedState.Game.State == State.COMPLETE) return new List<SabberStonePlayerTask>();
+
+            // Query the game for the currently available actions
+            var currentOptions = clonedState.Game.CurrentPlayer.Options();
+
+            if (ignorePositioning) {
+                // Filter out all tasks that have position set to anything higher than 0
+                // Note: a position of -1 means that the task doesn't care about positioning, so those are left in
+                currentOptions = currentOptions.Where(i => i.ZonePosition <= 0).ToList();
+            }
+
+            // Return the options
+            return currentOptions.Select(i => (SabberStonePlayerTask)i);
+        }
+
         #endregion
 
         #region Public Methods
@@ -358,70 +418,6 @@ namespace AVThesis.SabberStone {
             position.PlayerWon == position.Player1.Id ? PLAYER_WIN_SCORE : PLAYER_LOSS_SCORE,
             position.PlayerWon == position.Player2.Id ? PLAYER_WIN_SCORE : PLAYER_LOSS_SCORE
         };
-
-        #endregion
-
-        #region Private Methods
-
-        /// <summary>
-        /// Recursively expands an action by creating new actions and adding possible tasks to them.
-        /// </summary>
-        /// <param name="rootState">The game state at the root of the recursive call.</param>
-        /// <param name="action">The action.</param>
-        /// <param name="playerId">The unique identifier of the player that will play the action.</param>
-        /// <param name="completeActions">A reference to a collection of completely expanded actions.</param>
-        private void ExpandAction(SabberStoneState rootState, SabberStoneAction action, int playerId, ref List<SabberStoneAction> completeActions) {
-
-            // If the latest option added was the end-turn task, return
-            if (action.IsComplete()) {
-                completeActions.Add(action);
-                return;
-            }
-
-            // Go through all available options
-            foreach (var option in CreateCurrentOptions(rootState, action, playerId)) {
-                // Create a new action that is a copy of the current action
-                var nextLevelAction = new SabberStoneAction(action.Tasks);
-                // Add that task as the latest task
-                nextLevelAction.AddTask(option);
-                // Recursively call this method to find all combinations
-                ExpandAction(rootState, nextLevelAction, playerId, ref completeActions);
-            }
-        }
-
-        /// <summary>
-        /// Creates the currently available options for a player after a specific action is executed.
-        /// </summary>
-        /// <param name="rootState">The game state before any tasks in the action are processed.</param>
-        /// <param name="action">The action containing a list of tasks to process.</param>
-        /// <param name="playerId">The unique identifier of the player that will play the action.</param>
-        /// <param name="ignorePositioning">[Optional] Whether or not to treat minion play tasks with different positions as the same and ignore the extras. Default is true.</param>
-        /// <returns>Collection of available tasks, potentially having minion play tasks with different positions filtered out.</returns>
-        private static IEnumerable<SabberStonePlayerTask> CreateCurrentOptions(SabberStoneState rootState, SabberStoneAction action, int playerId, bool ignorePositioning = true) {
-
-            // Clone the root state before tampering with it
-            var clonedState = (SabberStoneState)rootState.Copy();
-            // Apply the tasks in the current action to the root state
-            foreach (var task in action.Tasks) {
-                clonedState.Game.Process(task.Task);
-            }
-
-            // If it's no longer our player's turn, or if the game has ended return an empty list
-            // Note: this will happen if the last task processed was an end-turn task or if that task ended the game
-            if (clonedState.Game.CurrentPlayer.Id != playerId || clonedState.Game.State == State.COMPLETE) return new List<SabberStonePlayerTask>();
-
-            // Query the game for the currently available actions
-            var currentOptions = clonedState.Game.CurrentPlayer.Options();
-
-            if (ignorePositioning) {
-                // Filter out all tasks that have position set to anything higher than 0
-                // Note: a position of -1 means that the task doesn't care about positioning, so those are left in
-                currentOptions = currentOptions.Where(i => i.ZonePosition <= 0).ToList();
-            }
-
-            // Return the options
-            return currentOptions.Select(i => (SabberStonePlayerTask)i);
-        }
 
         #endregion
 

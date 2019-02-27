@@ -22,7 +22,7 @@ namespace AVThesis.SabberStone {
         /// <summary>
         /// The total amount of value that has been recorded for this SabberStonePlayerTask.
         /// </summary>
-        public double TotalValue => ValueCollection.Sum();
+        public double TotalValue { get; set; }
 
         /// <summary>
         /// The number of times this SabberStonePlayerTask has been visited.
@@ -45,8 +45,11 @@ namespace AVThesis.SabberStone {
         /// <param name="value">The initial value for this task.</param>
         public PlayerTaskStatistics(SabberStonePlayerTask task, double value) {
             Task = task;
-            ValueCollection = new List<double> {value};
-            Visits = 1;
+            Visits = 0;
+            TotalValue = 0;
+            ValueCollection = new List<double>();
+
+            AddValue(value);
         }
 
         #endregion
@@ -59,6 +62,7 @@ namespace AVThesis.SabberStone {
         /// <param name="value">The value to be added to this task.</param>
         public void AddValue(double value) {
             ValueCollection.Add(value);
+            TotalValue += value;
             Visits++;
         }
 
@@ -76,6 +80,10 @@ namespace AVThesis.SabberStone {
         /// <returns>UCB value of this task, see <see cref="Util.UCB"/>.</returns>
         public double UCB(int parentVisits, double c) {
             return Util.UCB(TotalValue, Visits, parentVisits, c);
+        }
+
+        public override string ToString() {
+            return $"{Task} | total value: {TotalValue}, visits: {Visits}";
         }
 
         #endregion
