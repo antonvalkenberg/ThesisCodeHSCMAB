@@ -1,6 +1,8 @@
-﻿using AVThesis.Datastructures;
+﻿using System.Linq;
+using AVThesis.Datastructures;
+using SabberStoneCore.Enums;
 using SabberStoneCore.Model.Entities;
-using SabberStoneCore.Tasks;
+using SabberStoneCore.Tasks.PlayerTasks;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -52,33 +54,34 @@ namespace AVThesis.SabberStone.Bots {
         /// Creates a SabberStoneAction by randomly selecting one of the available PlayerTasks until the End_Turn task is selected.
         /// </summary>
         /// <param name="state">The game state for which an action should be created. Note: </param>
+        /// <param name="filterDuplicatePositionTasks">[Optional] Whether or not to filter out excess positioning on playing cards. Default value is false.</param>
         /// <returns>SabberStoneAction</returns>
-        public SabberStoneAction CreateRandomAction(SabberStoneState state) {
-
+        public SabberStoneAction CreateRandomAction(SabberStoneState state, bool filterDuplicatePositionTasks = false) {
             // Clone game so that we can process the selected tasks and get an updated options list.
             var clonedGame = state.Game.Clone();
-            var clonedPlayer = clonedGame.CurrentPlayer;
+            var playerID = clonedGame.CurrentPlayer.Id;
 
             // Create an action to store the selected tasks.
             var action = new SabberStoneAction();
 
-            // Keep selecting random actions until the 'end turn' task is selected, then stop.
-            var selectedTask = clonedPlayer.Options().RandomElementOrDefault();
-            do {
+            // Keep adding random tasks until the player's turn is over, or the game has ended
+            while (clonedGame.CurrentPlayer.Id == playerID && clonedGame.State != State.COMPLETE) {
+                // Check if an duplicate positions need to be filtered out
+                var availableOptions = clonedGame.CurrentPlayer.Options();
+                if (filterDuplicatePositionTasks)
+                    availableOptions = availableOptions.Where(i => i.ZonePosition <= 0).ToList();
+                // Select a random available task
+                var selectedTask = availableOptions.RandomElementOrDefault();
                 // Add the task to the action.
                 action.AddTask((SabberStonePlayerTask)selectedTask);
-
                 // Process the task on the cloned game state.
                 clonedGame.Process(selectedTask);
+            }
 
-                // select another random option.
-                selectedTask = clonedPlayer.Options().RandomElementOrDefault();
-
-                // Keep selecting tasks while we're still the active player, there is something to choose and we haven't chosen to pass the turn.
-            } while (clonedGame.CurrentPlayer.Id == clonedPlayer.Id && selectedTask != null && selectedTask.PlayerTaskType != PlayerTaskType.END_TURN);
-
-            // Add the last selected task, if it is not null
-            if (selectedTask != null) action.AddTask((SabberStonePlayerTask)selectedTask);
+            // Check if the action is complete, if not, add EndTurn
+            if (!action.IsComplete()) {
+                action.AddTask((SabberStonePlayerTask)EndTurnTask.Any(clonedGame.CurrentPlayer));
+            }
 
             return action;
         }
@@ -123,7 +126,7 @@ namespace AVThesis.SabberStone.Bots {
         /// </summary>
         /// <returns>String representing the Bot's name.</returns>
         public string Name() {
-            return BOT_NAME;
+            return Player == null ? BOT_NAME : $"{BOT_NAME}-{PlayerID()}";
         }
 
         #endregion

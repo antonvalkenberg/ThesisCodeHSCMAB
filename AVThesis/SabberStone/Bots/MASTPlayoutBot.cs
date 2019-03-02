@@ -309,10 +309,10 @@ namespace AVThesis.SabberStone.Bots {
             var setting = "";
             switch (Selection) {
                 case SelectionType.EGreedy:
-                    setting = $"{EGreedyThreshold}";
+                    setting = $"{EGreedyThreshold:F1}";
                     break;
                 case SelectionType.UCB:
-                    setting = $"{UCBConstantC}";
+                    setting = $"{UCBConstantC:F1}";
                     break;
             }
             return $"{BOT_NAME}_{Selection}_{setting}";

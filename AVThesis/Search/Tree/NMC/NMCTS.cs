@@ -179,8 +179,7 @@ namespace AVThesis.Search.Tree.NMC {
         /// <param name="gMAB">The global Multi-Armed-Bandit collection.</param>
         /// <returns>A <see cref="TreeSearchNode{S,A}"/> from which represents the selected node for the Simulation phase.</returns>
         private TreeSearchNode<P, A> NaïveSelectAndExpand(SearchContext<D, P, A, S, Sol> context, TreeSearchNode<P, A> node, Dictionary<long, Dictionary<int, LocalArm>> gMAB) {
-            var clone = context.Cloner;
-            var state = clone.Clone(node.State);
+            var state = context.Cloner.Clone(node.State);
             var apply = context.Application;
 
             // a = NaïveSampling(node.state, player)
@@ -193,16 +192,17 @@ namespace AVThesis.Search.Tree.NMC {
             //      return newNode
 
             // Find an action through the NaïveSampling process
-            A action = NaïveSampling(context, node, state, gMAB);
+            A action = NaïveSampling(context, state, gMAB);
             var actionHash = action.GetHashCode();
 
             // Check if any of the children of the current node have the sampled action as their payload
-            if (node.Children.Any(i => i.Payload.GetHashCode() == actionHash)) {
-                var child = node.Children.First(i => i.Payload.GetHashCode() == actionHash);
+            var existingChild = node.Children.FirstOrDefault(i => i.Payload.GetHashCode() == actionHash);
+            if (existingChild != null) {
                 // Check if taking this action still has the same player as active
-                if (child.State.CurrentPlayer() == node.State.CurrentPlayer())
-                    return NaïveSelectAndExpand(context, child, gMAB);
-                return child;
+                if (existingChild.State.CurrentPlayer() == node.State.CurrentPlayer())
+                    return NaïveSelectAndExpand(context, existingChild, gMAB);
+                // If not, we have reached the end of t
+                return existingChild;
             }
 
             // If none of the current children on the node have the action as payload, create a new child
@@ -217,13 +217,13 @@ namespace AVThesis.Search.Tree.NMC {
         /// Uses the local Multi-Armed-Bandits to explore the action space and uses the global Multi-Armed-Bandit to exploit the best performing actions.
         /// </summary>
         /// <param name="context">The current search context.</param>
-        /// <param name="node">The node in the search tree that is currently selected.</param>
         /// <param name="state">The game state for the node.</param>
         /// <param name="gMAB">The global Multi-Armed-Bandit.</param>
         /// <returns>An <see cref="A"/> that was selected from the global Multi-Armed-Bandit.</returns>
-        private A NaïveSampling(SearchContext<D, P, A, S, Sol> context, TreeSearchNode<P, A> node, P state, Dictionary<long, Dictionary<int, LocalArm>> gMAB) {
+        private A NaïveSampling(SearchContext<D, P, A, S, Sol> context, P state, Dictionary<long, Dictionary<int, LocalArm>> gMAB) {
             var apply = context.Application;
-            var stateHash = state.HashMethod();
+            var stateClone = context.Cloner.Clone(state);
+            var stateHash = stateClone.HashMethod();
             if (!gMAB.ContainsKey(stateHash))
                 gMAB.Add(stateHash, new Dictionary<int, LocalArm>());
 
@@ -239,10 +239,10 @@ namespace AVThesis.Search.Tree.NMC {
                 // Explore
                 
                 // Create an action according to policy p_1
-                A action = SamplingStrategy.Sample(state);
+                A action = SamplingStrategy.Sample(stateClone);
                 var actionHash = action.GetHashCode();
                 // Evaluate the sampled action
-                P endState = PlayoutStrategy.Playout(context, apply.Apply(context, state.Copy(), action));
+                P endState = PlayoutStrategy.Playout(context, apply.Apply(context, stateClone, action));
                 var tempNode = new TreeSearchNode<P, A> { Payload = action };
                 double reward = EvaluationStrategy.Evaluate(context, tempNode, endState);
                 // Add the action to the global MAB
@@ -258,7 +258,7 @@ namespace AVThesis.Search.Tree.NMC {
             }
             
             // Exploit; epsilon-greedy by returning the action with the highest expected reward with probability 1-e, otherwise returning random.
-            return _rng.NextDouble() > PolicyGlobal ? gMAB[stateHash].Values.OrderByDescending(i => i.ExpectedReward).First().Action : gMAB[stateHash].RandomElementOrDefault().Value.Action;
+            return _rng.NextDouble() <= (1 - PolicyGlobal) ? gMAB[stateHash].Values.OrderByDescending(i => i.ExpectedReward).First().Action : gMAB[stateHash].RandomElementOrDefault().Value.Action;
         }
 
         #endregion

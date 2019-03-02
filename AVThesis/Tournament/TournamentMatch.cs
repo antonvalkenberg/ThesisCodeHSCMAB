@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using AVThesis.SabberStone;
 using SabberStoneCore.Config;
 using SabberStoneCore.Enums;
@@ -16,20 +18,6 @@ namespace AVThesis.Tournament {
     /// A single tournament match, consisting of an arbitrary amount of games between two bots.
     /// </summary>
     public class TournamentMatch {
-
-        #region Inner Class: GameData
-
-        public class GameData {
-
-            public int WinningPlayerID { get; set; }
-
-            public GameData(int winningPlayerID) {
-                WinningPlayerID = winningPlayerID;
-            }
-
-        }
-
-        #endregion
 
         #region Fields
 
@@ -56,9 +44,14 @@ namespace AVThesis.Tournament {
         public int NumberOfGames { get; set; }
 
         /// <summary>
-        /// Statistics regarding the match, indexed by game number.
+        /// Statistics regarding the match.
         /// </summary>
-        public List<GameData> MatchStatistics { get; set; }
+        public MatchStatistics MatchStatistics { get; set; }
+
+        /// <summary>
+        /// The path to the file where any <see cref="Exception"/>s thrown during processing of <see cref="SabberStoneCore.Tasks.PlayerTask"/>s are written.
+        /// </summary>
+        public string ExceptionFilePath = Path.Combine(Path.GetDirectoryName(typeof(TournamentMatch).Assembly.Location), "Exceptions.txt");
 
         #endregion
 
@@ -77,7 +70,7 @@ namespace AVThesis.Tournament {
             Bots = new List<ISabberStoneBot> { bot1, bot2 };
             GameConfig = configuration;
             NumberOfGames = numberOfGames;
-            MatchStatistics = new List<GameData>(numberOfGames);
+            MatchStatistics = new MatchStatistics(bot1.Name(), bot2.Name(), numberOfGames);
             _printToConsole = printToConsole;
         }
 
@@ -93,13 +86,7 @@ namespace AVThesis.Tournament {
             for (int i = 0; i < NumberOfGames; i++) {
                 Console.WriteLine($"** Starting Game {i+1} of {NumberOfGames}");
                 RunGame(i);
-                Console.WriteLine("");
             }
-
-            // Check how many games each bot won at the end.
-            int bot1Wins = MatchStatistics.Count(i => i.WinningPlayerID == Bots[0].PlayerID());
-            int bot2Wins = MatchStatistics.Count(i => i.WinningPlayerID == Bots[1].PlayerID());
-            Console.WriteLine($"** Match Results: {Bots[0].Name()} won {bot1Wins} games, {Bots[1].Name()} won {bot2Wins} games.");
         }
 
         /// <summary>
@@ -107,7 +94,8 @@ namespace AVThesis.Tournament {
         /// </summary>
         /// <param name="gameIndex">The index of the game that should be run.</param>
         public void RunGame(int gameIndex) {
-            
+            var timer = Stopwatch.StartNew();
+
             // Alternate which player starts.
             var config = GameConfig.Clone();
             config.StartPlayer = (gameIndex % 2) + 1;
@@ -121,22 +109,26 @@ namespace AVThesis.Tournament {
 
             // Get the game ready.
             game.Game.StartGame();
+            MatchStatistics.NewGameStarted(gameIndex + 1, Bots[0].Name(), Bots[1].Name(), game.Game.FirstPlayer.Name);
             
             // Play out the game.
             while (game.Game.State != State.COMPLETE) {
                 if (_printToConsole) Console.WriteLine("");
-                if (_printToConsole) Console.WriteLine($"TURN {(game.Game.Turn + 1) / 2} - {game.Game.CurrentPlayer.Name}");
-                if (_printToConsole) Console.WriteLine($"Hero[P1] {game.Player1.Hero} HP: {game.Player1.Hero.Health} / Hero[P2] {game.Player2.Hero} HP: {game.Player2.Hero.Health}");
+                if (_printToConsole) Console.WriteLine($"*TURN {(game.Game.Turn + 1) / 2} - {game.Game.CurrentPlayer.Name}");
+                if (_printToConsole) Console.WriteLine($"*Hero[P1] {game.Player1.Hero} HP: {game.Player1.Hero.Health} / Hero[P2] {game.Player2.Hero} HP: {game.Player2.Hero.Health}");
 
                 // Play out the current player's turn until they pass.
                 if (game.Game.CurrentPlayer.Id == Bots[0].PlayerID()) PlayPlayerTurn(game, Bots[0]);
                 else if (game.Game.CurrentPlayer.Id == Bots[1].PlayerID()) PlayPlayerTurn(game, Bots[1]);
             }
 
-            if (_printToConsole) Console.WriteLine($"Game: {game.Game.State}, Player1: {game.Player1.PlayState} / Player2: {game.Player2.PlayState}");
+            if (_printToConsole) {
+                Console.WriteLine($"*Game: {game.Game.State}, Player1: {game.Player1.PlayState} / Player2: {game.Player2.PlayState}");
+                Console.WriteLine($"*Game lasted {timer.Elapsed:g}");
+            }
 
             // Create game data.
-            MatchStatistics.Insert(gameIndex, new GameData(game.PlayerWon));
+            MatchStatistics.EndCurrentGame(game);
         }
 
         #endregion
@@ -150,32 +142,61 @@ namespace AVThesis.Tournament {
         /// <param name="game">The current game state.</param>
         /// <param name="bot">The bot that should play the turn.</param>
         private void PlayPlayerTurn(SabberStoneState game, ISabberStoneBot bot) {
-            // Handle all of the player's turn
             if (_printToConsole) Console.WriteLine($"- <{game.Game.CurrentPlayer.Name}> ---------------------------");
+            var timer = Stopwatch.StartNew();
 
-            // Check if the bot is for the current player
-            if (game.Game.CurrentPlayer.Id == bot.PlayerID()) {
+            // Ask the bot to act.
+            var action = bot.Act(game);
+            timer.Stop();
 
-                // Ask the bot to act.
-                var action = bot.Act(game);
-                
-                // Check if the action is complete
-                if (action.IsComplete()) {
+            // In the case where an incomplete action was returned, add end-turn
+            if (!action.IsComplete()) {
+                Console.WriteLine("WARNING: Incomplete action received. Adding EndTurn.");
+                action.AddTask((SabberStonePlayerTask)EndTurnTask.Any(game.Game.CurrentPlayer));
+            }
 
-                    // Process the tasks in the action
-                    foreach (var item in action.Tasks) {
+            // Process the tasks in the action
+            var executedTasks = new List<SabberStonePlayerTask>();
+            foreach (var item in action.Tasks) {
 
-                        // Process the task
-                        if (_printToConsole) Console.WriteLine(item.Task.FullPrint());
-                        game.Game.Process(item.Task);
-                    }
+                if (_printToConsole) Console.WriteLine(item.Task.FullPrint());
+                try {
+                    // Process the task
+                    game.Game.Process(item.Task);
                 }
-                // In the case where an incomplete action was returned, return a null-move
-                else {
-                    Console.WriteLine("WARNING: Incomplete move received. Replacing with null-move.");
-                    game.Game.Process(EndTurnTask.Any(game.Game.CurrentPlayer));
+                catch (Exception e) {
+                    Console.WriteLine($"ERROR: Exception thrown while processing task {item.Task}");
+                    WriteExceptionToFile(e, item);
+                    // If the game is still running and the current player is still active, pass the turn
+                    if (game.Game.CurrentPlayer.Id == bot.PlayerID())
+                        game.Game.Process(EndTurnTask.Any(game.Game.CurrentPlayer));
+                    // Do not continue with any other tasks in this action
+                    break;
+                }
+                finally {
+                    executedTasks.Add(item);
                 }
             }
+
+            // Store the action in the match-statistics
+            MatchStatistics.ProcessAction(bot.Name(), executedTasks, timer.Elapsed);
+            if (_printToConsole) Console.WriteLine($"*Action computation time: {timer.Elapsed:g}");
+        }
+
+        /// <summary>
+        /// Writes the provided <see cref="Exception"/> to the file defined in <see cref="ExceptionFilePath"/>.
+        /// Adds some additional information about which task caused the exception.
+        /// </summary>
+        /// <param name="exception">The exception to write to the file.</param>
+        /// <param name="task">The <see cref="SabberStonePlayerTask"/> that caused the exception.</param>
+        private void WriteExceptionToFile(Exception exception, SabberStonePlayerTask task) {
+            var writer = new StreamWriter(ExceptionFilePath, true);
+            writer.WriteLine(task);
+            writer.WriteLine("Caused:");
+            writer.WriteLine(exception.Message);
+            writer.WriteLine(exception.StackTrace);
+            writer.WriteLine("");
+            writer.Close();
         }
 
         #endregion

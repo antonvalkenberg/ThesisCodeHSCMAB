@@ -79,12 +79,12 @@ namespace AVThesis.SabberStone.Bots {
         /// <summary>
         /// The default setting for the global policy in NMCTS.
         /// </summary>
-        public const double DEFAULT_NMCTS_GLOBAL_POLICY = 0.2;
+        public const double DEFAULT_NMCTS_GLOBAL_POLICY = 0;
 
         /// <summary>
         /// The default setting for the local policy in NMCTS.
         /// </summary>
-        public const double DEFAULT_NMCTS_LOCAL_POLICY = 0.2;
+        public const double DEFAULT_NMCTS_LOCAL_POLICY = 0.75;
 
         #endregion
 

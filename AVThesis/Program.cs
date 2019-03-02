@@ -26,7 +26,7 @@ namespace AVThesis {
             var gameConfig = new GameConfig {
                 Player1Name = "Player1",
                 Player1HeroClass = CardClass.HUNTER,
-                Player1Deck = Decks.ControlHunter,
+                Player1Deck = Decks.MidrangeHunter,
                 Player2Name = "Player2",
                 Player2HeroClass = CardClass.HUNTER,
                 Player2Deck = Decks.MidrangeHunter,
@@ -37,7 +37,9 @@ namespace AVThesis {
             };
 
             // Create a new tournament match
-            var match = new Tournament.TournamentMatch(new RandomBot(), new RandomBot(), gameConfig, 50);
+            var bot1 = new NMCTSBot();
+            var bot2 = new LSIBot();
+            var match = new Tournament.TournamentMatch(bot1, bot2, gameConfig, 5);
 
             match.RunMatch();
         }

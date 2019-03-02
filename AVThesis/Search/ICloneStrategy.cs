@@ -31,8 +31,7 @@ namespace AVThesis.Search {
         /// <param name="toClone">The object to clone.</param>
         /// <returns>Cloned instance of the object or the object itself.</returns>
         public T Clone(T toClone) {
-            if (toClone is State) return toClone.Copy();
-            else return toClone;
+            return (T) toClone.Copy();
         }
 
     }

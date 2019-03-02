@@ -22,43 +22,6 @@ namespace AVThesis.SabberStone.Bots {
         #region Inner Classes
 
         /// <summary>
-        /// Handles the local exploration for NMCTS.
-        /// </summary>
-        private class SabberStoneNMCTSExplorationStrategy : IExplorationStrategy<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> {
-
-            #region Properties
-
-            /// <summary>
-            /// The policy that defines the local exploration.
-            /// </summary>
-            private double LocalPolicy { get; }
-
-            #endregion
-
-            #region Constructors
-
-            /// <summary>
-            /// Creates a new instance of this exploration strategy.
-            /// </summary>
-            /// <param name="localPolicy">The local policy to use.</param>
-            public SabberStoneNMCTSExplorationStrategy(double localPolicy) {
-                LocalPolicy = localPolicy;
-            }
-
-            #endregion
-
-            #region Public Methods
-
-            /// <inheritdoc />
-            public bool Policy(SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, int currentIteration) {
-                return Util.RNG.NextDouble() > LocalPolicy;
-            }
-
-            #endregion
-
-        }
-
-        /// <summary>
         /// Handles the sampling of states during the NaïveSampling process.
         /// </summary>
         private class SabberStoneNMCSamplingStrategy : ISamplingStrategy<SabberStoneState, SabberStoneAction> {
@@ -88,7 +51,7 @@ namespace AVThesis.SabberStone.Bots {
 
             /// <inheritdoc />
             public SabberStoneAction Sample(SabberStoneState state) {
-                return NaïveBot.CreateRandomAction(state);
+                return NaïveBot.CreateRandomAction(state, filterDuplicatePositionTasks: true);
             }
 
             #endregion
@@ -214,21 +177,7 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
         public NMCTSBot(Controller player, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, int iterations = Constants.DEFAULT_NMCTS_ITERATIONS, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, double globalPolicy = Constants.DEFAULT_NMCTS_GLOBAL_POLICY, double localPolicy = Constants.DEFAULT_NMCTS_LOCAL_POLICY, bool debugInfoToConsole = false)
             : this(allowPerfectInformation, ensembleSize, mastSelectionType, iterations, playoutTurnCutoff, globalPolicy, localPolicy, debugInfoToConsole) {
-            Player = player;
-
-            // Set the playout bots correctly if we are using PlayoutStrategySabberStone
-            if (Playout is PlayoutStrategySabberStone playout) {
-                MyPlayoutBot.SetController(Player);
-                playout.AddPlayoutBot(Player.Id, MyPlayoutBot);
-                OpponentPlayoutBot.SetController(Player.Opponent);
-                playout.AddPlayoutBot(Player.Id, MyPlayoutBot);
-            }
-
-            // Set the controller of the random sampling bot
-            RandomSamplingBot.SetController(Player);
-
-            // Create the searcher that will handle the searching and some administrative tasks
-            Searcher = new SabberStoneSearch(Player, _debug);
+            SetController(player);
         }
 
         /// <summary>
@@ -274,7 +223,7 @@ namespace AVThesis.SabberStone.Bots {
 
             // Build NMCTS
             Builder = NMCTS<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>.Builder();
-            Builder.ExplorationStrategy = new SabberStoneNMCTSExplorationStrategy(LocalPolicy);
+            Builder.ExplorationStrategy = new ChanceExploration<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>(LocalPolicy);
             Builder.PlayoutStrategy = Playout;
             Builder.PolicyGlobal = GlobalPolicy;
             Builder.SamplingStrategy = new SabberStoneNMCSamplingStrategy(RandomSamplingBot);
@@ -326,6 +275,20 @@ namespace AVThesis.SabberStone.Bots {
         /// <inheritdoc />
         public void SetController(Controller controller) {
             Player = controller;
+
+            // Set the playout bots correctly if we are using PlayoutStrategySabberStone
+            if (Playout is PlayoutStrategySabberStone playout) {
+                MyPlayoutBot.SetController(Player);
+                playout.AddPlayoutBot(Player.Id, MyPlayoutBot);
+                OpponentPlayoutBot.SetController(Player.Opponent);
+                playout.AddPlayoutBot(Player.Id, MyPlayoutBot);
+            }
+
+            // Set the controller of the random sampling bot
+            RandomSamplingBot.SetController(Player);
+
+            // Create the searcher that will handle the searching and some administrative tasks
+            Searcher = new SabberStoneSearch(Player, _debug);
         }
 
         /// <inheritdoc />
@@ -335,8 +298,13 @@ namespace AVThesis.SabberStone.Bots {
 
         /// <inheritdoc />
         public string Name() {
+            var it = Iterations != Constants.DEFAULT_NMCTS_ITERATIONS ? $"_{Iterations}it" : "";
+            var gp = GlobalPolicy != Constants.DEFAULT_NMCTS_GLOBAL_POLICY ? $"_{GlobalPolicy}gp" : "";
+            var lp = LocalPolicy != Constants.DEFAULT_NMCTS_LOCAL_POLICY ? $"_{LocalPolicy}lp" : "";
+            var ptc = PlayoutTurnCutoff != Constants.DEFAULT_PLAYOUT_TURN_CUTOFF ? $"_{PlayoutTurnCutoff}tc" : "";
+            var es = EnsembleSize > 1 ? $"_{EnsembleSize}es" : "";
             var pi = PerfectInformation ? "_PI" : "";
-            return $"{BOT_NAME}_{Iterations}it_es{EnsembleSize}_{GlobalPolicy}gp_{LocalPolicy}lp_{PlayoutTurnCutoff}tc_p{MyPlayoutBot.Name()}_op{OpponentPlayoutBot.Name()}{pi}";
+            return $"{BOT_NAME}{it}{gp}{lp}{ptc}{es}{pi}";
         }
         
         #endregion

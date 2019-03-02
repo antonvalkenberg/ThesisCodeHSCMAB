@@ -156,19 +156,7 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
         public MCTSBot(Controller player, bool hierarchicalExpansion = true, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool retainTaskStatistics = false, int iterations = Constants.DEFAULT_MCTS_ITERATIONS, int minimumVisitThresholdForExpansion = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_EXPANSION, int minimumVisitThresholdForSelection = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_SELECTION, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, double ucbConstantC = Constants.DEFAULT_UCB1_C, SabberStoneGameLogic.DimensionalOrderingType dimensionalOrdering = SabberStoneGameLogic.DimensionalOrderingType.None, bool debugInfoToConsole = false)
             : this(hierarchicalExpansion, allowPerfectInformation, ensembleSize, mastSelectionType, retainTaskStatistics, iterations, minimumVisitThresholdForExpansion, minimumVisitThresholdForSelection, playoutTurnCutoff, ucbConstantC, dimensionalOrdering, debugInfoToConsole) {
-            Player = player;
-
-            // Set the playout bots correctly if we are using PlayoutStrategySabberStone
-            if (Playout is PlayoutStrategySabberStone playout) {
-                MyPlayoutBot.SetController(Player);
-                playout.AddPlayoutBot(Player.Id, MyPlayoutBot);
-                OpponentPlayoutBot.SetController(Player.Opponent);
-                playout.AddPlayoutBot(Player.Id, MyPlayoutBot);
-            }
-
-            // Create the searcher that will handle the searching and some administrative tasks
-            Searcher = new SabberStoneSearch(Player, _debug);
-            GameLogic.Searcher = Searcher;
+            SetController(player);
         }
 
         /// <summary>
@@ -257,6 +245,10 @@ namespace AVThesis.SabberStone.Bots {
             foreach (var task in completingAction.Tasks) {
                 action.AddTask(task);
             }
+
+            // If the move is not complete yet (for example, when the game is over), add EndTurn
+            if (!action.IsComplete())
+                action.AddTask((SabberStonePlayerTask)EndTurnTask.Any(Player));
         }
 
         #endregion
@@ -318,10 +310,15 @@ namespace AVThesis.SabberStone.Bots {
         /// </summary>
         /// <returns>String representing the bot's name.</returns>
         public string Name() {
-            var he = HierarchicalExpansion ? "_HE" : "";
+            var it = Iterations != Constants.DEFAULT_MCTS_ITERATIONS ? $"_{Iterations}it" : "";
+            var ptc = PlayoutTurnCutoff != Constants.DEFAULT_PLAYOUT_TURN_CUTOFF ? $"_{PlayoutTurnCutoff}tc" : "";
+            var mve = MinimumVisitThresholdForExpansion != Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_EXPANSION ? $"_{MinimumVisitThresholdForExpansion}mve" : "";
+            var mvs = MinimumVisitThresholdForSelection != Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_SELECTION ? $"_{MinimumVisitThresholdForSelection}mvs" : "";
+            var es = EnsembleSize > 1 ? $"_{EnsembleSize}es" : "";
             var pi = PerfectInformation ? "_PI" : "";
+            //var he = HierarchicalExpansion ? "_HE" : "";
             var rts = RetainTaskStatistics ? "_RTS" : "";
-            return $"{BOT_NAME}_{Iterations}it_es{EnsembleSize}{he}_{MinimumVisitThresholdForExpansion}mve_{MinimumVisitThresholdForSelection}mvs_{PlayoutTurnCutoff}tc_p{MyPlayoutBot.Name()}_op{OpponentPlayoutBot.Name()}{pi}{rts}";
+            return $"{BOT_NAME}{it}{ptc}{mve}{mvs}{es}{pi}{rts}";
         }
 
         /// <summary>
@@ -338,6 +335,18 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="controller">This bot's Controller.</param>
         public void SetController(Controller controller) {
             Player = controller;
+
+            // Set the playout bots correctly if we are using PlayoutStrategySabberStone
+            if (Playout is PlayoutStrategySabberStone playout) {
+                MyPlayoutBot.SetController(Player);
+                playout.AddPlayoutBot(Player.Id, MyPlayoutBot);
+                OpponentPlayoutBot.SetController(Player.Opponent);
+                playout.AddPlayoutBot(Player.Id, MyPlayoutBot);
+            }
+
+            // Create the searcher that will handle the searching and some administrative tasks
+            Searcher = new SabberStoneSearch(Player, _debug);
+            GameLogic.Searcher = Searcher;
         }
 
         #endregion

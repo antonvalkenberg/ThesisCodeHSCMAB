@@ -310,18 +310,7 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
         public LSIBot(Controller player, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, int samplesForGeneration = Constants.DEFAULT_LSI_SAMPLES_FOR_GENERATION, int samplesForEvaluation = (int)(Constants.DEFAULT_LSI_SAMPLES_FOR_EVALUATION * Constants.DEFAULT_LSI_EVALUATION_SAMPLES_ADJUSTMENT_FACTOR), bool debugInfoToConsole = false)
             : this(allowPerfectInformation, ensembleSize, mastSelectionType, playoutTurnCutoff, samplesForGeneration, samplesForEvaluation, debugInfoToConsole) {
-            Player = player;
-
-            // Set the playout bots correctly if we are using PlayoutStrategySabberStone
-            if (Playout is PlayoutStrategySabberStone playout) {
-                MyPlayoutBot.SetController(Player);
-                playout.AddPlayoutBot(Player.Id, MyPlayoutBot);
-                OpponentPlayoutBot.SetController(Player.Opponent);
-                playout.AddPlayoutBot(Player.Id, MyPlayoutBot);
-            }
-
-            // Create the searcher that will handle the searching and some administrative tasks
-            Searcher = new SabberStoneSearch(Player, _debug);
+            SetController(player);
         }
 
         /// <summary>
@@ -435,6 +424,17 @@ namespace AVThesis.SabberStone.Bots {
         /// <inheritdoc />
         public void SetController(Controller controller) {
             Player = controller;
+
+            // Set the playout bots correctly if we are using PlayoutStrategySabberStone
+            if (Playout is PlayoutStrategySabberStone playout) {
+                MyPlayoutBot.SetController(Player);
+                playout.AddPlayoutBot(Player.Id, MyPlayoutBot);
+                OpponentPlayoutBot.SetController(Player.Opponent);
+                playout.AddPlayoutBot(Player.Id, MyPlayoutBot);
+            }
+
+            // Create the searcher that will handle the searching and some administrative tasks
+            Searcher = new SabberStoneSearch(Player, _debug);
         }
 
         /// <inheritdoc />
@@ -444,8 +444,12 @@ namespace AVThesis.SabberStone.Bots {
 
         /// <inheritdoc />
         public string Name() {
+            var sfg = SamplesForGeneration != Constants.DEFAULT_LSI_SAMPLES_FOR_GENERATION ? $"_{SamplesForGeneration}g" : "";
+            var sfe = SamplesForEvaluation != Constants.DEFAULT_LSI_SAMPLES_FOR_EVALUATION ? $"_{SamplesForEvaluation}e" : "";
+            var ptc = PlayoutTurnCutoff != Constants.DEFAULT_PLAYOUT_TURN_CUTOFF ? $"_{PlayoutTurnCutoff}tc" : "";
+            var es = EnsembleSize > 1 ? $"_{EnsembleSize}es" : "";
             var pi = PerfectInformation ? "_PI" : "";
-            return $"{BOT_NAME}_{SamplesForGeneration}g_{SamplesForEvaluation}e_{EnsembleSize}es_{PlayoutTurnCutoff}tc_p{MyPlayoutBot.Name()}_op{OpponentPlayoutBot.Name()}{pi}";
+            return $"{BOT_NAME}{sfg}{sfe}{ptc}{es}{pi}";
         }
 
         #endregion
