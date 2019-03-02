@@ -87,7 +87,7 @@ namespace AVThesis.Tournament {
                 Player2Name = player2Name;
                 StartingPlayerName = startingPlayerName;
                 Status = State.RUNNING;
-                GameActions = new Dictionary<string, List<Tuple<List<SabberStonePlayerTask>, TimeSpan>>>() {{Player1Name, new List<Tuple<List<SabberStonePlayerTask>, TimeSpan>>()}, {Player2Name, new List<Tuple<List<SabberStonePlayerTask>, TimeSpan>>()}};
+                GameActions = new Dictionary<string, List<Tuple<List<SabberStonePlayerTask>, TimeSpan>>> {{Player1Name, new List<Tuple<List<SabberStonePlayerTask>, TimeSpan>>()}, {Player2Name, new List<Tuple<List<SabberStonePlayerTask>, TimeSpan>>()}};
             }
 
             #endregion
@@ -110,7 +110,7 @@ namespace AVThesis.Tournament {
             /// Add an executed action to these statistics.
             /// </summary>
             /// <param name="player">The name of the player that performed the action.</param>
-            /// <param name="action">The tasks that were executed.</param>
+            /// <param name="tasks">The tasks that were executed.</param>
             /// <param name="actionTime">The time that was spent on computing the action.</param>
             public void AddAction(string player, List<SabberStonePlayerTask> tasks, TimeSpan actionTime) {
                 GameActions[player].Add(new Tuple<List<SabberStonePlayerTask>, TimeSpan>(tasks, actionTime));

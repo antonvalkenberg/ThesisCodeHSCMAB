@@ -5,7 +5,6 @@ using System.IO;
 using AVThesis.SabberStone;
 using SabberStoneCore.Config;
 using SabberStoneCore.Enums;
-using System.Linq;
 using SabberStoneCore.Tasks.PlayerTasks;
 
 /// <summary>
@@ -21,7 +20,7 @@ namespace AVThesis.Tournament {
 
         #region Fields
 
-        readonly bool _printToConsole;
+        private readonly bool _printToConsole;
 
         #endregion
 
@@ -83,7 +82,7 @@ namespace AVThesis.Tournament {
         /// </summary>
         public void RunMatch() {
             // Run all the games of the match.
-            for (int i = 0; i < NumberOfGames; i++) {
+            for (var i = 0; i < NumberOfGames; i++) {
                 Console.WriteLine($"** Starting Game {i+1} of {NumberOfGames}");
                 RunGame(i);
             }
@@ -98,7 +97,7 @@ namespace AVThesis.Tournament {
 
             // Alternate which player starts.
             var config = GameConfig.Clone();
-            config.StartPlayer = (gameIndex % 2) + 1;
+            config.StartPlayer = gameIndex % 2 + 1;
             
             // Create a new game with the cloned configuration.
             var game = new SabberStoneState(new SabberStoneCore.Model.Game(config));
@@ -137,7 +136,7 @@ namespace AVThesis.Tournament {
 
         /// <summary>
         /// Plays out a player's turn.
-        /// Note: this method continously asks the bot to Act and stops when 'null' is returned.
+        /// Note: this method continuously asks the bot to Act and stops when 'null' is returned.
         /// </summary>
         /// <param name="game">The current game state.</param>
         /// <param name="bot">The bot that should play the turn.</param>

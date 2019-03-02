@@ -10,13 +10,13 @@ namespace AVThesis {
     public static class Constants {
 
         /// <summary>
-        /// The base prime number we use for calculating hashcodes.
+        /// The base prime number we use for calculating hash codes.
         /// See: http://www.isthe.com/chongo/tech/comp/fnv/#FNV-1
         /// </summary>
         public const uint HASH_OFFSET_BASIS = 2166136261;
 
         /// <summary>
-        /// The prime number we use for calculating hashcodes.
+        /// The prime number we use for calculating hash codes.
         /// See: http://www.isthe.com/chongo/tech/comp/fnv/#FNV-1
         /// </summary>
         public const int HASH_FNV_PRIME = 16777619;

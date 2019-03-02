@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using AVThesis.Datastructures;
-
-/// <summary>
+﻿/// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
 /// In parts inspired by a code framework written by G.J. Roelofs and T. Aliyev.
 /// </summary>
@@ -38,18 +35,12 @@ namespace AVThesis.Search.Tree {
     /// <typeparam name="Sol"><see cref="SearchContext{Sol}"/></typeparam>
     public class MinimumTExpansion<D, P, A, S, Sol> : ITreeExpansion<D, P, A, S, Sol> where D : class where P : State where A : class where S : class where Sol : class {
 
-        #region Fields
-
-        private int _t;
-
-        #endregion
-
         #region Properties
 
         /// <summary>
         /// The minimum amount of times a node has to be visited before it can be expanded.
         /// </summary>
-        public int T { get => _t; set => _t = value; }
+        public int T { get; set; }
 
         #endregion
 
@@ -80,7 +71,7 @@ namespace AVThesis.Search.Tree {
             if (node.Visits < T && !node.IsRoot()) return node;
 
             // Create a position generator if there is not one set in the node yet.
-            IPositionGenerator<A> positionGenerator = node.PositionGenerator;
+            var positionGenerator = node.PositionGenerator;
             if (positionGenerator == null) {
                 var expansion = context.Expansion;
                 positionGenerator = expansion.Expand(context, state);
@@ -88,15 +79,11 @@ namespace AVThesis.Search.Tree {
             }
 
             // Move the PositionGenerator to the next item, if available (note: PositionGenerator initialises to before the first item).
-            if (positionGenerator.MoveNext()) {
-                var child = new TreeSearchNode<P, A>(positionGenerator.Current);
-                node.AddChild(child);
-                child.Parent = node;
-                return child;
-            } else {
-                return node;
-            }
-
+            if (!positionGenerator.MoveNext()) return node;
+            var child = new TreeSearchNode<P, A>(positionGenerator.Current);
+            node.AddChild(child);
+            child.Parent = node;
+            return child;
         }
 
         #endregion

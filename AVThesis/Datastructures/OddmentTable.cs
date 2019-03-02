@@ -7,10 +7,11 @@ using System.Collections.Generic;
 /// </summary>
 namespace AVThesis.Datastructures {
 
+    // ReSharper disable once CommentTypo
     /// <summary>
     /// An implementation of the alias method implemented using Vose's algorithm.
     /// The alias method allows for efficient sampling of random values from a discrete probability distribution (i.e. rolling a loaded die).
-    /// Process runs in O(1) time after O(n) preprocessing time.
+    /// Process runs in O(1) time after O(n) pre-processing time.
     /// Source: https://www.gamasutra.com/view/news/168153/Simulating_a_loaded_dice_in_a_constant_time.php
     /// Source: http://www.keithschwarz.com/darts-dice-coins/
     /// </summary>
@@ -94,20 +95,20 @@ namespace AVThesis.Datastructures {
 
             _alias = new int[Options.Count];
             _probability = new double[Options.Count];
-            double average = 1.0 / Options.Count;
+            var average = 1.0 / Options.Count;
 
             // Normalise the probabilities.
-            List<double> newProbabilities = new List<double>();
+            var newProbabilities = new List<double>();
             foreach (var option in Options) {
                 newProbabilities.Add(Util.Normalise(option.Item1, 0, sum));
             }
 
-            // Create two stacks to act as worklists as we populate the tables.
-            Deque<int> small = new Deque<int>();
-            Deque<int> large = new Deque<int>();
+            // Create two stacks to act as work-lists as we populate the tables.
+            var small = new Deque<int>();
+            var large = new Deque<int>();
 
             // Populate the stacks with the input probabilities' indices.
-            for (int i = 0; i < newProbabilities.Count; i++) {
+            for (var i = 0; i < newProbabilities.Count; i++) {
                 if (newProbabilities[i] >= average) {
                     large.Add(i);
                 }
@@ -120,8 +121,8 @@ namespace AVThesis.Datastructures {
             // However, due to floating point inaccuracies, this is not necessarily true.
             // Consequently, this inner loop (which tries to pair small and large elements) will have to check that both lists aren't empty.
             while (!small.IsEmpty && !large.IsEmpty) {
-                int less = small.RemoveBack();
-                int more = large.RemoveBack();
+                var less = small.RemoveBack();
+                var more = large.RemoveBack();
 
                 // These probabilities have not yet been scaled up to be such that 1/n is given weight 1.0.
                 // We do this here instead.
@@ -153,10 +154,10 @@ namespace AVThesis.Datastructures {
         /// <returns>A random value based on this OddmentTable's distribution.</returns>
         public T Next() {
             // Generate a fair die roll to determine which column to inspect.
-            int column = Random.Next(_probability.Length);
+            var column = Random.Next(_probability.Length);
 
             // Generate a biased coin toss to determine which option to pick in this column.
-            bool coinToss = Random.NextDouble() < _probability[column];
+            var coinToss = Random.NextDouble() < _probability[column];
 
             // Based on the outcome, return either the column or its alias.
             return coinToss ? Options[column].Item2 : Options[_alias[column]].Item2;
@@ -209,7 +210,7 @@ namespace AVThesis.Datastructures {
         /// <param name="value">The value to remove.</param>
         /// <returns>Whether or not the value was successfully removed.</returns>
         public bool RemoveValue(Tuple<double, T> value) {
-            bool success = Options.Remove(value);
+            var success = Options.Remove(value);
             Recalculate();
             return success;
         }
@@ -232,5 +233,7 @@ namespace AVThesis.Datastructures {
         }
 
         #endregion
+
     }
+
 }

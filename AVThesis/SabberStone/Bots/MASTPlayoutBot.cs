@@ -245,10 +245,10 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="eventArgs">The arguments of the event.</param>
         public void SimulationCompleted(object sender, PlayoutStrategySabberStone.SimulationCompletedEventArgs eventArgs) {
             // Evaluate the state.
-            var eval = Evaluation.Evaluate(eventArgs.Context, null, eventArgs.EndState);
+            var value = Evaluation.Evaluate(eventArgs.Context, null, eventArgs.EndState);
             // Add data for all the actions that have been taken.
             foreach (var action in ActionsTaken) {
-                AddData(action, eval);
+                AddData(action, value);
             }
             // Clear the taken actions.
             ActionsTaken = new List<SabberStoneAction>();
@@ -260,7 +260,7 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="state">The current game state.</param>
         /// <returns>SabberStoneAction</returns>
         public SabberStoneAction Act(SabberStoneState state) {
-            // Check to make sure the player to act in the gamestate matches our player.
+            // Check to make sure the player to act in the game-state matches our player.
             if (state.CurrentPlayer() != Player.Id) {
                 return null;
             }
@@ -306,7 +306,7 @@ namespace AVThesis.SabberStone.Bots {
         /// </summary>
         /// <returns>String representing the Bot's name.</returns>
         public string Name() {
-            var setting = "";
+            string setting;
             switch (Selection) {
                 case SelectionType.EGreedy:
                     setting = $"{EGreedyThreshold:F1}";
@@ -314,6 +314,8 @@ namespace AVThesis.SabberStone.Bots {
                 case SelectionType.UCB:
                     setting = $"{UCBConstantC:F1}";
                     break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
             return $"{BOT_NAME}_{Selection}_{setting}";
         }

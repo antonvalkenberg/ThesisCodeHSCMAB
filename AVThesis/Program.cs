@@ -13,8 +13,8 @@ namespace AVThesis {
     public class Program {
 
 		public static void Main(string[] args) {
-            RunTournamentMatch();
-            //RunQuickMatch();
+            //RunTournamentMatch();
+            RunQuickMatch();
 
 #pragma warning disable 219
             string catcher = null;

@@ -35,8 +35,7 @@ namespace AVThesis.SabberStone {
 
             #region Fields
 
-            private int _position = STARTING_POSITION;
-            private List<SabberStoneAction> _list;
+            private readonly List<SabberStoneAction> _list;
 
             #endregion
 
@@ -45,7 +44,7 @@ namespace AVThesis.SabberStone {
             /// <summary>
             /// The current position of the enumerator in the collection.
             /// </summary>
-            public int Position { get => _position; set => _position = value; }
+            public int Position { get; set; } = STARTING_POSITION;
 
             #endregion
 
@@ -80,8 +79,9 @@ namespace AVThesis.SabberStone {
             /// </summary>
             public SabberStoneAction Current {
                 get {
-                    if (Position >= 0 && Position < _list.Count) return _list[Position];
-                    else throw new InvalidOperationException();
+                    if (Position >= 0 && Position < _list.Count)
+                        return _list[Position];
+                    throw new InvalidOperationException();
                 }
             }
 
@@ -206,7 +206,7 @@ namespace AVThesis.SabberStone {
         /// </summary>
         /// <param name="task">The task to include in the action.</param>
         /// <returns>SabberStoneAction that includes a single <see cref="SabberStonePlayerTask"/>.</returns>
-        private SabberStoneAction CreateActionFromSingleTask(PlayerTask task) {
+        private static SabberStoneAction CreateActionFromSingleTask(PlayerTask task) {
             var action = new SabberStoneAction();
             action.AddTask((SabberStonePlayerTask)task);
             return action;
@@ -272,7 +272,7 @@ namespace AVThesis.SabberStone {
         /// <param name="action">The action.</param>
         /// <param name="playerId">The unique identifier of the player that will play the action.</param>
         /// <param name="completeActions">A reference to a collection of completely expanded actions.</param>
-        private void ExpandAction(SabberStoneState rootState, SabberStoneAction action, int playerId, ref List<SabberStoneAction> completeActions) {
+        private static void ExpandAction(SabberStoneState rootState, SabberStoneAction action, int playerId, ref List<SabberStoneAction> completeActions) {
 
             // If the latest option added was the end-turn task, return
             if (action.IsComplete()) {

@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -11,7 +10,7 @@ using System.Text;
 namespace AVThesis.Datastructures {
 
     /// <summary>
-    /// A genetic Deque class. It can be thought of as a double-ended queue, hence Deque.
+    /// A generic Deque class. It can be thought of as a double-ended queue, hence Deque.
     /// This allows for an O(1) AddFront, AddBack, RemoveFront, RemoveBack.
     /// The Deque also has O(1) indexed lookup, as it is backed by a circular array.
     /// Source: https://github.com/tejacques/Deque/blob/master/src/Deque/Deque.cs

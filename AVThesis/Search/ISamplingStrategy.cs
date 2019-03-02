@@ -9,7 +9,7 @@ namespace AVThesis.Search {
     /// </summary>
     /// <typeparam name="P"><see cref="SearchContext{P}"/></typeparam>
     /// <typeparam name="A"><see cref="SearchContext{A}"/></typeparam>
-    public interface ISamplingStrategy<P, A> where P : State where A : class {
+    public interface ISamplingStrategy<in P, out A> where P : State where A : class {
 
         /// <summary>
         /// Returns a sample action.

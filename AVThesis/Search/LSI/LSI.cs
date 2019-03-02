@@ -24,7 +24,7 @@ namespace AVThesis.Search.LSI {
         #region Helper Class
 
         private class ActionValue {
-            public A Action { get; set; }
+            public A Action { get; }
             public double Value { get; set; }
 
             public ActionValue(A action, double value) {
@@ -129,8 +129,8 @@ namespace AVThesis.Search.LSI {
             SideInformation = SideInformationStrategy.Create(context, GenerationSamples);
 
             // Create combined-actions by sampling the side information.
-            List<A> sampledActions = new List<A>();
-            for (int i = 0; i < EvaluationSamples; i++) {
+            var sampledActions = new List<A>();
+            for (var i = 0; i < EvaluationSamples; i++) {
                 sampledActions.Add(SamplingStrategy.Sample((P)context.Source.Copy(), SideInformation));
             }
 
@@ -143,13 +143,10 @@ namespace AVThesis.Search.LSI {
         /// <param name="context">The current search context.</param>
         /// <param name="generatedActions">C*, the subset of combined-actions generated in the generation phase.</param>
         /// <returns>The action that is left after the Sequential Halving process, or null if there are none.</returns>
-        private A Evaluate(SearchContext<D, P, A, S, A> context, List<A> generatedActions) {
+        private A Evaluate(SearchContext<D, P, A, S, A> context, IReadOnlyCollection<A> generatedActions) {
 
             // Create some way to track the value of each combined action
-            var actionValues = new List<ActionValue>();
-            foreach (var action in generatedActions) {
-                actionValues.Add(new ActionValue(action, 0));
-            }
+            var actionValues = generatedActions.Select(action => new ActionValue(action, 0)).ToList();
 
             // Determine the exact number of iterations of the halving routine we need to do to reduce the generated-actions to a singular item
             // For example : Ceiling(Log_2(100))=7 -> 100-50-25-13-7-4-2-1
@@ -176,7 +173,7 @@ namespace AVThesis.Search.LSI {
         /// <param name="actions">The collection of actions to filter.</param>
         /// <param name="samplesPerAction">How many samples to run per action.</param>
         /// <returns>Collection of actions which Count is half of the original collection, rounded up. This collection is ordered by descending value.</returns>
-        private List<ActionValue> SelectBestHalf(SearchContext<D, P, A, S, A> context, List<ActionValue> actions, int samplesPerAction) {
+        private List<ActionValue> SelectBestHalf(SearchContext<D, P, A, S, A> context, IReadOnlyCollection<ActionValue> actions, int samplesPerAction) {
 
             // Evaluate each action by running a playout for it.
             foreach (var item in actions) {

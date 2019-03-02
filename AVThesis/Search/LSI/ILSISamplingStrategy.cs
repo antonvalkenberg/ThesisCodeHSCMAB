@@ -5,7 +5,7 @@
 namespace AVThesis.Search.LSI {
 
     /// <inheritdoc />
-    public interface ILSISamplingStrategy<P, A, T> : ISamplingStrategy<P, A> where P : State where A : class where T : class {
+    public interface ILSISamplingStrategy<in P, out A, in T> : ISamplingStrategy<P, A> where P : State where A : class where T : class {
 
         A Sample(P state, T sideInformation);
 

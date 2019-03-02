@@ -10,7 +10,7 @@ namespace AVThesis.Agent {
     /// <typeparam name="C">The Type of context the agent operates in.</typeparam>
     /// <typeparam name="S">The Type of state the agent should be able to process.</typeparam>
     /// <typeparam name="A">The Type of action the agent should perform.</typeparam>
-    public interface IAgent<C, S, A> {
+    public interface IAgent<in C, in S, out A> {
 
         /// <summary>
         /// Return an action based on the current state.

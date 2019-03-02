@@ -1,7 +1,5 @@
-﻿using System.Collections.Generic;
-using AVThesis.Search;
+﻿using AVThesis.Search;
 using AVThesis.Datastructures;
-using System.Linq;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -26,12 +24,7 @@ namespace AVThesis.Agent {
         /// <param name="state">The state to return an action for.</param>
         /// <returns>A random action from all available action in the argument state.</returns>
         public A Act(SearchContext<D, P, A, S, Sol> context, P state) {
-
-            IEnumerable<A> things = context.Expansion.Expand(context, state);
-            List<A> actions = things.ToList();
-
-            return actions.RandomElementOrDefault();
-
+            return context.Expansion.Expand(context, state).RandomElementOrDefault();
         }
 
     }

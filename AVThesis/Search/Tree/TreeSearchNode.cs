@@ -15,53 +15,42 @@ namespace AVThesis.Search.Tree {
     /// <typeparam name="A">A Type representing an action in the search.</typeparam>
     public class TreeSearchNode<S, A> : SearchNode<S, A>, IEquatable<TreeSearchNode<S, A>> where S : class where A : class {
 
-        #region Fields
-
-        private int _visits = 0;
-        private TreeSearchNode<S, A> _parent;
-        private List<TreeSearchNode<S, A>> _children;
-
-        /// These fields are mainly for caching optimizations; used for determining when to update the score of a node and/or its position in the position-enumerator.
-        private bool _dirty = true;
-        private double _evaluatedScore = 0;
-        private double _minimumChildScore = Double.MaxValue;
-        private double _maximumChildScore = Double.MinValue;
-
-        #endregion
-
         #region Properties
 
         /// <summary>
         /// The amount of visits this node has had.
         /// </summary>
-        public int Visits { get => _visits; set => _visits = value; }
+        public int Visits { get; set; }
 
         /// <summary>
         /// The TreeSearchNode that this is a child of.
         /// </summary>
-        public new TreeSearchNode<S, A> Parent { get => _parent; set => _parent = value; }
+        public new TreeSearchNode<S, A> Parent { get; set; }
 
         /// <summary>
         /// Collection of TreeSearchNodes that can be reached from this TreeSearchNode.
         /// </summary>
-        public new List<TreeSearchNode<S, A>> Children { get => _children; set => _children = value; }
-        
+        public new List<TreeSearchNode<S, A>> Children { get; set; }
+
         /// <summary>
         /// Whether or not the score of this node is reliable.
         /// </summary>
-        public bool Dirty { get => _dirty; private set => _dirty = value; }
+        public bool Dirty { get; private set; } = true;
+
         /// <summary>
         /// The score of this node as evaluated by a node evaluation strategy.
         /// </summary>
-        private double EvaluatedScore { get => _evaluatedScore; set => _evaluatedScore = value; }
+        private double EvaluatedScore { get; set; }
+
         /// <summary>
         /// The minimum score of any of this node's children.
         /// </summary>
-        public double MinimumChildScore { get => _minimumChildScore; set => _minimumChildScore = value; }
+        public double MinimumChildScore { get; set; } = double.MaxValue;
+
         /// <summary>
         /// The maximum score of any of this node's children.
         /// </summary>
-        public double MaximumChildScore { get => _maximumChildScore; set => _maximumChildScore = value; }
+        public double MaximumChildScore { get; set; } = double.MinValue;
 
         #endregion
 
@@ -70,9 +59,7 @@ namespace AVThesis.Search.Tree {
         /// <summary>
         /// Default constructor.
         /// </summary>
-        public TreeSearchNode() : base() {
-
-        }
+        public TreeSearchNode() { }
 
         /// <summary>
         /// Constructor that creates a TreeSearchNode without an internal state. The state should be constructor from the root/parent state and the provided action.
@@ -99,7 +86,7 @@ namespace AVThesis.Search.Tree {
         /// <param name="parent">The parent node of the node.</param>
         /// <param name="state">The state that this TreeSearchNode represents.</param>
         /// <param name="payload"><see cref="Node{A}.Payload"/></param>
-        public TreeSearchNode(SearchNode<S, A> parent, S state, A action) : base(parent, state, action) {
+        public TreeSearchNode(SearchNode<S, A> parent, S state, A payload) : base(parent, state, payload) {
             Children = new List<TreeSearchNode<S, A>>();
         }
 
@@ -110,22 +97,20 @@ namespace AVThesis.Search.Tree {
         /// <summary>
         /// Returns the evaluated score of this node, or if the node is dirty calculates a new score first and also updates max/min child scores for parent.
         /// </summary>
-        /// <param name="evaluator">A node evaluation implementation.</param>
+        /// <param name="evaluation">A node evaluation implementation.</param>
         /// <returns>Double value representing the score of this node.</returns>
-        public double CalculateScore(INodeEvaluation<TreeSearchNode<S, A>> evaluator) {
+        public double CalculateScore(INodeEvaluation<TreeSearchNode<S, A>> evaluation) {
+            if (!Dirty) return EvaluatedScore;
 
-            if (Dirty) {
-                EvaluatedScore = evaluator.Score(this);
-                Dirty = false;
+            EvaluatedScore = evaluation.Score(this);
+            Dirty = false;
 
-                if (!IsRoot()) {
-                    Parent.MinimumChildScore = Math.Min(Parent.MinimumChildScore, EvaluatedScore);
-                    Parent.MaximumChildScore = Math.Max(Parent.MaximumChildScore, EvaluatedScore);
-                }
+            if (!IsRoot()) {
+                Parent.MinimumChildScore = Math.Min(Parent.MinimumChildScore, EvaluatedScore);
+                Parent.MaximumChildScore = Math.Max(Parent.MaximumChildScore, EvaluatedScore);
             }
 
             return EvaluatedScore;
-
         }
 
         /// <summary>
@@ -159,8 +144,8 @@ namespace AVThesis.Search.Tree {
         /// </summary>
         /// <returns>A number representing the depth of this TreeSearchNode, where the depth of the Root is 0.</returns>
         public new int CalculateDepth() {
-            int depth = 0;
-            TreeSearchNode<S, A> node = this;
+            var depth = 0;
+            var node = this;
             while (!node.IsRoot()) {
                 depth++;
                 node = node.Parent;
@@ -173,7 +158,7 @@ namespace AVThesis.Search.Tree {
         /// </summary>
         /// <param name="child">The TreeSearchNode to add as a child.</param>
         public void AddChild(TreeSearchNode<S, A> child) {
-            _children.Add(child);
+            Children.Add(child);
         }
 
         /// <summary>
@@ -185,7 +170,7 @@ namespace AVThesis.Search.Tree {
             // A TreeSearchNode cannot be it's own ancestor
             if (Equals(ancestor)) return false;
 
-            TreeSearchNode<S, A> node = this;
+            var node = this;
             while (!node.IsRoot()) {
                 node = node.Parent;
 
@@ -224,8 +209,7 @@ namespace AVThesis.Search.Tree {
         public override bool Equals(object obj) {
             if (obj is null) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
-            return Equals((TreeSearchNode<S, A>)obj);
+            return obj.GetType() == GetType() && Equals((TreeSearchNode<S, A>)obj);
         }
 
         public bool Equals(TreeSearchNode<S, A> other) {

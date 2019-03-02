@@ -18,23 +18,17 @@ namespace AVThesis.Search {
 
         #endregion
 
-        #region Fields
-
-        private int _playerWon = DRAW;
-        private bool _primaryPlayer = false;
-
-        #endregion
-
         #region Properties
 
         /// <summary>
         /// Which player has won. Note: defaults to <see cref="State.DRAW"/>.
         /// </summary>
-        public int PlayerWon { get => _playerWon; set => _playerWon = value; }
+        public int PlayerWon { get; set; } = DRAW;
+
         /// <summary>
         /// Whether or not the primary player is the active player.
         /// </summary>
-        public bool PrimaryPlayer { get => _primaryPlayer; set => _primaryPlayer = value; }
+        public bool PrimaryPlayer { get; set; }
 
         #endregion
 

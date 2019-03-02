@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using SabberStoneCore.Model;
+// ReSharper disable StringLiteralTypo
+// ReSharper disable CommentTypo
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -17,18 +19,18 @@ namespace AVThesis.SabberStone {
         /// </summary>
         /// <returns>Dictionary containing all decks indexed by name.</returns>
         public static Dictionary<string, List<Card>> AllDecks() {
-            return new Dictionary<string, List<Card>>() {
+            return new Dictionary<string, List<Card>> {
                 { "DefaultDeck", new List<Card>(DefaultDeck) },
                 { "AggroHunter", new List<Card>(AggroHunter) },
                 { "MidrangeHunter", new List<Card>(MidrangeHunter) },
-                { "ControlHunter", new List<Card>(ControlHunter) },
+                { "ControlHunter", new List<Card>(ControlHunter) }
             };
         }
 
         /// <summary>
         /// A default deck containing simple cards.
         /// </summary>
-        public static List<Card> DefaultDeck => new List<Card>() {
+        public static List<Card> DefaultDeck => new List<Card> {
             Cards.FromName("Arcane Shot"),
             Cards.FromName("Arcane Shot"),
             Cards.FromName("Goldshire Footman"),
@@ -64,7 +66,7 @@ namespace AVThesis.SabberStone {
         /// <summary>
         /// An aggressive version of a Hunter deck.
         /// </summary>
-        public static List<Card> AggroHunter => new List<Card>() {
+        public static List<Card> AggroHunter => new List<Card> {
             Cards.FromName("Abusive Sergeant"),
             Cards.FromName("Abusive Sergeant"),
             Cards.FromName("Acherus Veteran"),
@@ -102,7 +104,7 @@ namespace AVThesis.SabberStone {
         /// <summary>
         /// A midrange version of a Hunter deck.
         /// </summary>
-        public static List<Card> MidrangeHunter => new List<Card>() {
+        public static List<Card> MidrangeHunter => new List<Card> {
             Cards.FromName("Dire Mole"),
             Cards.FromName("Dire Mole"),
             Cards.FromName("Arcane Shot"),
@@ -142,7 +144,7 @@ namespace AVThesis.SabberStone {
         /// <summary>
         /// A controlling version of a Hunter deck.
         /// </summary>
-        public static List<Card> ControlHunter => new List<Card>() {
+        public static List<Card> ControlHunter => new List<Card> {
             Cards.FromName("Arcane Shot"),
             Cards.FromName("Arcane Shot"),
             Cards.FromName("Candleshot"),
@@ -180,7 +182,7 @@ namespace AVThesis.SabberStone {
         /// <summary>
         /// Debug deck used for obfuscation by <see cref="Bots.HeuristicBot.POGame"/>.
         /// </summary>
-        public static List<Card> DebugDeck => new List<Card>() {
+        public static List<Card> DebugDeck => new List<Card> {
             Cards.FromId("LOEA04_31b"),
             Cards.FromId("LOEA04_31b"),
             Cards.FromId("LOEA04_31b"),
@@ -278,7 +280,7 @@ namespace AVThesis.SabberStone {
             Cards.FromId("LOEA04_31b"),
             Cards.FromId("LOEA04_31b"),
             Cards.FromId("LOEA04_31b"),
-            Cards.FromId("LOEA04_31b"),
+            Cards.FromId("LOEA04_31b")
         };
 
         /// <summary>
@@ -287,7 +289,7 @@ namespace AVThesis.SabberStone {
         /// <param name="deck">The deck to get the identifiers from.</param>
         /// <returns>Collection of strings representing the Card identifiers in the deck.</returns>
         public static List<string> CardIDs(List<Card> deck) {
-            List<string> cardIds = new List<string>();
+            var cardIds = new List<string>();
             foreach (var item in deck) {
                 cardIds.Add(item.Id);
             }

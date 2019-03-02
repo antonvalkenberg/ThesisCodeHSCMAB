@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using AVThesis.Datastructures;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -45,25 +44,25 @@ namespace AVThesis.Search.Tree {
         /// <param name="node">The node from which to select the best child.</param>
         /// <returns>The child node of the argument node that has the best score to visits ratio.</returns>
         public TreeSearchNode<P, A> SelectFinalNode(SearchContext<D, P, A, S, Sol> context, TreeSearchNode<P, A> node) {
-            
-            double max = Double.MinValue;
-            int numberOfChildren = node.Children.Count;
-            // This makes sure a random node is returned if all ratios are equal.
-            int maxIndex = new Random().Next(numberOfChildren);
 
-            for (int i = 0; i < numberOfChildren; i++) {
+            var max = double.MinValue;
+            var numberOfChildren = node.Children.Count;
+            // This makes sure a random node is returned if all ratios are equal.
+            var maxIndex = new Random().Next(numberOfChildren);
+
+            for (var i = 0; i < numberOfChildren; i++) {
                 var child = node.Children.ElementAt(i);
 
                 // Don't consider nodes without visits (also to avoid divide-by-zero).
                 if (child.Visits == 0) continue;
 
-                double nodeScore = child.Score;
-                double childRatio = nodeScore / child.Visits;
+                var nodeScore = child.Score;
+                var childRatio = nodeScore / child.Visits;
 
-                if (childRatio > max) {
-                    max = childRatio;
-                    maxIndex = i;
-                }
+                if (!(childRatio > max)) continue;
+
+                max = childRatio;
+                maxIndex = i;
             }
 
             // Return the child with the maximum ratio.

@@ -15,11 +15,30 @@ namespace AVThesis.SabberStone {
             return new SabberStonePlayerTask(t);
         }
 
+        #region Properties
+
+        /// <summary>
+        /// The task that this <see cref="SabberStonePlayerTask"/> wraps.
+        /// </summary>
         public PlayerTask Task { get; }
 
+        #endregion
+
+        #region Constructors
+
+        /// <summary>
+        /// Creates a new <see cref="SabberStonePlayerTask"/>.
+        /// </summary>
+        /// <param name="task">The task to wrap.</param>
         public SabberStonePlayerTask(PlayerTask task) {
             Task = task;
         }
+
+        #endregion
+
+        #region Public Methods
+
+        #region Overridden Methods
 
         public override int GetHashCode() {
             //TODO create correct implementation of PlayerTask.GetHashCode()
@@ -29,6 +48,10 @@ namespace AVThesis.SabberStone {
         public override string ToString() {
             return Task.FullPrint();
         }
+        #endregion
+
+        #endregion
+
 
     }
 

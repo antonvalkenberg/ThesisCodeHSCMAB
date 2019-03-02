@@ -18,14 +18,10 @@ namespace AVThesis.Datastructures {
         /// <typeparam name="T">The Type of this enumeration.</typeparam>
         /// <param name="collection">This enumeration.</param>
         /// <returns>A random element or the default value of T if the enumeration is empty.</returns>
-        public static T RandomElementOrDefault<T>(this IEnumerable<T> list) {
-            var enumerable = list.ToList();
+        public static T RandomElementOrDefault<T>(this IEnumerable<T> collection) {
+            var enumerable = collection.ToList();
             // If there are no elements in the list, return the default value of T
-            if (!enumerable.Any()) {
-                return default(T);
-            }
-
-            return enumerable.ElementAt(_r.Next(enumerable.Count()));
+            return !enumerable.Any() ? default(T) : enumerable.ElementAt(_r.Next(enumerable.Count));
         }
 
         /// <summary>

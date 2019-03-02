@@ -13,7 +13,7 @@ namespace AVThesis.Search.LSI {
     /// <typeparam name="S"><see cref="SearchContext{S}"/></typeparam>
     /// <typeparam name="Sol"><see cref="SearchContext{Sol}"/></typeparam>
     /// <typeparam name="T">The Type of side information that the search uses.</typeparam>
-    public interface ISideInformationStrategy<D, P, A, S, Sol, T> where D : class where P : State where A : class where S : class where Sol : class where T : class {
+    public interface ISideInformationStrategy<D, P, A, S, Sol, out T> where D : class where P : State where A : class where S : class where Sol : class where T : class {
 
         /// <summary>
         /// Creates the side information.

@@ -41,7 +41,7 @@ namespace AVThesis.Search {
         /// <summary>
         /// Random number generator.
         /// </summary>
-        private Random _rng = new Random();
+        private readonly Random _rng = new Random();
 
         #endregion
 

@@ -1,5 +1,4 @@
-﻿using AVThesis.Datastructures;
-using AVThesis.Game;
+﻿using AVThesis.Game;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -48,7 +47,7 @@ namespace AVThesis.Search.Tree {
         public void BackPropagate(SearchContext<D, P, A, S, Sol> context, IStateEvaluation<D, P, A, S, Sol, TreeSearchNode<P, A>> evaluation, TreeSearchNode<P, A> node, P state) {
             do {
                 // Evaluate state with respect to the node.
-                double value = evaluation.Evaluate(context, node, state);
+                var value = evaluation.Evaluate(context, node, state);
                 // Visit the node with that evaluation.
                 node.Visit(value);
 
@@ -76,9 +75,9 @@ namespace AVThesis.Search.Tree {
         /// <param name="node">The node from which the backpropagation starts.</param>
         /// <param name="state">The state that should be evaluated.</param>
         public void BackPropagate(SearchContext<D, P, A, S, Sol> context, IStateEvaluation<D, P, A, S, Sol, TreeSearchNode<P, A>> evaluation, TreeSearchNode<P, A> node, P state) {
-            
+
             // Evaluate the state with respect to the argument node.
-            double value = evaluation.Evaluate(context, node, state);
+            var value = evaluation.Evaluate(context, node, state);
             
             do {
                 // Visit the node with the evaluation value.
@@ -93,14 +92,14 @@ namespace AVThesis.Search.Tree {
     /// <summary>
     /// Backpropagation strategy that evaluates the state with respect to the last node before the playout phase.
     /// Each node is visited with the evaluation value, although nodes that are not the root player's nodes are visited with a negated value.
-    /// Note: this requires the state evalutation to be done from the perspective of the root player.
+    /// Note: this requires the state evaluation to be done from the perspective of the root player.
     /// </summary>
     /// <typeparam name="D"><see cref="SearchContext{D}"/></typeparam>
     /// <typeparam name="P"><see cref="SearchContext{P}"/></typeparam>
     /// <typeparam name="A"><see cref="SearchContext{A}"/></typeparam>
     /// <typeparam name="S"><see cref="SearchContext{S}"/></typeparam>
     /// <typeparam name="Sol"><see cref="SearchContext{Sol}"/></typeparam>
-    public class EvaluateOnceAndColorBackPropagation<D, P, A, S, Sol> : ITreeBackPropagation<D, P, A, S, Sol> where D : class where P : State where A : class, IMove where S : class where Sol : class {
+    public class EvaluateOnceAndColourBackPropagation<D, P, A, S, Sol> : ITreeBackPropagation<D, P, A, S, Sol> where D : class where P : State where A : class, IMove where S : class where Sol : class {
 
         /// <summary>
         /// Propagate an evaluation value of the argument state starting from the argument node back up to the root node.
@@ -112,16 +111,16 @@ namespace AVThesis.Search.Tree {
         public void BackPropagate(SearchContext<D, P, A, S, Sol> context, IStateEvaluation<D, P, A, S, Sol, TreeSearchNode<P, A>> evaluation, TreeSearchNode<P, A> node, P state) {
 
             // Evaluate the state with respect to the argument node.
-            double value = evaluation.Evaluate(context, node, state);
-            
+            var value = evaluation.Evaluate(context, node, state);
+
             // The root player is the current player in the search's source state.
-            int rootPlayer = context.Source.CurrentPlayer();
+            var rootPlayer = context.Source.CurrentPlayer();
             
             do {
                 // Check whether or not this node is a root player's node.
-                bool targetPlayer = node.IsRoot() || rootPlayer == node.Payload.Player();
+                var targetPlayer = node.IsRoot() || rootPlayer == node.Payload.Player();
                 
-                // Visits the node with a colored evaluation value.
+                // Visits the node with a coloured evaluation value.
                 node.Visit(targetPlayer ? value : -value);
 
             // Keep moving up the tree while there is a valid parent.

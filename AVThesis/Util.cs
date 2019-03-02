@@ -23,32 +23,33 @@ namespace AVThesis {
         /// <summary>
         /// Calculates UCB.
         /// </summary>
-        /// <param name="score">The total score aquired by the node.</param>
+        /// <param name="score">The total score acquired by the node.</param>
         /// <param name="visits">The amount of visits to the node.</param>
         /// <param name="parentVisits">The amount of visits to the parent of the node.</param>
         /// <param name="c">A constant. Should be tuned experimentally.</param>
         /// <returns>Double representing the UCB value.</returns>
         public static double UCB(double score, int visits, int parentVisits, double c) {
             //TODO UCB: perhaps add a small random value to avoid super greedy behaviour, two percent points
-            return (score / (visits + double.Epsilon)) + 2 * c * Math.Sqrt(Math.Log(parentVisits) / (visits + double.Epsilon));
+            return score / (visits + double.Epsilon) + 2 * c * Math.Sqrt(Math.Log(parentVisits) / (visits + double.Epsilon));
         }
 
         /// <summary>
         /// Represents a HiddenCard; an opponent's card of which the identity is not known.
         /// </summary>
-        public static Card HiddenCard => new Card() {
+        public static Card HiddenCard => new Card {
             AssetId = -1,
             Id = "HD_001",
             Name = "Hidden Card",
-            Text = "Shhh, it's hidden.",
+            Text = "Shh, it's hidden.",
             Entourage = new string[0],
-            Tags = new Dictionary<GameTag, int>() {
+            Tags = new Dictionary<GameTag, int> {
                 { GameTag.CARDTYPE, (int)CardType.SPELL }
             },
             RefTags = new Dictionary<GameTag, int>(),
             PlayRequirements = new Dictionary<PlayReq, int>()
         };
 
+        // ReSharper disable once CommentTypo
         /// <summary>
         /// Required for the Deque class.
         /// Source: https://github.com/tejacques/Deque/blob/master/src/Deque/Utility.cs
@@ -57,12 +58,12 @@ namespace AVThesis {
         /// <returns></returns>
         public static int ClosestPowerOfTwoGreaterThan(int x) {
             x--;
-            x |= (x >> 1);
-            x |= (x >> 2);
-            x |= (x >> 4);
-            x |= (x >> 8);
-            x |= (x >> 16);
-            return (x + 1);
+            x |= x >> 1;
+            x |= x >> 2;
+            x |= x >> 4;
+            x |= x >> 8;
+            x |= x >> 16;
+            return x + 1;
         }
 
         /// <summary>

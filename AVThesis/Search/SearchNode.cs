@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using AVThesis.Datastructures;
-using AVThesis.Search.Tree;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -50,7 +50,7 @@ namespace AVThesis.Search {
         /// <summary>
         /// Default Constructor.
         /// </summary>
-        public SearchNode() : base() {
+        public SearchNode() {
             State = null;
             Parent = null;
             Children = new List<SearchNode<S, A>>();
@@ -60,7 +60,7 @@ namespace AVThesis.Search {
         /// Constructor that sets the argument State as this SearchNode's State.
         /// </summary>
         /// <param name="state">The State that this SearchNode represents.</param>
-        public SearchNode(S state) : base() {
+        public SearchNode(S state) {
             State = state;
             Parent = null;
             Children = new List<SearchNode<S, A>>();
@@ -71,7 +71,7 @@ namespace AVThesis.Search {
         /// </summary>
         /// <param name="parent">The parent Node (i.e. the Node that is above the SearchNode to be constructed).</param>
         /// <param name="state">See <see cref="SearchNode{S, A, N}.SearchNode(S)"/></param>
-        public SearchNode(SearchNode<S, A> parent, S state) : base() {
+        public SearchNode(SearchNode<S, A> parent, S state) {
             State = state;
             Parent = parent;
             Children = new List<SearchNode<S, A>>();
@@ -151,8 +151,8 @@ namespace AVThesis.Search {
         /// </summary>
         /// <returns>A number representing the depth of this SearchNode, where the depth of the Root is 0.</returns>
         public new int CalculateDepth() {
-            int depth = 0;
-            SearchNode<S, A> node = this;
+            var depth = 0;
+            var node = this;
             while (!node.IsRoot()) {
                 depth++;
                 node = node.Parent;
@@ -177,7 +177,7 @@ namespace AVThesis.Search {
             // A SearchNode cannot be it's own ancestor
             if (Equals(ancestor)) return false;
 
-            SearchNode<S, A> node = this;
+            var node = this;
             while (!node.IsRoot()) {
                 node = node.Parent;
 
@@ -216,8 +216,7 @@ namespace AVThesis.Search {
         public override bool Equals(object obj) {
             if (obj is null) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
-            return Equals((SearchNode<S, A>)obj);
+            return obj.GetType() == GetType() && Equals((SearchNode<S, A>)obj);
         }
 
         public bool Equals(SearchNode<S, A> other) {
@@ -276,6 +275,7 @@ namespace AVThesis.Search {
             /// <param name="x">A SearchNode.</param>
             /// <param name="y">Another SearchNode.</param>
             /// <returns>An integer indicating whether the score of x is less than, equal to or greater than y's score.</returns>
+            [SuppressMessage("ReSharper", "PossibleNullReferenceException")]
             public int Compare(SearchNode<S, A> x, SearchNode<S, A> y) {
                 return x.Score.CompareTo(y.Score);
             }

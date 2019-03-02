@@ -20,10 +20,10 @@ namespace AVThesis.Search {
     }
 
     /// <summary>
-    /// Clones objects descending from State by using the <see cref="State.Copy{T}"/> method.
+    /// Clones objects descending from State by using the <see cref="State.Copy"/> method.
     /// </summary>
     /// <typeparam name="T">Type that has State as its base class.</typeparam>
-    public class StateCloner<T> : ICloneStrategy<T> where T : State {
+    public class StateClone<T> : ICloneStrategy<T> where T : State {
 
         /// <summary>
         /// Clones the provided object if it has the class State as a base class, otherwise returns the object itself.

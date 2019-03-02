@@ -23,10 +23,10 @@ namespace AVThesisTest.TicTacToe {
         }
 
         public static List<int> AllEmptyPositions(TicTacToeState state) {
-            List<int> positions = new List<int>();
+            var positions = new List<int>();
 
-            char[] board = state.State.ToCharArray();
-            int index = 0;
+            var board = state.State.ToCharArray();
+            var index = 0;
             while (index < board.Length) {
                 if (board[index] == TicTacToeState.OPEN_SPACE) positions.Add(index);
                 index++;
@@ -37,7 +37,7 @@ namespace AVThesisTest.TicTacToe {
 
         private static int NextAvailablePosition(string board, int currentPosition) {
             // Check if the next position is available.
-            int nextPosition = currentPosition;
+            var nextPosition = currentPosition;
             nextPosition++;
             while (board.Length > nextPosition && board.ToCharArray()[nextPosition] != TicTacToeState.OPEN_SPACE) {
                 // If not, move one forward.
@@ -59,8 +59,9 @@ namespace AVThesisTest.TicTacToe {
 
         public TicTacToeMove Current {
             get {
-                if (Position >= 0 && Position < Board.Length) return new TicTacToeMove(Position, PlayerID);
-                else throw new InvalidOperationException();
+                if (Position >= 0 && Position < Board.Length)
+                    return new TicTacToeMove(Position, PlayerID);
+                throw new InvalidOperationException();
             }
         }
 

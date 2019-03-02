@@ -45,10 +45,10 @@ namespace AVThesis.SabberStone.Strategies {
         public bool Done(SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, SabberStoneState position) {
 
             // Determine the turn in which the search started.
-            int sourceTurn = context.Source.Game.Turn;
+            var sourceTurn = context.Source.Game.Turn;
 
             // The goal will be reached if the amount of turns since the source turn is greater than or equal to the cutoff, or the game has been completed.
-            return (position.Game.Turn - sourceTurn) >= CutoffThreshold || position.Game.State == SabberStoneCore.Enums.State.COMPLETE;
+            return position.Game.Turn - sourceTurn >= CutoffThreshold || position.Game.State == SabberStoneCore.Enums.State.COMPLETE;
         }
 
         #endregion

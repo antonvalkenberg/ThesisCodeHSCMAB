@@ -6,6 +6,8 @@ namespace AVThesisTest {
     [TestClass]
     public class SearchTechniquesTest {
 
+        // The TicTacToe tests don't actually work very well, because the playout-bot does not play perfectly.
+
         [TestMethod]
         public void TestFlatMCSTicTacToe() {
             var test = new TicTacToeSearchTest();

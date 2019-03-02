@@ -67,11 +67,11 @@ namespace AVThesis.Search.Tree.MCTS {
             var apply = context.Application;
             var goal = context.Goal;
 
-            DateTime endTime = DateTime.Now.AddMilliseconds(Time);
-            int it = 0;
+            var endTime = DateTime.Now.AddMilliseconds(Time);
+            var it = 0;
 
             // Setup for when we might be continuing a search from a specific node.
-            TreeSearchNode<P, A> root = (TreeSearchNode<P, A>)context.StartNode;
+            var root = (TreeSearchNode<P, A>)context.StartNode;
             if (root == null) {
                 root = new TreeSearchNode<P, A>(clone.Clone(rootState), null);
                 context.StartNode = root;
@@ -81,18 +81,18 @@ namespace AVThesis.Search.Tree.MCTS {
 
                 it++;
 
-                P worldState = clone.Clone(rootState);
+                var worldState = clone.Clone(rootState);
 
                 // Selection
-                bool done = false;
-                TreeSearchNode<P, A> target = root;
+                bool done;
+                var target = root;
                 while(!(done = goal.Done(context, worldState)) && target.IsFullyExpanded()) {
                     target = SelectionStrategy.SelectNextNode(context, target);
                     worldState = apply.Apply(context, worldState, target.Payload);
                 }
 
                 // Expansion
-                P endState = worldState;
+                var endState = worldState;
                 if (!done) {
                     var result = ExpansionStrategy.Expand(context, target, endState);
                     if (result != target) {
@@ -108,7 +108,7 @@ namespace AVThesis.Search.Tree.MCTS {
                 BackPropagationStrategy.BackPropagate(context, EvaluationStrategy, target, endState);
             }
 
-            TreeSearchNode<P, A> finalNode = FinalNodeSelectionStrategy.SelectFinalNode(context, root);
+            var finalNode = FinalNodeSelectionStrategy.SelectFinalNode(context, root);
             context.Solution = SolutionStrategy.Solution(context, finalNode);
 
             context.Status = SearchContext<D, P, A, S, Sol>.SearchStatus.Success;

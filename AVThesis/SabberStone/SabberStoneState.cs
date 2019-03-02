@@ -89,12 +89,12 @@ namespace AVThesis.SabberStone {
 
             // Hand
             var removeItems = new List<IPlayable>();
-            for (int i = 0; i < obfuscatePlayer.HandZone.Count; i++) {
-                if (!knownCardsCopy.Contains(obfuscatePlayer.HandZone[i].Card.Id)) {
-                    removeItems.Add(obfuscatePlayer.HandZone[i]);
+            foreach (var card in obfuscatePlayer.HandZone) {
+                if (!knownCardsCopy.Contains(card.Card.Id)) {
+                    removeItems.Add(card);
                 }
                 else {
-                    knownCardsCopy.Remove(obfuscatePlayer.HandZone[i].Card.Id);
+                    knownCardsCopy.Remove(card.Card.Id);
                 }
             }
             foreach (var item in removeItems) {
@@ -104,12 +104,12 @@ namespace AVThesis.SabberStone {
 
             // Deck
             removeItems = new List<IPlayable>();
-            for (int i = 0; i < obfuscatePlayer.DeckZone.Count; i++) {
-                if (!knownCardsCopy.Contains(obfuscatePlayer.DeckZone[i].Card.Id)) {
-                    removeItems.Add(obfuscatePlayer.DeckZone[i]);
+            foreach (var card in obfuscatePlayer.DeckZone) {
+                if (!knownCardsCopy.Contains(card.Card.Id)) {
+                    removeItems.Add(card);
                 }
                 else {
-                    knownCardsCopy.Remove(obfuscatePlayer.DeckZone[i].Card.Id);
+                    knownCardsCopy.Remove(card.Card.Id);
                 }
             }
             foreach (var item in removeItems) {
@@ -119,12 +119,12 @@ namespace AVThesis.SabberStone {
 
             // Secrets
             removeItems = new List<IPlayable>();
-            for (var i = 0; i < obfuscatePlayer.SecretZone.Count; i++) {
-                if (!knownCardsCopy.Contains(obfuscatePlayer.SecretZone[i].Card.Id)) {
-                    removeItems.Add(obfuscatePlayer.SecretZone[i]);
+            foreach (var card in obfuscatePlayer.SecretZone) {
+                if (!knownCardsCopy.Contains(card.Card.Id)) {
+                    removeItems.Add(card);
                 }
                 else {
-                    knownCardsCopy.Remove(obfuscatePlayer.SecretZone[i].Card.Id);
+                    knownCardsCopy.Remove(card.Card.Id);
                 }
             }
             foreach (var item in removeItems) {
@@ -160,11 +160,11 @@ namespace AVThesis.SabberStone {
             // The player's deck will now become whatever cards are left from the deck.
             var rootPlayerGameDeck = player.DeckZone.GetAll();
             // Small check to see if the sizes are compatible
-            if (rootPlayerGameDeck.Count() != rootPlayerDeck.Count())
-                Console.WriteLine($"WARNING: #cards in player's game-deck [{rootPlayerGameDeck.Count()}] do not match determined deck [{rootPlayerDeck.Count()}].");
+            if (rootPlayerGameDeck.Length != rootPlayerDeck.Count)
+                Console.WriteLine($"WARNING: #cards in player's game-deck [{rootPlayerGameDeck.Length}] do not match determined deck [{rootPlayerDeck.Count}].");
             foreach (var item in rootPlayerGameDeck) {
                 player.DeckZone.Remove(item);
-                var randomPosition = Util.RNG.Next(rootPlayerDeck.Count());
+                var randomPosition = Util.RNG.Next(rootPlayerDeck.Count);
                 var randomDeckCard = rootPlayerDeck.ElementAt(randomPosition);
                 rootPlayerDeck.RemoveAt(randomPosition);
                 player.DeckZone.Add(Entity.FromCard(player, randomDeckCard));
@@ -190,7 +190,7 @@ namespace AVThesis.SabberStone {
                 // Don't replace if we know a card is supposed to be there.
                 if (!knownOpponentCards.Contains(item.Card.Id)) {
                     opponent.HandZone.Remove(item);
-                    var randomPosition = Util.RNG.Next(selectedDeck.Count());
+                    var randomPosition = Util.RNG.Next(selectedDeck.Count);
                     var randomDeckCard = selectedDeck.ElementAt(randomPosition);
                     selectedDeck.RemoveAt(randomPosition);
                     opponent.HandZone.Add(Entity.FromCard(opponent, randomDeckCard));
@@ -204,13 +204,13 @@ namespace AVThesis.SabberStone {
             // The opponent's deck will now become whatever cards are left from the deck.
             var opponentDeck = opponent.DeckZone.GetAll();
             // Small check to see if the sizes are compatible.
-            if (opponentDeck.Count() > selectedDeck.Count())
+            if (opponentDeck.Length > selectedDeck.Count)
                 Console.WriteLine("WARNING: More cards in opponent's deck than in selected deck.");
             foreach (var item in opponentDeck) {
                 // Don't replace if we know a card is supposed to be there.
                 if (!knownOpponentCards.Contains(item.Card.Id)) {
                     opponent.DeckZone.Remove(item);
-                    var randomPosition = Util.RNG.Next(selectedDeck.Count());
+                    var randomPosition = Util.RNG.Next(selectedDeck.Count);
                     var randomDeckCard = selectedDeck.ElementAt(randomPosition);
                     selectedDeck.RemoveAt(randomPosition);
                     opponent.DeckZone.Add(Entity.FromCard(opponent, randomDeckCard));
@@ -249,7 +249,7 @@ namespace AVThesis.SabberStone {
         /// Whether or not this SabberStoneState is equal to the argument SabberStoneState.
         /// </summary>
         /// <param name="otherState">The SabberStoneState to check with this SabberStoneState for equality.</param>
-        /// <returns>Boolean indicating whether or not the argument SabberStoneState is equal to this SabberStoneState.
+        /// <returns>Boolean indicating whether or not the argument SabberStoneState is equal to this SabberStoneState.</returns>
         public override bool Equals(State otherState) {
             return HashMethod() == otherState.HashMethod();
         }

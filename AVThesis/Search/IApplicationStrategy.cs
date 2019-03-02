@@ -1,6 +1,4 @@
-﻿using AVThesis.Datastructures;
-
-/// <summary>
+﻿/// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
 /// In parts inspired by a code framework written by G.J. Roelofs and T. Aliyev.
 /// </summary>

@@ -74,11 +74,11 @@ namespace AVThesis.Search.Tree.MCTS {
             var rootState = context.Source;
             var apply = context.Application;
 
-            DateTime endTime = DateTime.Now.AddMilliseconds(Time);
-            int it = 0;
+            var endTime = DateTime.Now.AddMilliseconds(Time);
+            var it = 0;
 
             // Setup for when we might be continuing a search from a specific node.
-            TreeSearchNode<P, A> root = (TreeSearchNode<P, A>)context.StartNode;
+            var root = (TreeSearchNode<P, A>)context.StartNode;
             if (root == null) {
                 root = new TreeSearchNode<P, A>(clone.Clone(rootState), null);
                 context.StartNode = root;
@@ -89,8 +89,8 @@ namespace AVThesis.Search.Tree.MCTS {
 
                 it++;
 
-                P worldState = clone.Clone(rootState);
-                TreeSearchNode<P, A> target = root;
+                var worldState = clone.Clone(rootState);
+                var target = root;
 
                 // Check if we have to expand
                 if (!target.IsFullyExpanded()) {
@@ -111,7 +111,7 @@ namespace AVThesis.Search.Tree.MCTS {
                 BackPropagationStrategy.BackPropagate(context, EvaluationStrategy, target, endState);
             }
 
-            TreeSearchNode<P, A> finalNode = FinalNodeSelectionStrategy.SelectFinalNode(context, root);
+            var finalNode = FinalNodeSelectionStrategy.SelectFinalNode(context, root);
             context.Solution = SolutionStrategy.Solution(context, finalNode);
 
             context.Status = SearchContext<D, P, A, S, Sol>.SearchStatus.Success;

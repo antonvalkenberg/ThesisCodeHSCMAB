@@ -72,7 +72,7 @@ namespace AVThesisTest {
         /// <returns>The state that satisfies the goal condition of the search.</returns>
         public P PlayGame(SearchContext<D, P, A, S, A> context) {
 
-            P state = context.Source;
+            var state = context.Source;
 
             while (!context.Goal.Done(context, context.Source)) {
                 // Execute the search

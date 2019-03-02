@@ -10,7 +10,7 @@ namespace AVThesis.Search {
     /// A way to evaluate a Node.
     /// </summary>
     /// <typeparam name="N">The Type of Node that is to be evaluated.</typeparam>
-    public interface INodeEvaluation<N> {
+    public interface INodeEvaluation<in N> {
 
         /// <summary>
         /// Returns the score associated with the argument node.

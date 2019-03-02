@@ -36,18 +36,12 @@ namespace AVThesis.Search {
     /// <typeparam name="Sol"><see cref="SearchContext{Sol}"/></typeparam>
     public class AgentPlayout<D, P, A, S, Sol> : IPlayoutStrategy<D, P, A, S, Sol> where D : class where P : State where A : class where S : class where Sol : class {
 
-        #region Fields
-
-        private IAgent<SearchContext<D, P, A, S, Sol>, P, A> _agent;
-
-        #endregion
-
         #region Properties
 
         /// <summary>
         /// The agent that produces actions to play out.
         /// </summary>
-        public IAgent<SearchContext<D, P, A, S, Sol>, P, A> Agent { get => _agent; set => _agent = value; }
+        public IAgent<SearchContext<D, P, A, S, Sol>, P, A> Agent { get; set; }
 
         #endregion
 
@@ -78,7 +72,7 @@ namespace AVThesis.Search {
 
             // Ask the agent to play a move until we have reached the goal.
             while (!goal.Done(context, positionCopy)) {
-                A action = Agent.Act(context, positionCopy);
+                var action = Agent.Act(context, positionCopy);
                 positionCopy = actor.Apply(context, positionCopy, action);
             }
 

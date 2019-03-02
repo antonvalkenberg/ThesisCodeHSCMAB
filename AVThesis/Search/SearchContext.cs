@@ -1,5 +1,5 @@
-﻿using AVThesis.Datastructures;
-using AVThesis.Game;
+﻿using AVThesis.Game;
+// ReSharper disable IdentifierTypo
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -11,84 +11,78 @@ namespace AVThesis.Search {
     /// A wrapper for an assortment of strategies used during a search.
     /// </summary>
     /// <typeparam name="D">A Type of domain within which the search is executed (e.g. a board, map or game-setup).</typeparam>
-    /// <typeparam name="P">A Type of position within the domain (e.g. a boardstate, location on a map or game-state).</typeparam>
+    /// <typeparam name="P">A Type of position within the domain (e.g. a board state, location on a map or game-state).</typeparam>
     /// <typeparam name="A">A Type of action that transforms a position into another position.</typeparam>
     /// <typeparam name="S">A Type of subject for which the search in conducted (e.g. an agent traversing a map).</typeparam>
     /// <typeparam name="Sol">A Type of solution that the search provides once finished.</typeparam>
     public class SearchContext<D, P, A, S, Sol> where D : class where P : State where A : class where S : class where Sol : class {
-
-        #region Fields
-
-        private D _domain;
-        private P _source;
-        private P _target;
-        private S _subject;
-        private Sol _solution;
-        private SearchStatus _status = SearchStatus.Ready;
-        private SearchNode<P, A> _startNode;
-        private ISearchStrategy<D, P, A, S, Sol> _search;
-        private IExpansionStrategy<D, P, A, S, Sol, A> _expansion;
-        private IApplicationStrategy<D, P, A, S, Sol> _application;
-        private IEvaluationStrategy<D, P, A, S, Sol> _evaluation;
-        private IGoalStrategy<D, P, A, S, Sol> _goal;
-        private ICloneStrategy<P> _cloner = new StateCloner<P>();
-
-        #endregion
 
         #region Properties
 
         /// <summary>
         /// The search space.
         /// </summary>
-        public D Domain { get => _domain; set => _domain = value; }
+        public D Domain { get; set; }
+
         /// <summary>
         /// The position in the search space from which the search begins.
         /// </summary>
-        public P Source { get => _source; set => _source = value; }
+        public P Source { get; set; }
+
         /// <summary>
         /// The position in that search space that is the goal of the search.
         /// </summary>
-        public P Target { get => _target; set => _target = value; }
+        public P Target { get; set; }
+
         /// <summary>
         /// The object or agent moving through the search space.
         /// </summary>
-        public S Subject { get => _subject; set => _subject = value; }
+        public S Subject { get; set; }
+
         /// <summary>
         /// An object representing the solution to the search. Note: only valid if the Status of this SearchContext is <see cref="SearchStatus.Success"/>.
         /// </summary>
-        public Sol Solution { get => _solution; set => _solution = value; }
+        public Sol Solution { get; set; }
+
         /// <summary>
         /// The search's current status. See <see cref="SearchStatus"/>.
         /// </summary>
-        public SearchStatus Status { get => _status; set => _status = value; }
+        public SearchStatus Status { get; set; } = SearchStatus.Ready;
+
         /// <summary>
         /// The Node from which the search begins.
         /// </summary>
-        public SearchNode<P, A> StartNode { get => _startNode; set => _startNode = value; }
+        public SearchNode<P, A> StartNode { get; set; }
+
         /// <summary>
         /// The strategy for searching within this Domain.
         /// </summary>
-        public ISearchStrategy<D, P, A, S, Sol> Search { get => _search; set => _search = value; }
+        public ISearchStrategy<D, P, A, S, Sol> Search { get; set; }
+
         /// <summary>
         /// The strategy for Node expansion during the search.
         /// </summary>
-        public IExpansionStrategy<D, P, A, S, Sol, A> Expansion { get => _expansion; set => _expansion = value; }
+        public IExpansionStrategy<D, P, A, S, Sol, A> Expansion { get; set; }
+
         /// <summary>
         /// The strategy for transforming a position into another position through an action.
         /// </summary>
-        public IApplicationStrategy<D, P, A, S, Sol> Application { get => _application; set => _application = value; }
+        public IApplicationStrategy<D, P, A, S, Sol> Application { get; set; }
+
         /// <summary>
         /// The strategy for evaluating the cost of moving from a position to another through an action, or a position's value.
         /// </summary>
-        public IEvaluationStrategy<D, P, A, S, Sol> Evaluation { get => _evaluation; set => _evaluation = value; }
+        public IEvaluationStrategy<D, P, A, S, Sol> Evaluation { get; set; }
+
         /// <summary>
         /// The strategy for determining whether or not the search has reached its goal.
         /// </summary>
-        public IGoalStrategy<D, P, A, S, Sol> Goal { get => _goal; set => _goal = value; }
+        public IGoalStrategy<D, P, A, S, Sol> Goal { get; set; }
+
         /// <summary>
-        /// The strategy for cloning. Uses <see cref="StateCloner{T}"/> by default.
+        /// The strategy for cloning. Uses <see cref="StateClone{T}"/> by default.
         /// </summary>
-        public ICloneStrategy<P> Cloner { get => _cloner; set => _cloner = value; }
+        public ICloneStrategy<P> Cloner { get; set; } = new StateClone<P>();
 
         #endregion
 

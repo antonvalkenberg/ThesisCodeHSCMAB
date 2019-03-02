@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using AVThesis.SabberStone.Bots;
 using AVThesis.Search;
-using SabberStoneCore.Tasks.PlayerTasks;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -20,7 +19,7 @@ namespace AVThesis.SabberStone.Strategies {
         /// <summary>
         /// The unique identifier for the default bot to use during a playout.
         /// </summary>
-        private const int DEFAULT_PLAYOUTBOT_ID = -1;
+        private const int DEFAULT_PLAYOUT_BOT_ID = -1;
 
         #endregion
 
@@ -67,7 +66,7 @@ namespace AVThesis.SabberStone.Strategies {
 
         public PlayoutStrategySabberStone() {
             // Create a default playout bot
-            Bots = new Dictionary<int, ISabberStoneBot> {{ DEFAULT_PLAYOUTBOT_ID, new RandomBot()}};
+            Bots = new Dictionary<int, ISabberStoneBot> {{ DEFAULT_PLAYOUT_BOT_ID, new RandomBot()}};
         }
 
         #endregion
@@ -108,7 +107,7 @@ namespace AVThesis.SabberStone.Strategies {
 
         /// <summary>
         /// Plays out a player's turn.
-        /// Note: this method asks the playoutbot of the current player to Act and processes the returned action.
+        /// Note: this method asks the playout bot of the current player to Act and processes the returned action.
         /// </summary>
         /// <param name="game">The current game state.</param>
         private void PlayPlayerTurn(SabberStoneState game) {
@@ -117,7 +116,7 @@ namespace AVThesis.SabberStone.Strategies {
             ISabberStoneBot turnBot;
             if (Bots.ContainsKey(game.CurrentPlayer())) turnBot = Bots[game.CurrentPlayer()];
             else {
-                turnBot = Bots[DEFAULT_PLAYOUTBOT_ID];
+                turnBot = Bots[DEFAULT_PLAYOUT_BOT_ID];
                 turnBot.SetController(game.Game.CurrentPlayer);
             }
 

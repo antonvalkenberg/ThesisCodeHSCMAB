@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using AVThesis.Datastructures;
+﻿using AVThesis.Datastructures;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -15,8 +14,8 @@ namespace AVThesis.Search {
     /// <typeparam name="A"><see cref="SearchContext{A}"/></typeparam>
     /// <typeparam name="S"><see cref="SearchContext{S}"/></typeparam>
     /// <typeparam name="Sol"><see cref="SearchContext{Sol}"/></typeparam>
-    /// <typeparam name="T">A Type that is a subtype of <typeparamref name="A"/> and represents the posibilities when expanding from a Position.</typeparam>
-    public interface IExpansionStrategy<D, P, A, S, Sol, T> where D : class where P : State where A : class where S : class where Sol : class where T : A {
+    /// <typeparam name="T">A Type that is a sub-type of <typeparamref name="A"/> and represents the possibilities when expanding from a Position.</typeparam>
+    public interface IExpansionStrategy<D, P, A, S, Sol, out T> where D : class where P : State where A : class where S : class where Sol : class where T : A {
 
         /// <summary>
         /// Expand the search from a Position.

@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using AVThesis.Datastructures;
+﻿using AVThesis.Datastructures;
 using AVThesis.Search;
 
 /// <summary>
@@ -16,8 +15,8 @@ namespace AVThesis.Game {
     /// <typeparam name="A"><see cref="SearchContext{A}"/></typeparam>
     /// <typeparam name="S"><see cref="SearchContext{S}"/></typeparam>
     /// <typeparam name="Sol"><see cref="SearchContext{Sol}"/></typeparam>
-    /// <typeparam name="T">A Type that is a subtype of <typeparamref name="A"/> and represents the posibilities when expanding from a Position.</typeparam>
-    public interface IGameLogic<D, P, A, S, Sol, T> : IApplicationStrategy<D, P, A, S, Sol>, IExpansionStrategy<D, P, A, S, Sol, A>, IGoalStrategy<D, P, A, S, Sol> where D : class where P : State where A : class where S : class where Sol : class where T : A {
+    /// <typeparam name="T">A Type that is a sub-type of <typeparamref name="A"/> and represents the possibilities when expanding from a Position.</typeparam>
+    public interface IGameLogic<D, P, A, S, Sol, out T> : IApplicationStrategy<D, P, A, S, Sol>, IExpansionStrategy<D, P, A, S, Sol, A>, IGoalStrategy<D, P, A, S, Sol> where D : class where P : State where A : class where S : class where Sol : class where T : A {
 
         /// <summary>
         /// Applies an Action to a Position which results in a new Position.

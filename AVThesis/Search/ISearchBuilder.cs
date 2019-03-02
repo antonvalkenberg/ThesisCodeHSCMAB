@@ -1,5 +1,4 @@
-﻿using AVThesis.Datastructures;
-using AVThesis.Game;
+﻿using AVThesis.Game;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.

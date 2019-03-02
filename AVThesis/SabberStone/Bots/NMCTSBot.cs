@@ -299,8 +299,8 @@ namespace AVThesis.SabberStone.Bots {
         /// <inheritdoc />
         public string Name() {
             var it = Iterations != Constants.DEFAULT_NMCTS_ITERATIONS ? $"_{Iterations}it" : "";
-            var gp = GlobalPolicy != Constants.DEFAULT_NMCTS_GLOBAL_POLICY ? $"_{GlobalPolicy}gp" : "";
-            var lp = LocalPolicy != Constants.DEFAULT_NMCTS_LOCAL_POLICY ? $"_{LocalPolicy}lp" : "";
+            var gp = Math.Abs(GlobalPolicy - Constants.DEFAULT_NMCTS_GLOBAL_POLICY) > AVThesis.Constants.DOUBLE_EQUALITY_TOLERANCE ? $"_{GlobalPolicy}gp" : "";
+            var lp = Math.Abs(LocalPolicy - Constants.DEFAULT_NMCTS_LOCAL_POLICY) > AVThesis.Constants.DOUBLE_EQUALITY_TOLERANCE ? $"_{LocalPolicy}lp" : "";
             var ptc = PlayoutTurnCutoff != Constants.DEFAULT_PLAYOUT_TURN_CUTOFF ? $"_{PlayoutTurnCutoff}tc" : "";
             var es = EnsembleSize > 1 ? $"_{EnsembleSize}es" : "";
             var pi = PerfectInformation ? "_PI" : "";

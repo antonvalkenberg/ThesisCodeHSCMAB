@@ -33,7 +33,7 @@ namespace AVThesis.SabberStone {
         /// Constructs a new instance of a SabberStoneAction.
         /// </summary>
         /// <param name="action">The SabberStonePlayerTask that the SabberStoneAction represents.</param>
-        public SabberStoneAction(List<SabberStonePlayerTask> action) {
+        public SabberStoneAction(IEnumerable<SabberStonePlayerTask> action) {
             Tasks = new List<SabberStonePlayerTask>(action);
         }
 
@@ -104,8 +104,7 @@ namespace AVThesis.SabberStone {
         public override bool Equals(object obj) {
             if (obj is null) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != GetType()) return false;
-            return Equals((SabberStoneAction)obj);
+            return obj.GetType() == GetType() && Equals((SabberStoneAction)obj);
         }
 
         public bool Equals(SabberStoneAction other) {

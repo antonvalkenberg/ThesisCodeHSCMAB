@@ -37,7 +37,7 @@ namespace AVThesis.Datastructures {
         /// <summary>
         /// Default Constructor.
         /// </summary>
-        public Node() {
+        protected Node() {
             Payload = null;
             Parent = null;
             Children = new List<Node<A>>();
@@ -47,7 +47,7 @@ namespace AVThesis.Datastructures {
         /// Constructor that sets the argument Node as the Parent of the constructed Node.
         /// </summary>
         /// <param name="parent">The parent Node (i.e. the Node that is above the Node to be constructed).</param>
-        public Node(Node<A> parent) {
+        protected Node(Node<A> parent) {
             Payload = null;
             Parent = parent;
             Children = new List<Node<A>>();
@@ -58,7 +58,7 @@ namespace AVThesis.Datastructures {
         /// </summary>
         /// <param name="payload">The payload to be stored.</param>
         /// <param name="parent">See <see cref="Node{A, N}.Node(N)"/></param>
-        public Node(A payload, Node<A> parent) {
+        protected Node(A payload, Node<A> parent) {
             Payload = payload;
             Parent = parent;
             Children = new List<Node<A>>();
@@ -89,8 +89,8 @@ namespace AVThesis.Datastructures {
         /// </summary>
         /// <returns>A number representing the depth of this Node, where the depth of the Root is 0.</returns>
         public int CalculateDepth() {
-            int depth = 0;
-            Node<A> node = this;
+            var depth = 0;
+            var node = this;
             while (!node.IsRoot()) {
                 depth++;
                 node = node.Parent;
@@ -115,7 +115,7 @@ namespace AVThesis.Datastructures {
             // A Node cannot be it's own ancestor
             if (Equals(ancestor)) return false;
 
-            Node<A> node = this;
+            var node = this;
             while (!node.IsRoot()) {
                 node = node.Parent;
 
@@ -154,8 +154,7 @@ namespace AVThesis.Datastructures {
         public override bool Equals(object obj) {
             if (obj is null) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
-            return Equals((Node<A>)obj);
+            return obj.GetType() == GetType() && Equals((Node<A>)obj);
         }
 
         public bool Equals(Node<A> other) {

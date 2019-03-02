@@ -93,16 +93,13 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="state">The current game state.</param>
         /// <returns>SabberStoneAction or null in the case of no available options.</returns>
         public SabberStoneAction Act(SabberStoneState state) {
-            // Check to make sure the player to act in the gamestate matches our player.
+            // Check to make sure the player to act in the game-state matches our player.
             if (state.CurrentPlayer() != Player.Id) {
                 return null;
             }
 
-            // Check if there are any options.
-            if (Player.Options().IsNullOrEmpty()) return SabberStoneAction.CreateNullMove(Player);
-
-            // Return a randomly created action.
-            return CreateRandomAction(state);
+            // Check if there are any options, otherwise return a randomly created action.
+            return Player.Options().IsNullOrEmpty() ? SabberStoneAction.CreateNullMove(Player) : CreateRandomAction(state);
         }
 
         /// <summary>

@@ -30,22 +30,22 @@ namespace AVThesis.SabberStone.Bots {
             /// <summary>
             /// The bot that is used during the playouts.
             /// </summary>
-            private RandomBot PlayoutBot { get; set; }
+            private RandomBot PlayoutBot { get; }
             
             /// <summary>
             /// The strategy used to play out a game in simulation.
             /// </summary>
-            private IPlayoutStrategy<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Playout { get; set; }
+            private IPlayoutStrategy<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Playout { get; }
 
             /// <summary>
             /// The evaluation strategy for determining the value of samples.
             /// </summary>
-            private IStateEvaluation<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction, TreeSearchNode<SabberStoneState, SabberStoneAction>> Evaluation { get; set; }
+            private IStateEvaluation<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction, TreeSearchNode<SabberStoneState, SabberStoneAction>> Evaluation { get; }
 
             /// <summary>
             /// The game specific logic required for searching through SabberStoneStates and SabberStoneActions.
             /// </summary>
-            private IGameLogic<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction, SabberStoneAction> GameLogic { get; set; }
+            private IGameLogic<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction, SabberStoneAction> GameLogic { get; }
 
             #endregion
 
@@ -91,7 +91,7 @@ namespace AVThesis.SabberStone.Bots {
 
                 // So, we have a number of samples to use
                 // For each of those, generate a random SabberStoneAction and playout
-                for (int i = 0; i < samplesForGeneration; i++) {
+                for (var i = 0; i < samplesForGeneration; i++) {
 
                     var action = PlayoutBot.CreateRandomAction(context.Source);
 
@@ -129,7 +129,7 @@ namespace AVThesis.SabberStone.Bots {
             /// <summary>
             /// The game specific logic required for searching through SabberStoneStates and SabberStoneActions.
             /// </summary>
-            private IGameLogic<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction, SabberStoneAction> GameLogic { get; set; }
+            private IGameLogic<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction, SabberStoneAction> GameLogic { get; }
 
             #endregion
 
@@ -153,12 +153,8 @@ namespace AVThesis.SabberStone.Bots {
             /// </summary>
             /// <param name="state">The game state.</param>
             /// <returns>Collection of SabberStonePlayerTasks that are available in the provided state.</returns>
-            private List<SabberStonePlayerTask> GetAvailablePlayerTasks(SabberStoneState state) {
-                var availableTasks = new List<SabberStonePlayerTask>();
-                foreach (var expandedAction in GameLogic.Expand(null, state)) {
-                    availableTasks.Add(expandedAction.Tasks.First());
-                }
-                return availableTasks;
+            private IEnumerable<SabberStonePlayerTask> GetAvailablePlayerTasks(SabberStoneState state) {
+                return GameLogic.Expand(null, state).Select(expandedAction => expandedAction.Tasks.First()).ToList();
             }
 
             #endregion
@@ -174,10 +170,9 @@ namespace AVThesis.SabberStone.Bots {
                     var task = sideInformation.Next();
                     // Check if the task is available in the current state
                     var availableTasks = GetAvailablePlayerTasks(state);
-                    if (availableTasks.Contains(task, PlayerTaskComparer.Comparer)) {
-                        action.AddTask(task);
-                        state.Game.Process(task.Task);
-                    }
+                    if (!availableTasks.Contains(task, PlayerTaskComparer.Comparer)) continue;
+                    action.AddTask(task);
+                    state.Game.Process(task.Task);
                 }
 
                 return action;
@@ -374,7 +369,7 @@ namespace AVThesis.SabberStone.Bots {
 
             if (_debug) Console.WriteLine();
             if (_debug) Console.WriteLine(Name());
-            if (_debug) Console.WriteLine($"Starting an LSI search in turn " + (stateCopy.Game.Turn + 1) / 2);
+            if (_debug) Console.WriteLine($"Starting an LSI search in turn {(stateCopy.Game.Turn + 1) / 2}");
             
             // Adjust sample sizes again for use in the Ensemble
             var samplesForEvaluation = EnsembleSize > 0 ? SamplesForEvaluation / EnsembleSize : SamplesForEvaluation; // Note: Integer division by design.

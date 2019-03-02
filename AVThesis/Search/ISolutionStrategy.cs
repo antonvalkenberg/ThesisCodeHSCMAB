@@ -1,6 +1,4 @@
-﻿using System;
-using AVThesis.Datastructures;
-using AVThesis.Search.Tree;
+﻿using AVThesis.Datastructures;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -17,7 +15,7 @@ namespace AVThesis.Search {
     /// <typeparam name="S"><see cref="SearchContext{S}"/></typeparam>
     /// <typeparam name="Sol"><see cref="SearchContext{Sol}"/></typeparam>
     /// <typeparam name="N">A Type of node that the search uses.</typeparam>
-    public interface ISolutionStrategy<D, P, A, S, Sol, N> where D : class where P : State where A : class where S : class where Sol : class where N : Node<A> {
+    public interface ISolutionStrategy<D, P, A, S, Sol, in N> where D : class where P : State where A : class where S : class where Sol : class where N : Node<A> {
 
         /// <summary>
         /// Returns the solution to the search.

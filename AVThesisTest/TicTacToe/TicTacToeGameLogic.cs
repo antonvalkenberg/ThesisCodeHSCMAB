@@ -34,7 +34,7 @@ namespace AVThesisTest.TicTacToe {
 
         public TicTacToeState Apply(SearchContext<object, TicTacToeState, TicTacToeMove, object, TicTacToeMove> context, TicTacToeState position, TicTacToeMove action) {
             // Play the move in the argument action on the argument state
-            StringBuilder newState = new StringBuilder(position.State);
+            var newState = new StringBuilder(position.State);
             newState.Replace(TicTacToeState.OPEN_SPACE, action.PlayerID == TicTacToeState.PLAYER_ONE_ID ? TicTacToeState.PLAYER_ONE_MOVE : TicTacToeState.PLAYER_TWO_MOVE, action.PositionToPlace, 1);
 
             // Rollover the turn
@@ -175,8 +175,8 @@ namespace AVThesisTest.TicTacToe {
             #endregion
 
             // Otherwise, act random
-            int index = rng.Next(possibilities.Count);
-            int randomPosition = possibilities.ToArray()[index];
+            var index = rng.Next(possibilities.Count);
+            var randomPosition = possibilities.ToArray()[index];
             // Return a random position to play for the active player
             return new TicTacToeMove(randomPosition, myID);
         }
@@ -248,12 +248,12 @@ namespace AVThesisTest.TicTacToe {
         }
 
         public void UpdateState(TicTacToeState state) {
-            char[] board = state.State.ToCharArray();
+            var board = state.State.ToCharArray();
 
             // First of possibilities is when we have three in a row.
             // There are three rows and for each row if all three elements are same and non empty then we have a winner.
-            int playerWon = State.DRAW;
-            for (int i = 0; i < TICTACTOE_ROWS; i++) {
+            var playerWon = State.DRAW;
+            for (var i = 0; i < TICTACTOE_ROWS; i++) {
                 // Check for repetition of a symbol across the row.
                 if (board[3 * i] != TicTacToeState.OPEN_SPACE
                     && board[3 * i] == board[3 * i + 1] 
@@ -266,24 +266,18 @@ namespace AVThesisTest.TicTacToe {
 
             // Second possibilities are when we have columns of three in a row.
             if (playerWon == State.DRAW) {
-                for (int i = 0; i < 3; i++) {
+                for (var i = 0; i < 3; i++) {
                     if (board[i] != TicTacToeState.OPEN_SPACE && board[i] == board[i + 3] && board[i] == board[i + 6]) {
-                        if (board[i] == TicTacToeState.PLAYER_ONE_MOVE)
-                            playerWon = 0;
-                        else
-                            playerWon = 1;
+                        playerWon = board[i] == TicTacToeState.PLAYER_ONE_MOVE ? 0 : 1;
                     }
                 }
             }
 
             // Last possibility: two diagonals; 0->4->8 or 2->4->6.
             if (playerWon == State.DRAW && board[4] != TicTacToeState.OPEN_SPACE) {
-                if ((board[0] == board[8] && board[0] == board[4])
-                  || (board[2] == board[6] && board[2] == board[4])) {
-                    if (board[4] == TicTacToeState.PLAYER_ONE_MOVE)
-                        playerWon = 0;
-                    else
-                        playerWon = 1;
+                if (board[0] == board[8] && board[0] == board[4]
+                  || board[2] == board[6] && board[2] == board[4]) {
+                    playerWon = board[4] == TicTacToeState.PLAYER_ONE_MOVE ? 0 : 1;
                 }
             }
 
@@ -352,7 +346,7 @@ namespace AVThesisTest.TicTacToe {
                 
                 var table = new Dictionary<int, double>();
 
-                for (int i = 0; i < samplesForGeneration; i++) {
+                for (var i = 0; i < samplesForGeneration; i++) {
                     var action = new TicTacToeMove(TicTacToeMoveGenerator.AllEmptyPositions(context.Source).RandomElementOrDefault(), context.Source.ActivePlayerID);
                     var newState = GameLogic.Apply(context, (TicTacToeState) context.Source.Copy(), action);
                     var endState = PlayoutStrategy.Playout(context, newState);

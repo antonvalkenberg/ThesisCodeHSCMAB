@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using AVThesis.Datastructures;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -46,7 +46,7 @@ namespace AVThesis.Search.Tree {
 
             #region Fields
 
-            private INodeEvaluation<TreeSearchNode<P, A>> _nodeEvaluation;
+            private readonly INodeEvaluation<TreeSearchNode<P, A>> _nodeEvaluation;
 
             #endregion
 
@@ -55,7 +55,7 @@ namespace AVThesis.Search.Tree {
             /// <summary>
             /// Constructs a new instance.
             /// </summary>
-            /// <param name="nodeEvaluation">The strategy of nove evaluation to use.</param>
+            /// <param name="nodeEvaluation">The strategy of node evaluation to use.</param>
             public NodeComparer(INodeEvaluation<TreeSearchNode<P, A>> nodeEvaluation) {
                 _nodeEvaluation = nodeEvaluation;
             }
@@ -74,6 +74,7 @@ namespace AVThesis.Search.Tree {
             /// Less than zero -> x is less than y.
             /// Zero -> x equals y.
             /// Greater than zero -> x is greater than y.</returns>
+            [SuppressMessage("ReSharper", "PossibleNullReferenceException")]
             public int Compare(TreeSearchNode<P, A> x, TreeSearchNode<P, A> y) {
                 return y.CalculateScore(_nodeEvaluation).CompareTo(x.CalculateScore(_nodeEvaluation));
             }
@@ -84,10 +85,6 @@ namespace AVThesis.Search.Tree {
 
         #region Fields
 
-        private int _minVisits;
-        private INodeEvaluation<TreeSearchNode<P, A>> _nodeEvaluation;
-        private NodeComparer _nodeComparer;
-
         #endregion
 
         #region Properties
@@ -95,15 +92,17 @@ namespace AVThesis.Search.Tree {
         /// <summary>
         /// The minimum number of visits before using the node evaluation to select the best node.
         /// </summary>
-        public int MinVisits { get => _minVisits; set => _minVisits = value; }
+        public int MinVisits { get; set; }
+
         /// <summary>
         /// The strategy for evaluation the value of nodes.
         /// </summary>
-        public INodeEvaluation<TreeSearchNode<P, A>> NodeEvaluation { get => _nodeEvaluation; set => _nodeEvaluation = value; }
+        public INodeEvaluation<TreeSearchNode<P, A>> NodeEvaluation { get; set; }
+
         /// <summary>
         /// A way to compare between nodes.
         /// </summary>
-        public NodeComparer NodeComparer1 { get => _nodeComparer; set => _nodeComparer = value; }
+        public NodeComparer NodeComparer1 { get; set; }
 
         #endregion
 
@@ -132,16 +131,18 @@ namespace AVThesis.Search.Tree {
         /// <returns>The next node.</returns>
         public TreeSearchNode<P, A> SelectNextNode(SearchContext<D, P, A, S, Sol> context, TreeSearchNode<P, A> node) {
             // Determine the minimum number of visits on the parent node required before using evaluation.
-            int numberOfChildren = node.Children.Count;
-            int minVisitsOnParent = MinVisits * numberOfChildren;
+            var numberOfChildren = node.Children.Count;
+            var minVisitsOnParent = MinVisits * numberOfChildren;
 
             // In default behaviour, we will have iterated over all children once before arriving at the first call to the Selection Strategy.
             // If the parent node hasn't been visited a minimum number of times, select the next appropriate child.
-            if (minVisitsOnParent > node.Visits) {
+            if (minVisitsOnParent > node.Visits)
                 return node.Children.ElementAt(node.Visits % numberOfChildren);
-            } else if (minVisitsOnParent == node.Visits) {
+
+            if (minVisitsOnParent == node.Visits) {
                 node.Children = node.Children.OrderByDescending(i => i.CalculateScore(NodeEvaluation)).ToList();
-            } else {
+            }
+            else {
                 // The first child is always the one picked; so it is the only node we need to sort to a new location.
                 // Pick it, and ensure it's at its required location.
                 var firstChild = node.Children.First();
@@ -149,27 +150,26 @@ namespace AVThesis.Search.Tree {
                 // Update the score and remove dirty.
                 firstChild.CalculateScore(NodeEvaluation);
 
-                int i = 1;
+                var i = 1;
                 for (; i < node.Children.Count; i++) {
                     if (firstChild.CalculateScore(NodeEvaluation) >= node.Children.ElementAt(i).CalculateScore(NodeEvaluation))
                         break;
                 }
                 i--;
 
+                if (i <= 0) return node.Children.First();
                 // Move everyone by one, and set the child at its newest index.
-                if (i>0) {
-                    if (i == 1) {
-                        // Special case where we optimise for when we are just better than the second item (often).
-                        var items = node.Children.ToArray();
-                        items[0] = items[1];
-                        items[1] = firstChild;
-                        node.Children = items.ToList();
-                    } else {
-                        var items = node.Children.ToArray();
-                        Array.Copy(items, 1, items, 0, i);
-                        items[i] = firstChild;
-                        node.Children = items.ToList();
-                    }
+                if (i == 1) {
+                    // Special case where we optimise for when we are just better than the second item (often).
+                    var items = node.Children.ToArray();
+                    items[0] = items[1];
+                    items[1] = firstChild;
+                    node.Children = items.ToList();
+                } else {
+                    var items = node.Children.ToArray();
+                    Array.Copy(items, 1, items, 0, i);
+                    items[i] = firstChild;
+                    node.Children = items.ToList();
                 }
             }
 
