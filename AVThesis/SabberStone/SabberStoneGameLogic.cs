@@ -221,7 +221,7 @@ namespace AVThesis.SabberStone {
             var returnActions = new List<SabberStoneAction>();
             switch (DimensionalOrdering) {
                 case DimensionalOrderingType.EntropyAsc:
-                    // Get the task statistics from the Searchers
+                    // Get the task statistics from the Searcher
                     var taskStatistics = Searcher.TaskStatistics;
                     var tasksWithoutStatistics = tasks.Where(i => !taskStatistics.ContainsKey(((SabberStonePlayerTask)i).GetHashCode()));
                     var tasksWithStatistics = tasks.Where(i => taskStatistics.ContainsKey(((SabberStonePlayerTask) i).GetHashCode()));
