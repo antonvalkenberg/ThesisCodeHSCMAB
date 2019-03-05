@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using AVThesis.SabberStone;
+using AVThesis.SabberStone.Strategies;
 using SabberStoneCore.Config;
 using SabberStoneCore.Enums;
 using SabberStoneCore.Tasks.PlayerTasks;
@@ -109,6 +110,12 @@ namespace AVThesis.Tournament {
             // Get the game ready.
             game.Game.StartGame();
             MatchStatistics.NewGameStarted(gameIndex + 1, Bots[0].Name(), Bots[1].Name(), game.Game.FirstPlayer.Name);
+
+            // Default mulligan for each player.
+            game.Game.Process(MulliganStrategySabberStone.DefaultMulligan(game.Game.Player1));
+            game.Game.Process(MulliganStrategySabberStone.DefaultMulligan(game.Game.Player2));
+
+            game.Game.MainReady();
             
             // Play out the game.
             while (game.Game.State != State.COMPLETE) {

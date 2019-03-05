@@ -212,8 +212,10 @@
     <Compile Include="SabberStone\Strategies\EnsembleStrategySabberStone.cs" />
     <Compile Include="SabberStone\Strategies\GoalStrategyTurnCutoff.cs" />
     <Compile Include="SabberStone\Strategies\EvaluationStrategyHearthStone.cs" />
+    <Compile Include="SabberStone\Strategies\MulliganStrategySabberStone.cs" />
     <Compile Include="SabberStone\Strategies\PlayoutStrategySabberStone.cs" />
     <Compile Include="SabberStone\Strategies\SolutionStrategySabberStone.cs" />
+    <Compile Include="SabberStone\Bots\BudgetType.cs" />
     <Compile Include="Search\Constants.cs" />
     <Compile Include="Search\IApplicationStrategy.cs" />
     <Compile Include="Search\ICloneStrategy.cs" />

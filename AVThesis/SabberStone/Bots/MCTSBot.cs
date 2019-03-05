@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using AVThesis.SabberStone.Strategies;
 using AVThesis.Search;
@@ -109,6 +110,16 @@ namespace AVThesis.SabberStone.Bots {
         public int Iterations { get; set; }
 
         /// <summary>
+        /// The budget for the amount of milliseconds MCTS can spend on searching.
+        /// </summary>
+        public long Time { get; set; }
+
+        /// <summary>
+        /// The type of budget that this bot will use.
+        /// </summary>
+        public BudgetType BudgetType { get; set; }
+
+        /// <summary>
         /// The minimum amount of times a node has to be visited before it can be expanded.
         /// </summary>
         public int MinimumVisitThresholdForExpansion { get; set; }
@@ -153,8 +164,8 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="ucbConstantC">[Optional] Value for the c-constant in the UCB1 formula. Default value is <see cref="Constants.DEFAULT_UCB1_C"/>.</param>
         /// <param name="dimensionalOrdering">[Optional] The ordering for dimensions when using Hierarchical Expansion. Default value is <see cref="SabberStoneGameLogic.DimensionalOrderingType.None"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
-        public MCTSBot(Controller player, bool hierarchicalExpansion = true, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool retainTaskStatistics = false, int iterations = Constants.DEFAULT_MCTS_ITERATIONS, int minimumVisitThresholdForExpansion = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_EXPANSION, int minimumVisitThresholdForSelection = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_SELECTION, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, double ucbConstantC = Constants.DEFAULT_UCB1_C, SabberStoneGameLogic.DimensionalOrderingType dimensionalOrdering = SabberStoneGameLogic.DimensionalOrderingType.None, bool debugInfoToConsole = false)
-            : this(hierarchicalExpansion, allowPerfectInformation, ensembleSize, mastSelectionType, retainTaskStatistics, iterations, minimumVisitThresholdForExpansion, minimumVisitThresholdForSelection, playoutTurnCutoff, ucbConstantC, dimensionalOrdering, debugInfoToConsole) {
+        public MCTSBot(Controller player, bool hierarchicalExpansion = true, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool retainTaskStatistics = false, BudgetType budgetType = BudgetType.Iterations, int iterations = Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET, long time = Constants.DEFAULT_COMPUTATION_TIME_BUDGET, int minimumVisitThresholdForExpansion = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_EXPANSION, int minimumVisitThresholdForSelection = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_SELECTION, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, double ucbConstantC = Constants.DEFAULT_UCB1_C, SabberStoneGameLogic.DimensionalOrderingType dimensionalOrdering = SabberStoneGameLogic.DimensionalOrderingType.None, bool debugInfoToConsole = false)
+            : this(hierarchicalExpansion, allowPerfectInformation, ensembleSize, mastSelectionType, retainTaskStatistics, budgetType, iterations, time, minimumVisitThresholdForExpansion, minimumVisitThresholdForSelection, playoutTurnCutoff, ucbConstantC, dimensionalOrdering, debugInfoToConsole) {
             SetController(player);
         }
 
@@ -173,13 +184,15 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="ucbConstantC">[Optional] Value for the c-constant in the UCB1 formula. Default value is <see cref="Constants.DEFAULT_UCB1_C"/>.</param>
         /// <param name="dimensionalOrdering">[Optional] The ordering for dimensions when using Hierarchical Expansion. Default value is <see cref="SabberStoneGameLogic.DimensionalOrderingType.None"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
-        public MCTSBot(bool hierarchicalExpansion = true, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool retainTaskStatistics = false, int iterations = Constants.DEFAULT_MCTS_ITERATIONS, int minimumVisitThresholdForExpansion = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_EXPANSION, int minimumVisitThresholdForSelection = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_SELECTION, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, double ucbConstantC = Constants.DEFAULT_UCB1_C, SabberStoneGameLogic.DimensionalOrderingType dimensionalOrdering = SabberStoneGameLogic.DimensionalOrderingType.None, bool debugInfoToConsole = false) {
+        public MCTSBot(bool hierarchicalExpansion = true, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool retainTaskStatistics = false, BudgetType budgetType = BudgetType.Iterations, int iterations = Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET, long time = Constants.DEFAULT_COMPUTATION_TIME_BUDGET, int minimumVisitThresholdForExpansion = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_EXPANSION, int minimumVisitThresholdForSelection = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_SELECTION, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, double ucbConstantC = Constants.DEFAULT_UCB1_C, SabberStoneGameLogic.DimensionalOrderingType dimensionalOrdering = SabberStoneGameLogic.DimensionalOrderingType.None, bool debugInfoToConsole = false) {
             HierarchicalExpansion = hierarchicalExpansion;
             PerfectInformation = allowPerfectInformation;
             EnsembleSize = ensembleSize;
             MASTSelectionType = mastSelectionType;
             RetainTaskStatistics = retainTaskStatistics;
+            BudgetType = budgetType;
             Iterations = iterations;
+            Time = time;
             MinimumVisitThresholdForExpansion = minimumVisitThresholdForExpansion;
             MinimumVisitThresholdForSelection = minimumVisitThresholdForSelection;
             PlayoutTurnCutoff = playoutTurnCutoff;
@@ -213,7 +226,16 @@ namespace AVThesis.SabberStone.Bots {
             Builder.ExpansionStrategy = new MinimumTExpansion<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>(MinimumVisitThresholdForExpansion);
             Builder.SelectionStrategy = new BestNodeSelection<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>(MinimumVisitThresholdForSelection, nodeEvaluation);
             Builder.EvaluationStrategy = sabberStoneStateEvaluation;
-            Builder.Iterations = EnsembleSize > 0 ? Iterations / EnsembleSize : Iterations; // Note: Integer division by design.
+            switch (BudgetType) {
+                case BudgetType.Iterations:
+                    Builder.Iterations = EnsembleSize > 0 ? Iterations / EnsembleSize : Iterations; // Note: Integer division by design.
+                    break;
+                case BudgetType.Time:
+                    Builder.Time = EnsembleSize > 0 ? Time / EnsembleSize : Time; // Note: Integer division by design.
+                    break;
+                default:
+                    throw new InvalidEnumArgumentException($"BudgetType `{BudgetType}' is not supported.");
+            }
             Builder.BackPropagationStrategy = new EvaluateOnceAndColourBackPropagation<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>();
             Builder.FinalNodeSelectionStrategy = new BestRatioFinalNodeSelection<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>();
             Builder.SolutionStrategy = new SolutionStrategySabberStone(HierarchicalExpansion, nodeEvaluation);
@@ -309,15 +331,16 @@ namespace AVThesis.SabberStone.Bots {
         /// </summary>
         /// <returns>String representing the bot's name.</returns>
         public string Name() {
-            var it = Iterations != Constants.DEFAULT_MCTS_ITERATIONS ? $"_{Iterations}it" : "";
+            var it = Iterations != Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET ? $"_{Iterations}it" : "";
+            var ti = Time != Constants.DEFAULT_COMPUTATION_TIME_BUDGET ? $"_{Time}ti" : "";
             var ptc = PlayoutTurnCutoff != Constants.DEFAULT_PLAYOUT_TURN_CUTOFF ? $"_{PlayoutTurnCutoff}tc" : "";
             var mve = MinimumVisitThresholdForExpansion != Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_EXPANSION ? $"_{MinimumVisitThresholdForExpansion}mve" : "";
             var mvs = MinimumVisitThresholdForSelection != Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_SELECTION ? $"_{MinimumVisitThresholdForSelection}mvs" : "";
             var es = EnsembleSize > 1 ? $"_{EnsembleSize}es" : "";
             var pi = PerfectInformation ? "_PI" : "";
-            //var he = HierarchicalExpansion ? "_HE" : "";
+            var he = HierarchicalExpansion ? "_HE" : "";
             var rts = RetainTaskStatistics ? "_RTS" : "";
-            return $"{BOT_NAME}{it}{ptc}{mve}{mvs}{es}{pi}{rts}";
+            return $"{BOT_NAME}{it}{ti}{ptc}{mve}{mvs}{es}{pi}{he}{rts}";
         }
 
         /// <summary>

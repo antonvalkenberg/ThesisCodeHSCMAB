@@ -303,7 +303,7 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="samplesForGeneration">[Optional] The amount of samples to use during the generation phase. Default value is <see cref="Constants.DEFAULT_LSI_SAMPLES_FOR_GENERATION"/>.</param>
         /// <param name="samplesForEvaluation">[Optional] The amount of samples to use during the evaluation phase. Default value is <see cref="Constants.DEFAULT_LSI_SAMPLES_FOR_EVALUATION"/> * <see cref="Constants.DEFAULT_LSI_EVALUATION_SAMPLES_ADJUSTMENT_FACTOR"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
-        public LSIBot(Controller player, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, int samplesForGeneration = Constants.DEFAULT_LSI_SAMPLES_FOR_GENERATION, int samplesForEvaluation = (int)(Constants.DEFAULT_LSI_SAMPLES_FOR_EVALUATION * Constants.DEFAULT_LSI_EVALUATION_SAMPLES_ADJUSTMENT_FACTOR), bool debugInfoToConsole = false)
+        public LSIBot(Controller player, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, int samplesForGeneration = (int)(Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET * Constants.DEFAULT_LSI_BUDGET_GENERATION_PERCENTAGE), int samplesForEvaluation = (int)(Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET * Constants.DEFAULT_LSI_BUDGET_EVALUATION_PERCENTAGE * Constants.DEFAULT_LSI_EVALUATION_SAMPLES_ADJUSTMENT_FACTOR), bool debugInfoToConsole = false)
             : this(allowPerfectInformation, ensembleSize, mastSelectionType, playoutTurnCutoff, samplesForGeneration, samplesForEvaluation, debugInfoToConsole) {
             SetController(player);
         }
@@ -318,7 +318,7 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="samplesForGeneration">[Optional] The amount of samples to use during the generation phase. Default value is <see cref="Constants.DEFAULT_LSI_SAMPLES_FOR_GENERATION"/>.</param>
         /// <param name="samplesForEvaluation">[Optional] The amount of samples to use during the evaluation phase. Default value is <see cref="Constants.DEFAULT_LSI_SAMPLES_FOR_EVALUATION"/> * <see cref="Constants.DEFAULT_LSI_EVALUATION_SAMPLES_ADJUSTMENT_FACTOR"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
-        public LSIBot(bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, int samplesForGeneration = Constants.DEFAULT_LSI_SAMPLES_FOR_GENERATION, int samplesForEvaluation = (int)(Constants.DEFAULT_LSI_SAMPLES_FOR_EVALUATION * Constants.DEFAULT_LSI_EVALUATION_SAMPLES_ADJUSTMENT_FACTOR), bool debugInfoToConsole = false) {
+        public LSIBot(bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, int samplesForGeneration = (int)(Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET * Constants.DEFAULT_LSI_BUDGET_GENERATION_PERCENTAGE), int samplesForEvaluation = (int)(Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET * Constants.DEFAULT_LSI_BUDGET_EVALUATION_PERCENTAGE * Constants.DEFAULT_LSI_EVALUATION_SAMPLES_ADJUSTMENT_FACTOR), bool debugInfoToConsole = false) {
             PerfectInformation = allowPerfectInformation;
             EnsembleSize = ensembleSize;
             MASTSelectionType = mastSelectionType;
@@ -347,7 +347,7 @@ namespace AVThesis.SabberStone.Bots {
 
             // Application will be handled by the GameLogic
             // Hierarchical Expansion is set to TRUE because of incremental task validation during action sampling.
-            GameLogic = new SabberStoneGameLogic(Goal);
+            GameLogic = new SabberStoneGameLogic(Goal, hierarchicalExpansion: true);
 
             // The side information strategy needs access to several of these.
             SideInformationStrategy = new SabberStoneSideInformationStrategy(Playout, Evaluation, GameLogic);
@@ -439,8 +439,8 @@ namespace AVThesis.SabberStone.Bots {
 
         /// <inheritdoc />
         public string Name() {
-            var sfg = SamplesForGeneration != Constants.DEFAULT_LSI_SAMPLES_FOR_GENERATION ? $"_{SamplesForGeneration}g" : "";
-            var sfe = SamplesForEvaluation != Constants.DEFAULT_LSI_SAMPLES_FOR_EVALUATION ? $"_{SamplesForEvaluation}e" : "";
+            var sfg = $"_{SamplesForGeneration}g";
+            var sfe = $"_{SamplesForEvaluation}e";
             var ptc = PlayoutTurnCutoff != Constants.DEFAULT_PLAYOUT_TURN_CUTOFF ? $"_{PlayoutTurnCutoff}tc" : "";
             var es = EnsembleSize > 1 ? $"_{EnsembleSize}es" : "";
             var pi = PerfectInformation ? "_PI" : "";

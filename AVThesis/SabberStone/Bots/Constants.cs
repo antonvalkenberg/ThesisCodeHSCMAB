@@ -28,19 +28,29 @@ namespace AVThesis.SabberStone.Bots {
         /// </summary>
         public const int DEFAULT_PLAYOUT_TURN_CUTOFF = 3;
 
+        /// <summary>
+        /// The default amount of milliseconds for a budget based on time.
+        /// </summary>
+        public const long DEFAULT_COMPUTATION_TIME_BUDGET = 10000;
+
+        /// <summary>
+        /// The default amount of iterations for a budget based on iterations.
+        /// </summary>
+        public const int DEFAULT_COMPUTATION_ITERATION_BUDGET = 10000;
+
         #endregion
 
         #region LSI
 
         /// <summary>
-        /// The default amount of samples LSI is budgeted to use during the generation phase.
+        /// The default percentage of the computation budget of LSI that is used during the generation phase.
         /// </summary>
-        public const int DEFAULT_LSI_SAMPLES_FOR_GENERATION = 2500;
+        public const double DEFAULT_LSI_BUDGET_GENERATION_PERCENTAGE = 0.25;
 
         /// <summary>
-        /// The default amount of samples LSI is budgeted to use during the evaluation phase.
+        /// The default percentage of the computation budget of LSI that is used during the evaluation phase.
         /// </summary>
-        public const int DEFAULT_LSI_SAMPLES_FOR_EVALUATION = 7500;
+        public const double DEFAULT_LSI_BUDGET_EVALUATION_PERCENTAGE = 0.75;
 
         /// <summary>
         /// The default adjustment factor applied to the evaluation budget for LSI.
@@ -51,11 +61,6 @@ namespace AVThesis.SabberStone.Bots {
         #endregion
 
         #region MCTS
-
-        /// <summary>
-        /// The default budget of iterations for MCTS.
-        /// </summary>
-        public const int DEFAULT_MCTS_ITERATIONS = 10000;
 
         /// <summary>
         /// The default minimum amount of times a node has to be visited before it can be expanded in MCTS.
@@ -70,11 +75,6 @@ namespace AVThesis.SabberStone.Bots {
         #endregion
 
         #region NMCTS
-
-        /// <summary>
-        /// The default budget of iterations for NMCTS.
-        /// </summary>
-        public const int DEFAULT_NMCTS_ITERATIONS = 10000;
 
         /// <summary>
         /// The default setting for the global policy in NMCTS.

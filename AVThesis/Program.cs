@@ -3,6 +3,8 @@ using AVThesis.SabberStone;
 using SabberStoneCore.Config;
 using SabberStoneCore.Enums;
 using AVThesis.SabberStone.Bots;
+using AVThesis.SabberStone.Strategies;
+using SabberStoneCore.Tasks.PlayerTasks;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -32,7 +34,7 @@ namespace AVThesis {
                 Player2Deck = Decks.MidrangeHunter,
                 FillDecks = false,
                 Shuffle = true,
-                SkipMulligan = true,
+                SkipMulligan = false,
                 History = false
             };
 
@@ -56,18 +58,23 @@ namespace AVThesis {
                 Player2Deck = Decks.AggroHunter,
                 FillDecks = false,
                 Shuffle = true,
-                SkipMulligan = true,
+                SkipMulligan = false,
                 History = false
             }));
 
             // Create two bots to play
-            var bot1 = new MCTSBot(game.Player1);
+            var bot1 = new MCTSBot(game.Player1, budgetType: BudgetType.Time);
             var bot2 = new RandomBot(game.Player2);
 
             game.Game.StartGame();
 
+            game.Game.Process(MulliganStrategySabberStone.DefaultMulligan(game.Game.Player1));
+            game.Game.Process(MulliganStrategySabberStone.DefaultMulligan(game.Game.Player2));
+
+            game.Game.MainReady();
+
             // Mulligan stuff can happen in between here.
-            
+
             while (game.Game.State != State.COMPLETE) {
                 Console.WriteLine("");
                 Console.WriteLine($"TURN {(game.Game.Turn + 1) / 2} - {game.Game.CurrentPlayer.Name}");

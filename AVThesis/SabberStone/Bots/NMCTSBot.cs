@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using AVThesis.Game;
 using AVThesis.SabberStone.Strategies;
@@ -150,6 +151,16 @@ namespace AVThesis.SabberStone.Bots {
         public int Iterations { get; set; }
 
         /// <summary>
+        /// The budget for the amount of milliseconds MCTS can spend on searching.
+        /// </summary>
+        public long Time { get; set; }
+
+        /// <summary>
+        /// The type of budget that this bot will use.
+        /// </summary>
+        public BudgetType BudgetType { get; set; }
+
+        /// <summary>
         /// The exploration-threshold for the e-greedy global policy.
         /// </summary>
         public double GlobalPolicy { get; set; }
@@ -175,8 +186,8 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="globalPolicy">[Optional] The exploration-threshold for the e-greedy global policy. Default value is <see cref="Constants.DEFAULT_NMCTS_GLOBAL_POLICY"/>.</param>
         /// <param name="localPolicy">[Optional] The exploration-threshold for the e-greedy local policy. Default value is <see cref="Constants.DEFAULT_NMCTS_LOCAL_POLICY"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
-        public NMCTSBot(Controller player, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, int iterations = Constants.DEFAULT_NMCTS_ITERATIONS, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, double globalPolicy = Constants.DEFAULT_NMCTS_GLOBAL_POLICY, double localPolicy = Constants.DEFAULT_NMCTS_LOCAL_POLICY, bool debugInfoToConsole = false)
-            : this(allowPerfectInformation, ensembleSize, mastSelectionType, iterations, playoutTurnCutoff, globalPolicy, localPolicy, debugInfoToConsole) {
+        public NMCTSBot(Controller player, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, BudgetType budgetType = BudgetType.Iterations, int iterations = Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET, long time = Constants.DEFAULT_COMPUTATION_TIME_BUDGET, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, double globalPolicy = Constants.DEFAULT_NMCTS_GLOBAL_POLICY, double localPolicy = Constants.DEFAULT_NMCTS_LOCAL_POLICY, bool debugInfoToConsole = false)
+            : this(allowPerfectInformation, ensembleSize, mastSelectionType, budgetType, iterations, time, playoutTurnCutoff, globalPolicy, localPolicy, debugInfoToConsole) {
             SetController(player);
         }
 
@@ -191,11 +202,13 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="globalPolicy">[Optional] The exploration-threshold for the e-greedy global policy. Default value is <see cref="Constants.DEFAULT_NMCTS_GLOBAL_POLICY"/>.</param>
         /// <param name="localPolicy">[Optional] The exploration-threshold for the e-greedy local policy. Default value is <see cref="Constants.DEFAULT_NMCTS_LOCAL_POLICY"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
-        public NMCTSBot(bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, int iterations = Constants.DEFAULT_NMCTS_ITERATIONS, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, double globalPolicy = Constants.DEFAULT_NMCTS_GLOBAL_POLICY, double localPolicy = Constants.DEFAULT_NMCTS_LOCAL_POLICY, bool debugInfoToConsole = false) {
+        public NMCTSBot(bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, BudgetType budgetType = BudgetType.Iterations, int iterations = Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET, long time = Constants.DEFAULT_COMPUTATION_TIME_BUDGET, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, double globalPolicy = Constants.DEFAULT_NMCTS_GLOBAL_POLICY, double localPolicy = Constants.DEFAULT_NMCTS_LOCAL_POLICY, bool debugInfoToConsole = false) {
             PerfectInformation = allowPerfectInformation;
             EnsembleSize = ensembleSize;
             MASTSelectionType = mastSelectionType;
+            BudgetType = budgetType;
             Iterations = iterations;
+            Time = time;
             PlayoutTurnCutoff = playoutTurnCutoff;
             GlobalPolicy = globalPolicy;
             LocalPolicy = localPolicy;
@@ -229,7 +242,16 @@ namespace AVThesis.SabberStone.Bots {
             Builder.SamplingStrategy = new SabberStoneNMCSamplingStrategy(RandomSamplingBot);
             Builder.SolutionStrategy = new SolutionStrategySabberStone(false, new AverageScore<SabberStoneState, SabberStoneAction>());
             Builder.EvaluationStrategy = sabberStoneStateEvaluation;
-            Builder.Iterations = EnsembleSize > 0 ? Iterations / EnsembleSize : Iterations; // Note: Integer division by design.
+            switch (BudgetType) {
+                case BudgetType.Iterations:
+                    Builder.Iterations = EnsembleSize > 0 ? Iterations / EnsembleSize : Iterations; // Note: Integer division by design.
+                    break;
+                case BudgetType.Time:
+                    Builder.Time = EnsembleSize > 0 ? Time / EnsembleSize : Time; // Note: Integer division by design.
+                    break;
+                default:
+                    throw new InvalidEnumArgumentException($"BudgetType `{BudgetType}' is not supported.");
+            }
         }
 
         #endregion
@@ -298,13 +320,14 @@ namespace AVThesis.SabberStone.Bots {
 
         /// <inheritdoc />
         public string Name() {
-            var it = Iterations != Constants.DEFAULT_NMCTS_ITERATIONS ? $"_{Iterations}it" : "";
+            var it = Iterations != Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET ? $"_{Iterations}it" : "";
+            var ti = Time != Constants.DEFAULT_COMPUTATION_TIME_BUDGET ? $"_{Time}ti" : "";
             var gp = Math.Abs(GlobalPolicy - Constants.DEFAULT_NMCTS_GLOBAL_POLICY) > AVThesis.Constants.DOUBLE_EQUALITY_TOLERANCE ? $"_{GlobalPolicy}gp" : "";
             var lp = Math.Abs(LocalPolicy - Constants.DEFAULT_NMCTS_LOCAL_POLICY) > AVThesis.Constants.DOUBLE_EQUALITY_TOLERANCE ? $"_{LocalPolicy}lp" : "";
             var ptc = PlayoutTurnCutoff != Constants.DEFAULT_PLAYOUT_TURN_CUTOFF ? $"_{PlayoutTurnCutoff}tc" : "";
             var es = EnsembleSize > 1 ? $"_{EnsembleSize}es" : "";
             var pi = PerfectInformation ? "_PI" : "";
-            return $"{BOT_NAME}{it}{gp}{lp}{ptc}{es}{pi}";
+            return $"{BOT_NAME}{it}{ti}{gp}{lp}{ptc}{es}{pi}";
         }
         
         #endregion
