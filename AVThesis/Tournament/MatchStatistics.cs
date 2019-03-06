@@ -113,7 +113,8 @@ namespace AVThesis.Tournament {
             /// <param name="tasks">The tasks that were executed.</param>
             /// <param name="actionTime">The time that was spent on computing the action.</param>
             public void AddAction(string player, List<SabberStonePlayerTask> tasks, TimeSpan actionTime) {
-                GameActions[player].Add(new Tuple<List<SabberStonePlayerTask>, TimeSpan>(tasks, actionTime));
+                var playerName = string.Equals(player, Constants.SABBERSTONE_GAMECONFIG_PLAYER1_NAME) ? Player1Name : Player2Name;
+                GameActions[playerName].Add(new Tuple<List<SabberStonePlayerTask>, TimeSpan>(tasks, actionTime));
             }
 
             /// <summary>
@@ -141,12 +142,14 @@ namespace AVThesis.Tournament {
                 writer.WriteLine($"EndTurn: {FinalTurn} or {(FinalTurn + 1) / 2}");
                 writer.WriteLine("");
                 writer.WriteLine("Game Actions:");
-                writer.WriteLine("");
                 foreach (var kvPair in GameActions) {
+                    writer.WriteLine("");
                     writer.WriteLine($"*{kvPair.Key} - Total Computing Time: {TimeSpan.FromMilliseconds(kvPair.Value.Sum(i => i.Item2.TotalMilliseconds)):g}");
                     foreach (var tuple in kvPair.Value) {
                         writer.WriteLine($"Time: {tuple.Item2:g}");
-                        writer.WriteLine(tuple.Item1);
+                        foreach (var task in tuple.Item1) {
+                            writer.WriteLine(task);
+                        }
                     }
                 }
                 writer.Close();
@@ -224,11 +227,9 @@ namespace AVThesis.Tournament {
         /// Process that a new game has started within this match.
         /// </summary>
         /// <param name="gameNumber">The number of the game within the match.</param>
-        /// <param name="player1">The name of Player1 within this match's <see cref="SabberStoneCore.Model.Game"/>s.</param>
-        /// <param name="player2">The name of Player2 within this match's <see cref="SabberStoneCore.Model.Game"/>s.</param>
         /// <param name="startingPlayerName">The player that starts this game.</param>
-        public void NewGameStarted(int gameNumber, string player1, string player2, string startingPlayerName) {
-            CurrentGame = new GameStatistics(gameNumber, player1, player2, startingPlayerName);
+        public void NewGameStarted(int gameNumber, string startingPlayerName) {
+            CurrentGame = new GameStatistics(gameNumber, Player1, Player2, startingPlayerName);
         }
 
         /// <summary>

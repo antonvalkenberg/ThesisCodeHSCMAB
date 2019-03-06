@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using AVThesis.Enums;
 using AVThesis.Game;
 using AVThesis.SabberStone.Strategies;
 using AVThesis.Search;

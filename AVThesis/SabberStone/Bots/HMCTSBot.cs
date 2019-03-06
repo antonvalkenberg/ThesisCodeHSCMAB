@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using AVThesis.Enums;
 using AVThesis.SabberStone.Strategies;
 using AVThesis.Search;
 using AVThesis.Search.Tree;
@@ -16,13 +17,13 @@ using SabberStoneCore.Tasks.PlayerTasks;
 namespace AVThesis.SabberStone.Bots {
 
     /// <summary>
-    /// A bot that plays Hearthstone using Monte Carlo Tree Search to find its best move.
+    /// A bot that plays Hearthstone using Hierarchical Monte Carlo Tree Search to find its best move.
     /// </summary>
-    public class MCTSBot : ISabberStoneBot {
+    public class HMCTSBot : ISabberStoneBot {
 
         #region Constants
 
-        private const string BOT_NAME = "MCTSBot";
+        private const string BOT_NAME = "H-MCTSBot";
         private readonly bool _debug;
 
         #endregion
@@ -63,11 +64,6 @@ namespace AVThesis.SabberStone.Bots {
         /// The Monte Carlo Tree Search builder that creates a search-setup ready to use.
         /// </summary>
         public MCTSBuilder<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Builder { get; set; }
-
-        /// <summary>
-        /// Whether or not to use Hierarchical Expansion during the search.
-        /// </summary>
-        public bool HierarchicalExpansion { get; set; }
 
         /// <summary>
         /// Whether or not this bot is allowed perfect information about the game state (i.e. no obfuscation and therefore no determinisation).
@@ -152,7 +148,6 @@ namespace AVThesis.SabberStone.Bots {
         /// Constructs a new instance of MCTSBot with a <see cref="Controller"/> representing the player.
         /// </summary>
         /// <param name="player">The player.</param>
-        /// <param name="hierarchicalExpansion">[Optional] Whether or not to use Hierarchical Expansion. Default value is true.</param>
         /// <param name="allowPerfectInformation">[Optional] Whether or not this bot is allowed perfect information about the game state (i.e. no obfuscation and therefore no determinisation). Default value is false.</param>
         /// <param name="ensembleSize">[Optional] The size of the ensemble to use. Default value is 1.</param>
         /// <param name="mastSelectionType">[Optional] The type of selection strategy used by the M.A.S.T. playout. Default value is <see cref="MASTPlayoutBot.SelectionType.EGreedy"/>.</param>
@@ -164,15 +159,14 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="ucbConstantC">[Optional] Value for the c-constant in the UCB1 formula. Default value is <see cref="Constants.DEFAULT_UCB1_C"/>.</param>
         /// <param name="dimensionalOrdering">[Optional] The ordering for dimensions when using Hierarchical Expansion. Default value is <see cref="SabberStoneGameLogic.DimensionalOrderingType.None"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
-        public MCTSBot(Controller player, bool hierarchicalExpansion = true, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool retainTaskStatistics = false, BudgetType budgetType = BudgetType.Iterations, int iterations = Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET, long time = Constants.DEFAULT_COMPUTATION_TIME_BUDGET, int minimumVisitThresholdForExpansion = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_EXPANSION, int minimumVisitThresholdForSelection = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_SELECTION, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, double ucbConstantC = Constants.DEFAULT_UCB1_C, SabberStoneGameLogic.DimensionalOrderingType dimensionalOrdering = SabberStoneGameLogic.DimensionalOrderingType.None, bool debugInfoToConsole = false)
-            : this(hierarchicalExpansion, allowPerfectInformation, ensembleSize, mastSelectionType, retainTaskStatistics, budgetType, iterations, time, minimumVisitThresholdForExpansion, minimumVisitThresholdForSelection, playoutTurnCutoff, ucbConstantC, dimensionalOrdering, debugInfoToConsole) {
+        public HMCTSBot(Controller player, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool retainTaskStatistics = false, BudgetType budgetType = BudgetType.Iterations, int iterations = Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET, long time = Constants.DEFAULT_COMPUTATION_TIME_BUDGET, int minimumVisitThresholdForExpansion = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_EXPANSION, int minimumVisitThresholdForSelection = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_SELECTION, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, double ucbConstantC = Constants.DEFAULT_UCB1_C, SabberStoneGameLogic.DimensionalOrderingType dimensionalOrdering = SabberStoneGameLogic.DimensionalOrderingType.None, bool debugInfoToConsole = false)
+            : this(allowPerfectInformation, ensembleSize, mastSelectionType, retainTaskStatistics, budgetType, iterations, time, minimumVisitThresholdForExpansion, minimumVisitThresholdForSelection, playoutTurnCutoff, ucbConstantC, dimensionalOrdering, debugInfoToConsole) {
             SetController(player);
         }
 
         /// <summary>
         /// Constructs a new instance of MCTSBot with default strategies.
         /// </summary>
-        /// <param name="hierarchicalExpansion">[Optional] Whether or not to use Hierarchical Expansion. Default value is true.</param>
         /// <param name="allowPerfectInformation">[Optional] Whether or not this bot is allowed perfect information about the game state (i.e. no obfuscation and therefore no determinisation). Default value is false.</param>
         /// <param name="ensembleSize">[Optional] The size of the ensemble to use. Default value is 1.</param>
         /// <param name="mastSelectionType">[Optional] The type of selection strategy used by the MAST playout. Default value is <see cref="MASTPlayoutBot.SelectionType.EGreedy"/>.</param>
@@ -184,8 +178,7 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="ucbConstantC">[Optional] Value for the c-constant in the UCB1 formula. Default value is <see cref="Constants.DEFAULT_UCB1_C"/>.</param>
         /// <param name="dimensionalOrdering">[Optional] The ordering for dimensions when using Hierarchical Expansion. Default value is <see cref="SabberStoneGameLogic.DimensionalOrderingType.None"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
-        public MCTSBot(bool hierarchicalExpansion = true, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool retainTaskStatistics = false, BudgetType budgetType = BudgetType.Iterations, int iterations = Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET, long time = Constants.DEFAULT_COMPUTATION_TIME_BUDGET, int minimumVisitThresholdForExpansion = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_EXPANSION, int minimumVisitThresholdForSelection = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_SELECTION, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, double ucbConstantC = Constants.DEFAULT_UCB1_C, SabberStoneGameLogic.DimensionalOrderingType dimensionalOrdering = SabberStoneGameLogic.DimensionalOrderingType.None, bool debugInfoToConsole = false) {
-            HierarchicalExpansion = hierarchicalExpansion;
+        public HMCTSBot(bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool retainTaskStatistics = false, BudgetType budgetType = BudgetType.Iterations, int iterations = Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET, long time = Constants.DEFAULT_COMPUTATION_TIME_BUDGET, int minimumVisitThresholdForExpansion = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_EXPANSION, int minimumVisitThresholdForSelection = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_SELECTION, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, double ucbConstantC = Constants.DEFAULT_UCB1_C, SabberStoneGameLogic.DimensionalOrderingType dimensionalOrdering = SabberStoneGameLogic.DimensionalOrderingType.None, bool debugInfoToConsole = false) {
             PerfectInformation = allowPerfectInformation;
             EnsembleSize = ensembleSize;
             MASTSelectionType = mastSelectionType;
@@ -216,7 +209,7 @@ namespace AVThesis.SabberStone.Bots {
             Goal = new GoalStrategyTurnCutoff(PlayoutTurnCutoff);
 
             // Expansion, Application and Goal will be handled by the GameLogic.
-            GameLogic = new SabberStoneGameLogic(Goal, HierarchicalExpansion, DimensionalOrdering);
+            GameLogic = new SabberStoneGameLogic(Goal, true, DimensionalOrdering);
 
             // Create the INodeEvaluation strategy used in the selection phase.
             var nodeEvaluation = new ScoreUCB<SabberStoneState, SabberStoneAction>(UCBConstantC);
@@ -238,7 +231,7 @@ namespace AVThesis.SabberStone.Bots {
             }
             Builder.BackPropagationStrategy = new EvaluateOnceAndColourBackPropagation<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>();
             Builder.FinalNodeSelectionStrategy = new BestRatioFinalNodeSelection<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>();
-            Builder.SolutionStrategy = new SolutionStrategySabberStone(HierarchicalExpansion, nodeEvaluation);
+            Builder.SolutionStrategy = new SolutionStrategySabberStone(true, nodeEvaluation);
             Builder.PlayoutStrategy = Playout;
         }
 
@@ -308,21 +301,12 @@ namespace AVThesis.SabberStone.Bots {
             if (_debug) Console.WriteLine();
             if (_debug) Console.WriteLine($"MCTS returned with solution: {solution}");
             if (_debug) Console.WriteLine($"My total calculation time was: {time} ms.");
-
-            // Check if the solution is a complete action.
-            if (!solution.IsComplete()) {
-                if (!HierarchicalExpansion) {
-                    // Otherwise add an End-Turn task before returning.
-                    if (_debug) Console.WriteLine("Solution was an incomplete action; adding End-Turn task.");
-                    solution.Tasks.Add((SabberStonePlayerTask)EndTurnTask.Any(Player));
-                }
-                else {
-                    // If we are using HE, call move completion function.
-                    CompleteHEMove(state, solution);
-                }
-            }
-
             if (_debug) Console.WriteLine();
+
+            // Check if MoveCompletion should be used.
+            if (!solution.IsComplete())
+                CompleteHEMove(state, solution);
+
             return solution;
         }
 
@@ -338,9 +322,8 @@ namespace AVThesis.SabberStone.Bots {
             var mvs = MinimumVisitThresholdForSelection != Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_SELECTION ? $"_{MinimumVisitThresholdForSelection}mvs" : "";
             var es = EnsembleSize > 1 ? $"_{EnsembleSize}es" : "";
             var pi = PerfectInformation ? "_PI" : "";
-            var he = HierarchicalExpansion ? "_HE" : "";
             var rts = RetainTaskStatistics ? "_RTS" : "";
-            return $"{BOT_NAME}{it}{ti}{ptc}{mve}{mvs}{es}{pi}{he}{rts}";
+            return $"{BOT_NAME}{it}{ti}{ptc}{mve}{mvs}{es}{pi}{rts}";
         }
 
         /// <summary>

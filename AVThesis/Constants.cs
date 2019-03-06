@@ -26,5 +26,15 @@ namespace AVThesis {
         /// </summary>
         public const double DOUBLE_EQUALITY_TOLERANCE = 0.0000001;
 
+        /// <summary>
+        /// The name of `Player1' in the SabberStone game config.
+        /// </summary>
+        public const string SABBERSTONE_GAMECONFIG_PLAYER1_NAME = "Player1";
+
+        /// <summary>
+        /// The name of `Player2' in the SabberStone game config.
+        /// </summary>
+        public const string SABBERSTONE_GAMECONFIG_PLAYER2_NAME = "Player2";
+
     }
 }

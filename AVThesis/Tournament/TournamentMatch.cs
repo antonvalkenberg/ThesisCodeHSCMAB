@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using AVThesis.Enums;
 using AVThesis.SabberStone;
+using AVThesis.SabberStone.Bots;
 using AVThesis.SabberStone.Strategies;
 using SabberStoneCore.Config;
 using SabberStoneCore.Enums;
@@ -61,16 +63,16 @@ namespace AVThesis.Tournament {
         /// Constructs a new instance of a TournamentMatch with a specific GameConfig between two bots.
         /// Note: the order of the bots does not reflect the playing order in the match's games. (starting player is alternated)
         /// </summary>
-        /// <param name="bot1">The first bot.</param>
-        /// <param name="bot2">The second bot.</param>
+        /// <param name="bot1Setup">The setup for the first bot.</param>
+        /// <param name="bot2Setup">The setup for the second bot.</param>
         /// <param name="configuration">The SabberStone Game configuration for this match.</param>
         /// <param name="numberOfGames">The amount of games that should be played in this match.</param>
         /// <param name="printToConsole">[Optional] Whether or not to print game information to the Console.</param>
-        public TournamentMatch(ISabberStoneBot bot1, ISabberStoneBot bot2, GameConfig configuration, int numberOfGames, bool printToConsole = false) {
-            Bots = new List<ISabberStoneBot> { bot1, bot2 };
+        public TournamentMatch(BotSetupType bot1Setup, BotSetupType bot2Setup, GameConfig configuration, int numberOfGames, bool printToConsole = false) {
+            Bots = new List<ISabberStoneBot> { BotFactory.CreateSabberStoneBot(bot1Setup), BotFactory.CreateSabberStoneBot(bot2Setup) };
             GameConfig = configuration;
             NumberOfGames = numberOfGames;
-            MatchStatistics = new MatchStatistics(bot1.Name(), bot2.Name(), numberOfGames);
+            MatchStatistics = new MatchStatistics($"{bot1Setup.ToString()}[{configuration.Player1Name}]", $"{bot2Setup.ToString()}[{configuration.Player2Name}]", numberOfGames);
             _printToConsole = printToConsole;
         }
 
@@ -109,7 +111,7 @@ namespace AVThesis.Tournament {
 
             // Get the game ready.
             game.Game.StartGame();
-            MatchStatistics.NewGameStarted(gameIndex + 1, Bots[0].Name(), Bots[1].Name(), game.Game.FirstPlayer.Name);
+            MatchStatistics.NewGameStarted(gameIndex + 1, game.Game.FirstPlayer.Name);
 
             // Default mulligan for each player.
             game.Game.Process(MulliganStrategySabberStone.DefaultMulligan(game.Game.Player1));
@@ -148,7 +150,8 @@ namespace AVThesis.Tournament {
         /// <param name="game">The current game state.</param>
         /// <param name="bot">The bot that should play the turn.</param>
         private void PlayPlayerTurn(SabberStoneState game, ISabberStoneBot bot) {
-            if (_printToConsole) Console.WriteLine($"- <{game.Game.CurrentPlayer.Name}> ---------------------------");
+            var currentPlayerName = game.Game.CurrentPlayer.Name;
+            if (_printToConsole) Console.WriteLine($"- <{currentPlayerName}> ---------------------------");
             var timer = Stopwatch.StartNew();
 
             // Ask the bot to act.
@@ -185,7 +188,7 @@ namespace AVThesis.Tournament {
             }
 
             // Store the action in the match-statistics
-            MatchStatistics.ProcessAction(bot.Name(), executedTasks, timer.Elapsed);
+            MatchStatistics.ProcessAction(currentPlayerName, executedTasks, timer.Elapsed);
             if (_printToConsole) Console.WriteLine($"*Action computation time: {timer.Elapsed:g}");
         }
 

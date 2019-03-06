@@ -240,16 +240,7 @@ namespace AVThesis.SabberStone.Bots {
             /// Gets or sets the controller delegating the current turn.
             /// </summary>
             /// <value><see cref="Controller"/></value>
-            public Controller CurrentPlayer {
-                get {
-                    //return Player1[GameTag.CURRENT_PLAYER] == 1
-                    //	? Player1
-                    //	: Player2[GameTag.CURRENT_PLAYER] == 1 ? Player2 : null;
-                    return game.Player1.GetNativeGameTag(GameTag.CURRENT_PLAYER) == 1
-                        ? game.Player1
-                        : game.Player2;
-                }
-            }
+            public Controller CurrentPlayer => game.CurrentPlayer;
 
             /// <summary>
             /// Gets the opponent controller of <see cref="CurrentPlayer"/>.
@@ -345,7 +336,7 @@ namespace AVThesis.SabberStone.Bots {
         #region Constructors
 
         public HeuristicBot() {
-            Console.WriteLine("Initializing EVA");
+            debug("Initializing EVA");
             this.setAgentWeightsFromString("0.569460712743#0.958111820041#0.0689492467097#0.0#0.843573987219#0.700225423688#0.907680353441#0.0#0.993682660717#1.0#0.640753949511#0.992872512338#0.92870036875#0.168100484322#0.870080107454#0.0#0.42897762808#1.0#0.0#0.583884736646#0.0");
         }
 

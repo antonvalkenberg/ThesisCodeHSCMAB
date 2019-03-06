@@ -183,11 +183,13 @@
   <ItemGroup>
     <Compile Include="Agent\IAgent.cs" />
     <Compile Include="Agent\RandomAgent.cs" />
+    <Compile Include="Enums\BotSetupType.cs" />
+    <Compile Include="SabberStone\Bots\BotFactory.cs" />
     <Compile Include="SabberStone\Bots\Constants.cs" />
     <Compile Include="SabberStone\Bots\HeuristicBot.cs" />
     <Compile Include="SabberStone\Bots\LSIBot.cs" />
     <Compile Include="SabberStone\Bots\MASTPlayoutBot.cs" />
-    <Compile Include="SabberStone\Bots\MCTSBot.cs" />
+    <Compile Include="SabberStone\Bots\HMCTSBot.cs" />
     <Compile Include="SabberStone\Bots\NMCTSBot.cs" />
     <Compile Include="SabberStone\Bots\RandomBot.cs" />
     <Compile Include="Constants.cs" />
@@ -215,7 +217,7 @@
     <Compile Include="SabberStone\Strategies\MulliganStrategySabberStone.cs" />
     <Compile Include="SabberStone\Strategies\PlayoutStrategySabberStone.cs" />
     <Compile Include="SabberStone\Strategies\SolutionStrategySabberStone.cs" />
-    <Compile Include="SabberStone\Bots\BudgetType.cs" />
+    <Compile Include="Enums\BudgetType.cs" />
     <Compile Include="Search\Constants.cs" />
     <Compile Include="Search\IApplicationStrategy.cs" />
     <Compile Include="Search\ICloneStrategy.cs" />
