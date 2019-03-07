@@ -15,8 +15,8 @@ namespace AVThesis {
     public class Program {
 
 		public static void Main(string[] args) {
-            //RunTournamentMatch();
-            RunQuickMatch();
+            RunTournamentMatch();
+            //RunQuickMatch();
 
 #pragma warning disable 219
             string catcher = null;
@@ -28,10 +28,10 @@ namespace AVThesis {
             var gameConfig = new GameConfig {
                 Player1Name = Constants.SABBERSTONE_GAMECONFIG_PLAYER1_NAME,
                 Player1HeroClass = CardClass.HUNTER,
-                Player1Deck = Decks.MidrangeHunter,
+                Player1Deck = Decks.DefaultDeck,
                 Player2Name = Constants.SABBERSTONE_GAMECONFIG_PLAYER2_NAME,
                 Player2HeroClass = CardClass.HUNTER,
-                Player2Deck = Decks.MidrangeHunter,
+                Player2Deck = Decks.DefaultDeck,
                 FillDecks = false,
                 Shuffle = true,
                 SkipMulligan = false,
@@ -39,7 +39,7 @@ namespace AVThesis {
             };
 
             // Create a new tournament match
-            var match = new Tournament.TournamentMatch(BotSetupType.DefaultLSI, BotSetupType.HeuristicBot, gameConfig, 5);
+            var match = new Tournament.TournamentMatch(, , gameConfig, 100);
 
             match.RunMatch();
         }
@@ -53,7 +53,7 @@ namespace AVThesis {
                 Player1Deck = Decks.DefaultDeck,
                 Player2Name = Constants.SABBERSTONE_GAMECONFIG_PLAYER2_NAME,
                 Player2HeroClass = CardClass.HUNTER,
-                Player2Deck = Decks.AggroHunter,
+                Player2Deck = Decks.DefaultDeck,
                 FillDecks = false,
                 Shuffle = true,
                 SkipMulligan = false,
@@ -61,8 +61,8 @@ namespace AVThesis {
             }));
 
             // Create two bots to play
-            var bot1 = BotFactory.CreateSabberStoneBot(BotSetupType.HeuristicBot, game.Player1);
-            var bot2 = new HMCTSBot(game.Player2);
+            var bot1 = BotFactory.CreateSabberStoneBot(BotSetupType.RandomBot, game.Player1);
+            var bot2 = BotFactory.CreateSabberStoneBot(BotSetupType.RandomBot, game.Player2);
 
             game.Game.StartGame();
 

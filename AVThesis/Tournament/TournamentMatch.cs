@@ -87,7 +87,13 @@ namespace AVThesis.Tournament {
             // Run all the games of the match.
             for (var i = 0; i < NumberOfGames; i++) {
                 Console.WriteLine($"** Starting Game {i+1} of {NumberOfGames}");
-                RunGame(i);
+                try {
+                    RunGame(i);
+                }
+                catch (Exception e) {
+                    Console.WriteLine($"ERROR: Exception thrown during game {i}");
+                    WriteExceptionToFile(e);
+                }
             }
         }
 
@@ -190,6 +196,19 @@ namespace AVThesis.Tournament {
             // Store the action in the match-statistics
             MatchStatistics.ProcessAction(currentPlayerName, executedTasks, timer.Elapsed);
             if (_printToConsole) Console.WriteLine($"*Action computation time: {timer.Elapsed:g}");
+        }
+
+        /// <summary>
+        /// Writes the provided <see cref="Exception"/> to the file defined in <see cref="ExceptionFilePath"/>.
+        /// </summary>
+        /// <param name="exception">The exception to write to the file.</param>
+        private void WriteExceptionToFile(Exception exception) {
+            var writer = new StreamWriter(ExceptionFilePath, true);
+            writer.WriteLine("");
+            writer.WriteLine(exception.Message);
+            writer.WriteLine(exception.StackTrace);
+            writer.WriteLine("");
+            writer.Close();
         }
 
         /// <summary>

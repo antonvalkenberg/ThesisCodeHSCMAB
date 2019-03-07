@@ -42,6 +42,12 @@ namespace AVThesis.SabberStone.Bots {
                     return new NMCTSBot();
                 case BotSetupType.DefaultLSI:
                     return new LSIBot();
+                case BotSetupType.HMCTS_TC2:
+                    return new HMCTSBot(playoutTurnCutoff: 2);
+                case BotSetupType.NMCTS_TC2:
+                    return new NMCTSBot(playoutTurnCutoff: 2);
+                case BotSetupType.LSI_TC2:
+                    return new LSIBot(playoutTurnCutoff: 2);
                 default:
                     throw new InvalidEnumArgumentException($"BotSetupType `{botType}' is not supported.");
             }

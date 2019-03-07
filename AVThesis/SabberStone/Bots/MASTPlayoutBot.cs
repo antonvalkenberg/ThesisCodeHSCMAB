@@ -143,7 +143,7 @@ namespace AVThesis.SabberStone.Bots {
             // Determine whether or not to be greedy (chance is 1-e to use best action)
             if (Util.RNG.NextDouble() < EGreedyThreshold)
                 // Explore a random action
-                return RandomPlayoutBot.CreateRandomAction(state);
+                return RandomPlayoutBot.CreateRandomAction(state, true);
 
             var action = new SabberStoneAction();
             var stateClone = state.Game.Clone();
@@ -151,7 +151,7 @@ namespace AVThesis.SabberStone.Bots {
             do {
                 SabberStonePlayerTask selectedTask;
                 // Get the stats of the tasks currently available in this state
-                var availableTasks = stateClone.Game.CurrentPlayer.Options().Select(i => (SabberStonePlayerTask)i).ToList();
+                var availableTasks = stateClone.Game.CurrentPlayer.Options().Where(i => i.ZonePosition <= 0).Select(i => (SabberStonePlayerTask)i).ToList();
                 var availableTaskHashes = availableTasks.Select(i => i.GetHashCode()).ToList();
                 var availableStatistics = MASTTable.Where(i => availableTaskHashes.Contains(i.Key)).ToList();
 
@@ -198,7 +198,7 @@ namespace AVThesis.SabberStone.Bots {
             do {
                 SabberStonePlayerTask selectedTask;
                 // Get the stats of the tasks currently available in this state
-                var availableTasks = stateClone.Game.CurrentPlayer.Options().Select(i => (SabberStonePlayerTask)i).ToList();
+                var availableTasks = stateClone.Game.CurrentPlayer.Options().Where(i => i.ZonePosition <= 0).Select(i => (SabberStonePlayerTask)i).ToList();
                 var availableTaskHashes = availableTasks.Select(i => i.GetHashCode()).ToList();
                 var availableStatistics = MASTTable.Where(i => availableTaskHashes.Contains(i.Key)).ToList();
                 var totalVisits = availableStatistics.Sum(i => i.Value.Visits);

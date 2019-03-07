@@ -34,6 +34,21 @@ namespace AVThesis.Enums {
         /// </summary>
         DefaultLSI,
 
+        /// <summary>
+        /// H-MCTS bot with a Turn-Cutoff setting of 2.
+        /// </summary>
+        HMCTS_TC2,
+
+        /// <summary>
+        /// N-MCTS bot with a Turn-Cutoff setting of 2.
+        /// </summary>
+        NMCTS_TC2,
+
+        /// <summary>
+        /// LSI bot with a Turn-Cutoff setting of 2.
+        /// </summary>
+        LSI_TC2,
+
     }
 
 }
