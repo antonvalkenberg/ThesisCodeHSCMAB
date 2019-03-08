@@ -8,6 +8,7 @@ using AVThesis.Search;
 using AVThesis.Search.LSI;
 using AVThesis.Search.Tree;
 using SabberStoneCore.Model.Entities;
+using SabberStoneCore.Tasks;
 using SabberStoneCore.Tasks.PlayerTasks;
 
 /// <summary>
@@ -153,7 +154,7 @@ namespace AVThesis.SabberStone.Bots {
             /// </summary>
             /// <param name="state">The game state.</param>
             /// <returns>Collection of SabberStonePlayerTasks that are available in the provided state.</returns>
-            private IEnumerable<SabberStonePlayerTask> GetAvailablePlayerTasks(SabberStoneState state) {
+            private List<SabberStonePlayerTask> GetAvailablePlayerTasks(SabberStoneState state) {
                 return GameLogic.Expand(null, state).Select(expandedAction => expandedAction.Tasks.First()).ToList();
             }
 
@@ -163,17 +164,35 @@ namespace AVThesis.SabberStone.Bots {
 
             /// <inheritdoc />
             public SabberStoneAction Sample(SabberStoneState state, OddmentTable<SabberStonePlayerTask> sideInformation) {
-
+                var copyState = (SabberStoneState)state.Copy();
+                var availableTasks = GetAvailablePlayerTasks(state);
                 var action = new SabberStoneAction();
-                while (!action.IsComplete()) {
+                var tries = 0;
+
+                // Keep sampling tasks while we have not passed the turn yet and there are more tasks available than only EndTurn or HeroPower, of if we haven't generated a suitable task in 100 tries
+                while (!action.IsComplete() && availableTasks.Any(i => i.Task.PlayerTaskType != PlayerTaskType.END_TURN && i.Task.PlayerTaskType != PlayerTaskType.HERO_POWER) && tries < 100) {
                     // Sample a task from the OddmentTable
                     var task = sideInformation.Next();
                     // Check if the task is available in the current state
-                    var availableTasks = GetAvailablePlayerTasks(state);
-                    if (!availableTasks.Contains(task, PlayerTaskComparer.Comparer)) continue;
+                    if (!availableTasks.Contains(task, PlayerTaskComparer.Comparer)) {
+                        tries++;
+                        continue;
+                    }
+
+                    tries = 0;
                     action.AddTask(task);
-                    state.Game.Process(task.Task);
+                    copyState.Game.Process(task.Task);
+                    availableTasks = GetAvailablePlayerTasks(copyState);
                 }
+
+                if (action.IsComplete()) return action;
+
+                // If hero power is available, add it
+                if (availableTasks.Any(i => i.Task.PlayerTaskType == PlayerTaskType.HERO_POWER))
+                   action.AddTask(availableTasks.First(i => i.Task.PlayerTaskType == PlayerTaskType.HERO_POWER));
+                
+                // If the action is not complete yet, add EndTurn
+                action.AddTask((SabberStonePlayerTask) EndTurnTask.Any(state.Game.CurrentPlayer));
 
                 return action;
             }
@@ -300,8 +319,8 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="ensembleSize">[Optional] The size of the ensemble to use. Default value is 1.</param>
         /// <param name="mastSelectionType">[Optional] The type of selection strategy used by the M.A.S.T. playout. Default value is <see cref="MASTPlayoutBot.SelectionType.EGreedy"/>.</param>
         /// <param name="playoutTurnCutoff">[Optional] The amount of turns after which to stop a simulation. Default value is <see cref="Constants.DEFAULT_PLAYOUT_TURN_CUTOFF"/>.</param>
-        /// <param name="samplesForGeneration">[Optional] The amount of samples to use during the generation phase. Default value is <see cref="Constants.DEFAULT_LSI_SAMPLES_FOR_GENERATION"/>.</param>
-        /// <param name="samplesForEvaluation">[Optional] The amount of samples to use during the evaluation phase. Default value is <see cref="Constants.DEFAULT_LSI_SAMPLES_FOR_EVALUATION"/> * <see cref="Constants.DEFAULT_LSI_EVALUATION_SAMPLES_ADJUSTMENT_FACTOR"/>.</param>
+        /// <param name="samplesForGeneration">[Optional] The amount of samples to use during the generation phase. Default value is <see cref="Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET"/> * <see cref="Constants.DEFAULT_LSI_BUDGET_GENERATION_PERCENTAGE"/>.</param>
+        /// <param name="samplesForEvaluation">[Optional] The amount of samples to use during the evaluation phase. Default value is <see cref="Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET"/> * <see cref="Constants.DEFAULT_LSI_BUDGET_EVALUATION_PERCENTAGE"/> * <see cref="Constants.DEFAULT_LSI_EVALUATION_SAMPLES_ADJUSTMENT_FACTOR"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
         public LSIBot(Controller player, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, int samplesForGeneration = (int)(Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET * Constants.DEFAULT_LSI_BUDGET_GENERATION_PERCENTAGE), int samplesForEvaluation = (int)(Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET * Constants.DEFAULT_LSI_BUDGET_EVALUATION_PERCENTAGE * Constants.DEFAULT_LSI_EVALUATION_SAMPLES_ADJUSTMENT_FACTOR), bool debugInfoToConsole = false)
             : this(allowPerfectInformation, ensembleSize, mastSelectionType, playoutTurnCutoff, samplesForGeneration, samplesForEvaluation, debugInfoToConsole) {
@@ -315,8 +334,8 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="ensembleSize">[Optional] The size of the ensemble to use. Default value is 1.</param>
         /// <param name="mastSelectionType">[Optional] The type of selection strategy used by the M.A.S.T. playout. Default value is <see cref="MASTPlayoutBot.SelectionType.EGreedy"/>.</param>
         /// <param name="playoutTurnCutoff">[Optional] The amount of turns after which to stop a simulation. Default value is <see cref="Constants.DEFAULT_PLAYOUT_TURN_CUTOFF"/>.</param>
-        /// <param name="samplesForGeneration">[Optional] The amount of samples to use during the generation phase. Default value is <see cref="Constants.DEFAULT_LSI_SAMPLES_FOR_GENERATION"/>.</param>
-        /// <param name="samplesForEvaluation">[Optional] The amount of samples to use during the evaluation phase. Default value is <see cref="Constants.DEFAULT_LSI_SAMPLES_FOR_EVALUATION"/> * <see cref="Constants.DEFAULT_LSI_EVALUATION_SAMPLES_ADJUSTMENT_FACTOR"/>.</param>
+        /// <param name="samplesForGeneration">[Optional] The amount of samples to use during the generation phase. Default value is <see cref="Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET"/> * <see cref="Constants.DEFAULT_LSI_BUDGET_GENERATION_PERCENTAGE"/>.</param>
+        /// <param name="samplesForEvaluation">[Optional] The amount of samples to use during the evaluation phase. Default value is <see cref="Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET"/> * <see cref="Constants.DEFAULT_LSI_BUDGET_EVALUATION_PERCENTAGE"/> * <see cref="Constants.DEFAULT_LSI_EVALUATION_SAMPLES_ADJUSTMENT_FACTOR"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
         public LSIBot(bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, int samplesForGeneration = (int)(Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET * Constants.DEFAULT_LSI_BUDGET_GENERATION_PERCENTAGE), int samplesForEvaluation = (int)(Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET * Constants.DEFAULT_LSI_BUDGET_EVALUATION_PERCENTAGE * Constants.DEFAULT_LSI_EVALUATION_SAMPLES_ADJUSTMENT_FACTOR), bool debugInfoToConsole = false) {
             PerfectInformation = allowPerfectInformation;

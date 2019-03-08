@@ -215,7 +215,9 @@ namespace AVThesis.Tournament {
         /// </summary>
         private void WriteGameResultToFile() {
             var writer = new StreamWriter(ResultsFilePath, true);
-            writer.WriteLine($"{CurrentGame.WinningPlayer()},{CurrentGame.Player1HP},{CurrentGame.Player2HP},{CurrentGame.FinalTurn}");
+            var player1Time = TimeSpan.FromMilliseconds(CurrentGame.GameActions[Player1].Sum(i => i.Item2.TotalMilliseconds));
+            var player2Time = TimeSpan.FromMilliseconds(CurrentGame.GameActions[Player2].Sum(i => i.Item2.TotalMilliseconds));
+            writer.WriteLine($"{CurrentGame.WinningPlayer()},{CurrentGame.Player1HP},{CurrentGame.Player2HP},{CurrentGame.FinalTurn},{player1Time:g},{player2Time:g}");
             writer.Close();
         }
 
