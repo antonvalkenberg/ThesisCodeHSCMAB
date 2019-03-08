@@ -74,6 +74,15 @@ namespace AVThesis.Search.Tree {
         /// Constructor that creates a TreeSearchNode with a world-state. This should be viewed as the root node constructor, as subsequent node's states can be constructed using their payload.
         /// </summary>
         /// <param name="state">The state that this TreeSearchNode represents.</param>
+        public TreeSearchNode(S state) : base(state) {
+            Parent = null;
+            Children = new List<TreeSearchNode<S, A>>();
+        }
+
+        /// <summary>
+        /// Constructor that creates a TreeSearchNode with a world-state and a payload.
+        /// </summary>
+        /// <param name="state">The state that this TreeSearchNode represents.</param>
         /// <param name="payload"><see cref="Node{A}.Payload"/></param>
         public TreeSearchNode(S state, A payload) : base(state, payload) {
             Parent = null;

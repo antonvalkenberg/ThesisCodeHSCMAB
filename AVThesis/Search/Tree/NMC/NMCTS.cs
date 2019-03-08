@@ -140,7 +140,7 @@ namespace AVThesis.Search.Tree.NMC {
             // Setup for when we might be continuing a search from a specific node.
             var root = (TreeSearchNode<P, A>)context.StartNode;
             if (root == null) {
-                root = new TreeSearchNode<P, A>(clone.Clone(rootState), null);
+                root = new TreeSearchNode<P, A>(clone.Clone(rootState));
                 context.StartNode = root;
             }
 
@@ -196,8 +196,9 @@ namespace AVThesis.Search.Tree.NMC {
             var actionHash = action.GetHashCode();
 
             // Check if any of the children of the current node have the sampled action as their payload
-            var existingChild = node.Children.FirstOrDefault(i => i.Payload.GetHashCode() == actionHash);
-            if (existingChild != null) {
+            var childHashes = node.Children.Select(i => i.PayloadHash);
+            if (childHashes.Contains(actionHash)) {
+                var existingChild = node.Children.FirstOrDefault(i => i.Payload.GetHashCode() == actionHash);
                 // Check if taking this action still has the same player as active
                 if (existingChild.State.CurrentPlayer() == node.State.CurrentPlayer())
                     return NaïveSelectAndExpand(context, existingChild, gMAB);

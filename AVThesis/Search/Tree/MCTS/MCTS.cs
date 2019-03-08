@@ -73,7 +73,7 @@ namespace AVThesis.Search.Tree.MCTS {
             // Setup for when we might be continuing a search from a specific node.
             var root = (TreeSearchNode<P, A>)context.StartNode;
             if (root == null) {
-                root = new TreeSearchNode<P, A>(clone.Clone(rootState), null);
+                root = new TreeSearchNode<P, A>(clone.Clone(rootState));
                 context.StartNode = root;
             }
 

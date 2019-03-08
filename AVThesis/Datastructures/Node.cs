@@ -30,6 +30,11 @@ namespace AVThesis.Datastructures {
         /// </summary>
         public List<Node<A>> Children { get; set; }
 
+        /// <summary>
+        /// Stores the hashcode of this Node's Payload, to prevent unneeded recalculation.
+        /// </summary>
+        public int PayloadHash { get; set; }
+
         #endregion
 
         #region Constructors
@@ -39,6 +44,7 @@ namespace AVThesis.Datastructures {
         /// </summary>
         protected Node() {
             Payload = null;
+            PayloadHash = 0;
             Parent = null;
             Children = new List<Node<A>>();
         }
@@ -49,6 +55,7 @@ namespace AVThesis.Datastructures {
         /// <param name="parent">The parent Node (i.e. the Node that is above the Node to be constructed).</param>
         protected Node(Node<A> parent) {
             Payload = null;
+            PayloadHash = 0;
             Parent = parent;
             Children = new List<Node<A>>();
         }
@@ -60,6 +67,7 @@ namespace AVThesis.Datastructures {
         /// <param name="parent">See <see cref="Node{A, N}.Node(N)"/></param>
         protected Node(A payload, Node<A> parent) {
             Payload = payload;
+            PayloadHash = payload.GetHashCode();
             Parent = parent;
             Children = new List<Node<A>>();
         }
