@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 using AVThesis.Enums;
 using AVThesis.SabberStone;
 using AVThesis.SabberStone.Bots;
@@ -86,15 +87,12 @@ namespace AVThesis.Tournament {
         public void RunMatch() {
             // Run all the games of the match.
             for (var i = 0; i < NumberOfGames; i++) {
-                Console.WriteLine($"** Starting Game {i+1} of {NumberOfGames}");
-                try {
-                    RunGame(i);
-                }
-                catch (Exception e) {
-                    Console.WriteLine($"ERROR: Exception thrown during game {i}");
-                    WriteExceptionToFile(e);
-                }
+                RunGame(i);
             }
+
+            // Run all the games of the match.
+            // Note: this causes issues because of the event used during playout (PlayoutStrategySabberStone.SimulationCompleted).
+            //Parallel.For(0, NumberOfGames, RunGame);
         }
 
         /// <summary>
@@ -102,47 +100,54 @@ namespace AVThesis.Tournament {
         /// </summary>
         /// <param name="gameIndex">The index of the game that should be run.</param>
         public void RunGame(int gameIndex) {
-            var timer = Stopwatch.StartNew();
+            Console.WriteLine($"** Starting Game {gameIndex+1} of {NumberOfGames}");
+            try {
+                var timer = Stopwatch.StartNew();
 
-            // Alternate which player starts.
-            var config = GameConfig.Clone();
-            config.StartPlayer = gameIndex % 2 + 1;
-            
-            // Create a new game with the cloned configuration.
-            var game = new SabberStoneState(new SabberStoneCore.Model.Game(config));
+                // Alternate which player starts.
+                var config = GameConfig.Clone();
+                config.StartPlayer = gameIndex % 2 + 1;
 
-            // Set up the bots with their Controller from the created game.
-            Bots[0].SetController(game.Player1);
-            Bots[1].SetController(game.Player2);
+                // Create a new game with the cloned configuration.
+                var game = new SabberStoneState(new SabberStoneCore.Model.Game(config));
 
-            // Get the game ready.
-            game.Game.StartGame();
-            MatchStatistics.NewGameStarted(gameIndex + 1, game.Game.FirstPlayer.Name);
+                // Set up the bots with their Controller from the created game.
+                Bots[0].SetController(game.Player1);
+                Bots[1].SetController(game.Player2);
 
-            // Default mulligan for each player.
-            game.Game.Process(MulliganStrategySabberStone.DefaultMulligan(game.Game.Player1));
-            game.Game.Process(MulliganStrategySabberStone.DefaultMulligan(game.Game.Player2));
+                // Get the game ready.
+                game.Game.StartGame();
+                MatchStatistics.NewGameStarted(gameIndex + 1, game.Game.FirstPlayer.Name);
 
-            game.Game.MainReady();
-            
-            // Play out the game.
-            while (game.Game.State != State.COMPLETE) {
-                if (_printToConsole) Console.WriteLine("");
-                if (_printToConsole) Console.WriteLine($"*TURN {(game.Game.Turn + 1) / 2} - {game.Game.CurrentPlayer.Name}");
-                if (_printToConsole) Console.WriteLine($"*Hero[P1] {game.Player1.Hero} HP: {game.Player1.Hero.Health} / Hero[P2] {game.Player2.Hero} HP: {game.Player2.Hero.Health}");
+                // Default mulligan for each player.
+                game.Game.Process(MulliganStrategySabberStone.DefaultMulligan(game.Game.Player1));
+                game.Game.Process(MulliganStrategySabberStone.DefaultMulligan(game.Game.Player2));
 
-                // Play out the current player's turn until they pass.
-                if (game.Game.CurrentPlayer.Id == Bots[0].PlayerID()) PlayPlayerTurn(game, Bots[0]);
-                else if (game.Game.CurrentPlayer.Id == Bots[1].PlayerID()) PlayPlayerTurn(game, Bots[1]);
+                game.Game.MainReady();
+
+                // Play out the game.
+                while (game.Game.State != State.COMPLETE) {
+                    if (_printToConsole) Console.WriteLine("");
+                    if (_printToConsole) Console.WriteLine($"*TURN {(game.Game.Turn + 1) / 2} - {game.Game.CurrentPlayer.Name}");
+                    if (_printToConsole) Console.WriteLine($"*Hero[P1] {game.Player1.Hero} HP: {game.Player1.Hero.Health} / Hero[P2] {game.Player2.Hero} HP: {game.Player2.Hero.Health}");
+
+                    // Play out the current player's turn until they pass.
+                    if (game.Game.CurrentPlayer.Id == Bots[0].PlayerID()) PlayPlayerTurn(game, Bots[0]);
+                    else if (game.Game.CurrentPlayer.Id == Bots[1].PlayerID()) PlayPlayerTurn(game, Bots[1]);
+                }
+
+                if (_printToConsole) {
+                    Console.WriteLine($"*Game: {game.Game.State}, Player1: {game.Player1.PlayState} / Player2: {game.Player2.PlayState}");
+                    Console.WriteLine($"*Game lasted {timer.Elapsed:g}");
+                }
+
+                // Create game data.
+                MatchStatistics.EndCurrentGame(game);
             }
-
-            if (_printToConsole) {
-                Console.WriteLine($"*Game: {game.Game.State}, Player1: {game.Player1.PlayState} / Player2: {game.Player2.PlayState}");
-                Console.WriteLine($"*Game lasted {timer.Elapsed:g}");
+            catch (Exception e) {
+                Console.WriteLine($"ERROR: Exception thrown during game {gameIndex+1}");
+                WriteExceptionToFile(e);
             }
-
-            // Create game data.
-            MatchStatistics.EndCurrentGame(game);
         }
 
         #endregion
