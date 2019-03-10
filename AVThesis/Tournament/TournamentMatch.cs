@@ -224,12 +224,19 @@ namespace AVThesis.Tournament {
         /// <param name="task">The <see cref="SabberStonePlayerTask"/> that caused the exception.</param>
         private void WriteExceptionToFile(Exception exception, SabberStonePlayerTask task) {
             var writer = new StreamWriter(ExceptionFilePath, true);
-            writer.WriteLine(task);
-            writer.WriteLine("Caused:");
-            writer.WriteLine(exception.Message);
-            writer.WriteLine(exception.StackTrace);
-            writer.WriteLine("");
-            writer.Close();
+            try {
+                writer.WriteLine(task);
+                writer.WriteLine("Caused:");
+                writer.WriteLine(exception.Message);
+                writer.WriteLine(exception.StackTrace);
+                writer.WriteLine("");
+            }
+            catch (Exception e) {
+                Console.WriteLine(e);
+            }
+            finally {
+                writer.Close();
+            }
         }
 
         #endregion
