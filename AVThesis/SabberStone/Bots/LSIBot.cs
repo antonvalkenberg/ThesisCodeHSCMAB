@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using AVThesis.Datastructures;
+using AVThesis.Enums;
 using AVThesis.Game;
 using AVThesis.SabberStone.Strategies;
 using AVThesis.Search;
@@ -233,6 +235,11 @@ namespace AVThesis.SabberStone.Bots {
         public ISabberStoneBot OpponentPlayoutBot { get; set; }
 
         /// <summary>
+        /// The type of playout bot to be used during playouts.
+        /// </summary>
+        public PlayoutBotType PlayoutBotType { get; set; }
+
+        /// <summary>
         /// The amount of turns after which to stop a simulation.
         /// </summary>
         public int PlayoutTurnCutoff { get; set; }
@@ -245,7 +252,7 @@ namespace AVThesis.SabberStone.Bots {
         /// <summary>
         /// The strategy used to play out a game in simulation.
         /// </summary>
-        public IPlayoutStrategy<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Playout { get; set; }
+        public PlayoutStrategySabberStone Playout { get; set; }
 
         /// <summary>
         /// The evaluation strategy for determining the value of samples.
@@ -317,13 +324,14 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="player">The player.</param>
         /// <param name="allowPerfectInformation">[Optional] Whether or not this bot is allowed perfect information about the game state (i.e. no obfuscation and therefore no determinisation). Default value is false.</param>
         /// <param name="ensembleSize">[Optional] The size of the ensemble to use. Default value is 1.</param>
+        /// <param name="playoutBotType">[Optional] The type of playout bot to be used during playouts. Default value is <see cref="PlayoutBotType.MAST"/>.</param>
         /// <param name="mastSelectionType">[Optional] The type of selection strategy used by the M.A.S.T. playout. Default value is <see cref="MASTPlayoutBot.SelectionType.EGreedy"/>.</param>
         /// <param name="playoutTurnCutoff">[Optional] The amount of turns after which to stop a simulation. Default value is <see cref="Constants.DEFAULT_PLAYOUT_TURN_CUTOFF"/>.</param>
         /// <param name="samplesForGeneration">[Optional] The amount of samples to use during the generation phase. Default value is <see cref="Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET"/> * <see cref="Constants.DEFAULT_LSI_BUDGET_GENERATION_PERCENTAGE"/>.</param>
         /// <param name="samplesForEvaluation">[Optional] The amount of samples to use during the evaluation phase. Default value is <see cref="Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET"/> * <see cref="Constants.DEFAULT_LSI_BUDGET_EVALUATION_PERCENTAGE"/> * <see cref="Constants.DEFAULT_LSI_EVALUATION_SAMPLES_ADJUSTMENT_FACTOR"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
-        public LSIBot(Controller player, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, int samplesForGeneration = (int)(Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET * Constants.DEFAULT_LSI_BUDGET_GENERATION_PERCENTAGE), int samplesForEvaluation = (int)(Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET * Constants.DEFAULT_LSI_BUDGET_EVALUATION_PERCENTAGE * Constants.DEFAULT_LSI_EVALUATION_SAMPLES_ADJUSTMENT_FACTOR), bool debugInfoToConsole = false)
-            : this(allowPerfectInformation, ensembleSize, mastSelectionType, playoutTurnCutoff, samplesForGeneration, samplesForEvaluation, debugInfoToConsole) {
+        public LSIBot(Controller player, bool allowPerfectInformation = false, int ensembleSize = 1, PlayoutBotType playoutBotType = PlayoutBotType.MAST, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, int samplesForGeneration = (int)(Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET * Constants.DEFAULT_LSI_BUDGET_GENERATION_PERCENTAGE), int samplesForEvaluation = (int)(Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET * Constants.DEFAULT_LSI_BUDGET_EVALUATION_PERCENTAGE * Constants.DEFAULT_LSI_EVALUATION_SAMPLES_ADJUSTMENT_FACTOR), bool debugInfoToConsole = false)
+            : this(allowPerfectInformation, ensembleSize, playoutBotType, mastSelectionType, playoutTurnCutoff, samplesForGeneration, samplesForEvaluation, debugInfoToConsole) {
             SetController(player);
         }
 
@@ -332,14 +340,16 @@ namespace AVThesis.SabberStone.Bots {
         /// </summary>
         /// <param name="allowPerfectInformation">[Optional] Whether or not this bot is allowed perfect information about the game state (i.e. no obfuscation and therefore no determinisation). Default value is false.</param>
         /// <param name="ensembleSize">[Optional] The size of the ensemble to use. Default value is 1.</param>
+        /// <param name="playoutBotType">[Optional] The type of playout bot to be used during playouts. Default value is <see cref="PlayoutBotType.MAST"/>.</param>
         /// <param name="mastSelectionType">[Optional] The type of selection strategy used by the M.A.S.T. playout. Default value is <see cref="MASTPlayoutBot.SelectionType.EGreedy"/>.</param>
         /// <param name="playoutTurnCutoff">[Optional] The amount of turns after which to stop a simulation. Default value is <see cref="Constants.DEFAULT_PLAYOUT_TURN_CUTOFF"/>.</param>
         /// <param name="samplesForGeneration">[Optional] The amount of samples to use during the generation phase. Default value is <see cref="Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET"/> * <see cref="Constants.DEFAULT_LSI_BUDGET_GENERATION_PERCENTAGE"/>.</param>
         /// <param name="samplesForEvaluation">[Optional] The amount of samples to use during the evaluation phase. Default value is <see cref="Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET"/> * <see cref="Constants.DEFAULT_LSI_BUDGET_EVALUATION_PERCENTAGE"/> * <see cref="Constants.DEFAULT_LSI_EVALUATION_SAMPLES_ADJUSTMENT_FACTOR"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
-        public LSIBot(bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, int samplesForGeneration = (int)(Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET * Constants.DEFAULT_LSI_BUDGET_GENERATION_PERCENTAGE), int samplesForEvaluation = (int)(Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET * Constants.DEFAULT_LSI_BUDGET_EVALUATION_PERCENTAGE * Constants.DEFAULT_LSI_EVALUATION_SAMPLES_ADJUSTMENT_FACTOR), bool debugInfoToConsole = false) {
+        public LSIBot(bool allowPerfectInformation = false, int ensembleSize = 1, PlayoutBotType playoutBotType = PlayoutBotType.MAST, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, int samplesForGeneration = (int)(Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET * Constants.DEFAULT_LSI_BUDGET_GENERATION_PERCENTAGE), int samplesForEvaluation = (int)(Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET * Constants.DEFAULT_LSI_BUDGET_EVALUATION_PERCENTAGE * Constants.DEFAULT_LSI_EVALUATION_SAMPLES_ADJUSTMENT_FACTOR), bool debugInfoToConsole = false) {
             PerfectInformation = allowPerfectInformation;
             EnsembleSize = ensembleSize;
+            PlayoutBotType = playoutBotType;
             MASTSelectionType = mastSelectionType;
             PlayoutTurnCutoff = playoutTurnCutoff;
             SamplesForGeneration = samplesForGeneration;
@@ -355,8 +365,22 @@ namespace AVThesis.SabberStone.Bots {
             Playout = playout;
 
             // Set the playout bots
-            MyPlayoutBot = new MASTPlayoutBot(MASTSelectionType, sabberStoneStateEvaluation, playout);
-            OpponentPlayoutBot = new MASTPlayoutBot(MASTSelectionType, sabberStoneStateEvaluation, playout);
+            switch (PlayoutBotType) {
+                case PlayoutBotType.Random:
+                    MyPlayoutBot = new RandomBot();
+                    OpponentPlayoutBot = new RandomBot();
+                    break;
+                case PlayoutBotType.Heuristic:
+                    MyPlayoutBot = new HeuristicBot();
+                    OpponentPlayoutBot = new HeuristicBot();
+                    break;
+                case PlayoutBotType.MAST:
+                    MyPlayoutBot = new MASTPlayoutBot(MASTSelectionType, sabberStoneStateEvaluation, playout);
+                    OpponentPlayoutBot = new MASTPlayoutBot(MASTSelectionType, sabberStoneStateEvaluation, playout);
+                    break;
+                default:
+                    throw new InvalidEnumArgumentException($"PlayoutBotType `{PlayoutBotType}' is not supported.");
+            }
 
             // LSI will need a goal-strategy to determine when a simulation is done
             Goal = new GoalStrategyTurnCutoff(PlayoutTurnCutoff);
@@ -439,13 +463,12 @@ namespace AVThesis.SabberStone.Bots {
         public void SetController(Controller controller) {
             Player = controller;
 
+            MyPlayoutBot.SetController(Player);
+            OpponentPlayoutBot.SetController(Player.Opponent);
+
             // Set the playout bots correctly if we are using PlayoutStrategySabberStone
-            if (Playout is PlayoutStrategySabberStone playout) {
-                MyPlayoutBot.SetController(Player);
-                playout.AddPlayoutBot(Player.Id, MyPlayoutBot);
-                OpponentPlayoutBot.SetController(Player.Opponent);
-                playout.AddPlayoutBot(Player.Id, MyPlayoutBot);
-            }
+            Playout.AddPlayoutBot(Player.Id, MyPlayoutBot);
+            Playout.AddPlayoutBot(Player.Opponent.Id, OpponentPlayoutBot);
 
             // Create the searcher that will handle the searching and some administrative tasks
             Searcher = new SabberStoneSearch(Player, _debug);

@@ -87,6 +87,11 @@ namespace AVThesis.SabberStone.Bots {
         public ISabberStoneBot OpponentPlayoutBot { get; set; }
 
         /// <summary>
+        /// The type of playout bot to be used during playouts.
+        /// </summary>
+        public PlayoutBotType PlayoutBotType { get; set; }
+
+        /// <summary>
         /// A bot used during the NaïveSampling process.
         /// </summary>
         public RandomBot RandomSamplingBot { get; set; }
@@ -104,7 +109,7 @@ namespace AVThesis.SabberStone.Bots {
         /// <summary>
         /// The strategy used to play out a game in simulation.
         /// </summary>
-        public IPlayoutStrategy<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Playout { get; set; }
+        public PlayoutStrategySabberStone Playout { get; set; }
 
         /// <summary>
         /// The Naïve Monte Carlo Tree Search builder that creates the search-setup ready to use.
@@ -181,14 +186,15 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="player">The player.</param>
         /// <param name="allowPerfectInformation">[Optional] Whether or not this bot is allowed perfect information about the game state (i.e. no obfuscation and therefore no determinisation). Default value is false.</param>
         /// <param name="ensembleSize">[Optional] The size of the ensemble to use. Default value is 1.</param>
+        /// <param name="playoutBotType">[Optional] The type of playout bot to be used during playouts. Default value is <see cref="PlayoutBotType.MAST"/>.</param>
         /// <param name="mastSelectionType">[Optional] The type of selection strategy used by the MAST playout. Default value is <see cref="MASTPlayoutBot.SelectionType.EGreedy"/>.</param>
         /// <param name="iterations">[Optional] The budget for the amount of iterations NMCTS can use. Default value is <see cref="Constants.DEFAULT_NMCTS_ITERATIONS"/>.</param>
         /// <param name="playoutTurnCutoff">[Optional] The amount of turns after which to stop a simulation. Default value is <see cref="Constants.DEFAULT_PLAYOUT_TURN_CUTOFF"/>.</param>
         /// <param name="globalPolicy">[Optional] The exploration-threshold for the e-greedy global policy. Default value is <see cref="Constants.DEFAULT_NMCTS_GLOBAL_POLICY"/>.</param>
         /// <param name="localPolicy">[Optional] The exploration-threshold for the e-greedy local policy. Default value is <see cref="Constants.DEFAULT_NMCTS_LOCAL_POLICY"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
-        public NMCTSBot(Controller player, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, BudgetType budgetType = BudgetType.Iterations, int iterations = Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET, long time = Constants.DEFAULT_COMPUTATION_TIME_BUDGET, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, double globalPolicy = Constants.DEFAULT_NMCTS_GLOBAL_POLICY, double localPolicy = Constants.DEFAULT_NMCTS_LOCAL_POLICY, bool debugInfoToConsole = false)
-            : this(allowPerfectInformation, ensembleSize, mastSelectionType, budgetType, iterations, time, playoutTurnCutoff, globalPolicy, localPolicy, debugInfoToConsole) {
+        public NMCTSBot(Controller player, bool allowPerfectInformation = false, int ensembleSize = 1, PlayoutBotType playoutBotType = PlayoutBotType.MAST, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, BudgetType budgetType = BudgetType.Iterations, int iterations = Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET, long time = Constants.DEFAULT_COMPUTATION_TIME_BUDGET, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, double globalPolicy = Constants.DEFAULT_NMCTS_GLOBAL_POLICY, double localPolicy = Constants.DEFAULT_NMCTS_LOCAL_POLICY, bool debugInfoToConsole = false)
+            : this(allowPerfectInformation, ensembleSize, playoutBotType, mastSelectionType, budgetType, iterations, time, playoutTurnCutoff, globalPolicy, localPolicy, debugInfoToConsole) {
             SetController(player);
         }
 
@@ -197,15 +203,17 @@ namespace AVThesis.SabberStone.Bots {
         /// </summary>
         /// <param name="allowPerfectInformation">[Optional] Whether or not this bot is allowed perfect information about the game state (i.e. no obfuscation and therefore no determinisation). Default value is false.</param>
         /// <param name="ensembleSize">[Optional] The size of the ensemble to use. Default value is 1.</param>
+        /// <param name="playoutBotType">[Optional] The type of playout bot to be used during playouts. Default value is <see cref="PlayoutBotType.MAST"/>.</param>
         /// <param name="mastSelectionType">[Optional] The type of selection strategy used by the MAST playout. Default value is <see cref="MASTPlayoutBot.SelectionType.EGreedy"/>.</param>
         /// <param name="iterations">[Optional] The budget for the amount of iterations NMCTS can use. Default value is <see cref="Constants.DEFAULT_NMCTS_ITERATIONS"/>.</param>
         /// <param name="playoutTurnCutoff">[Optional] The amount of turns after which to stop a simulation. Default value is <see cref="Constants.DEFAULT_PLAYOUT_TURN_CUTOFF"/>.</param>
         /// <param name="globalPolicy">[Optional] The exploration-threshold for the e-greedy global policy. Default value is <see cref="Constants.DEFAULT_NMCTS_GLOBAL_POLICY"/>.</param>
         /// <param name="localPolicy">[Optional] The exploration-threshold for the e-greedy local policy. Default value is <see cref="Constants.DEFAULT_NMCTS_LOCAL_POLICY"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
-        public NMCTSBot(bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, BudgetType budgetType = BudgetType.Iterations, int iterations = Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET, long time = Constants.DEFAULT_COMPUTATION_TIME_BUDGET, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, double globalPolicy = Constants.DEFAULT_NMCTS_GLOBAL_POLICY, double localPolicy = Constants.DEFAULT_NMCTS_LOCAL_POLICY, bool debugInfoToConsole = false) {
+        public NMCTSBot(bool allowPerfectInformation = false, int ensembleSize = 1, PlayoutBotType playoutBotType = PlayoutBotType.MAST, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, BudgetType budgetType = BudgetType.Iterations, int iterations = Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET, long time = Constants.DEFAULT_COMPUTATION_TIME_BUDGET, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, double globalPolicy = Constants.DEFAULT_NMCTS_GLOBAL_POLICY, double localPolicy = Constants.DEFAULT_NMCTS_LOCAL_POLICY, bool debugInfoToConsole = false) {
             PerfectInformation = allowPerfectInformation;
             EnsembleSize = ensembleSize;
+            PlayoutBotType = playoutBotType;
             MASTSelectionType = mastSelectionType;
             BudgetType = budgetType;
             Iterations = iterations;
@@ -224,8 +232,23 @@ namespace AVThesis.SabberStone.Bots {
             Playout = playout;
 
             // Set the playout bots
-            MyPlayoutBot = new MASTPlayoutBot(MASTSelectionType, sabberStoneStateEvaluation, playout);
-            OpponentPlayoutBot = new MASTPlayoutBot(MASTSelectionType, sabberStoneStateEvaluation, playout);
+            switch (PlayoutBotType) {
+                case PlayoutBotType.Random:
+                    MyPlayoutBot = new RandomBot();
+                    OpponentPlayoutBot = new RandomBot();
+                    break;
+                case PlayoutBotType.Heuristic:
+                    MyPlayoutBot = new HeuristicBot();
+                    OpponentPlayoutBot = new HeuristicBot();
+                    break;
+                case PlayoutBotType.MAST:
+                    MyPlayoutBot = new MASTPlayoutBot(MASTSelectionType, sabberStoneStateEvaluation, playout);
+                    OpponentPlayoutBot = new MASTPlayoutBot(MASTSelectionType, sabberStoneStateEvaluation, playout);
+                    break;
+                default:
+                    throw new InvalidEnumArgumentException($"PlayoutBotType `{PlayoutBotType}' is not supported.");
+            }
+
             // And the random sampling bot
             RandomSamplingBot = new RandomBot();
 
@@ -299,13 +322,12 @@ namespace AVThesis.SabberStone.Bots {
         public void SetController(Controller controller) {
             Player = controller;
 
+            MyPlayoutBot.SetController(Player);
+            OpponentPlayoutBot.SetController(Player.Opponent);
+
             // Set the playout bots correctly if we are using PlayoutStrategySabberStone
-            if (Playout is PlayoutStrategySabberStone playout) {
-                MyPlayoutBot.SetController(Player);
-                playout.AddPlayoutBot(Player.Id, MyPlayoutBot);
-                OpponentPlayoutBot.SetController(Player.Opponent);
-                playout.AddPlayoutBot(Player.Id, MyPlayoutBot);
-            }
+            Playout.AddPlayoutBot(Player.Id, MyPlayoutBot);
+            Playout.AddPlayoutBot(Player.Opponent.Id, OpponentPlayoutBot);
 
             // Set the controller of the random sampling bot
             RandomSamplingBot.SetController(Player);

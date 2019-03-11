@@ -46,6 +46,11 @@ namespace AVThesis.SabberStone.Bots {
         public ISabberStoneBot OpponentPlayoutBot { get; set; }
 
         /// <summary>
+        /// The type of playout bot to be used during playouts.
+        /// </summary>
+        public PlayoutBotType PlayoutBotType { get; set; }
+
+        /// <summary>
         /// The strategy used to determine if a playout has reached its goal state.
         /// </summary>
         public IGoalStrategy<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Goal { get; set; }
@@ -58,7 +63,7 @@ namespace AVThesis.SabberStone.Bots {
         /// <summary>
         /// The strategy used to play out a game in simulation.
         /// </summary>
-        public IPlayoutStrategy<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Playout { get; set; }
+        public PlayoutStrategySabberStone Playout { get; set; }
 
         /// <summary>
         /// The Monte Carlo Tree Search builder that creates a search-setup ready to use.
@@ -150,6 +155,7 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="player">The player.</param>
         /// <param name="allowPerfectInformation">[Optional] Whether or not this bot is allowed perfect information about the game state (i.e. no obfuscation and therefore no determinisation). Default value is false.</param>
         /// <param name="ensembleSize">[Optional] The size of the ensemble to use. Default value is 1.</param>
+        /// <param name="playoutBotType">[Optional] The type of playout bot to be used during playouts. Default value is <see cref="PlayoutBotType.MAST"/>.</param>
         /// <param name="mastSelectionType">[Optional] The type of selection strategy used by the M.A.S.T. playout. Default value is <see cref="MASTPlayoutBot.SelectionType.EGreedy"/>.</param>
         /// <param name="retainTaskStatistics">[Optional] Whether or not to retain the PlayerTask statistics between searches. Default value is false.</param>
         /// <param name="iterations">[Optional] The budget for the amount of iterations MCTS can use. Default value is <see cref="Constants.DEFAULT_MCTS_ITERATIONS"/>.</param>
@@ -159,8 +165,8 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="ucbConstantC">[Optional] Value for the c-constant in the UCB1 formula. Default value is <see cref="Constants.DEFAULT_UCB1_C"/>.</param>
         /// <param name="dimensionalOrdering">[Optional] The ordering for dimensions when using Hierarchical Expansion. Default value is <see cref="SabberStoneGameLogic.DimensionalOrderingType.None"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
-        public HMCTSBot(Controller player, bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool retainTaskStatistics = false, BudgetType budgetType = BudgetType.Iterations, int iterations = Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET, long time = Constants.DEFAULT_COMPUTATION_TIME_BUDGET, int minimumVisitThresholdForExpansion = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_EXPANSION, int minimumVisitThresholdForSelection = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_SELECTION, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, double ucbConstantC = Constants.DEFAULT_UCB1_C, SabberStoneGameLogic.DimensionalOrderingType dimensionalOrdering = SabberStoneGameLogic.DimensionalOrderingType.None, bool debugInfoToConsole = false)
-            : this(allowPerfectInformation, ensembleSize, mastSelectionType, retainTaskStatistics, budgetType, iterations, time, minimumVisitThresholdForExpansion, minimumVisitThresholdForSelection, playoutTurnCutoff, ucbConstantC, dimensionalOrdering, debugInfoToConsole) {
+        public HMCTSBot(Controller player, bool allowPerfectInformation = false, int ensembleSize = 1, PlayoutBotType playoutBotType = PlayoutBotType.MAST, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool retainTaskStatistics = false, BudgetType budgetType = BudgetType.Iterations, int iterations = Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET, long time = Constants.DEFAULT_COMPUTATION_TIME_BUDGET, int minimumVisitThresholdForExpansion = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_EXPANSION, int minimumVisitThresholdForSelection = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_SELECTION, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, double ucbConstantC = Constants.DEFAULT_UCB1_C, SabberStoneGameLogic.DimensionalOrderingType dimensionalOrdering = SabberStoneGameLogic.DimensionalOrderingType.None, bool debugInfoToConsole = false)
+            : this(allowPerfectInformation, ensembleSize, playoutBotType, mastSelectionType, retainTaskStatistics, budgetType, iterations, time, minimumVisitThresholdForExpansion, minimumVisitThresholdForSelection, playoutTurnCutoff, ucbConstantC, dimensionalOrdering, debugInfoToConsole) {
             SetController(player);
         }
 
@@ -169,6 +175,7 @@ namespace AVThesis.SabberStone.Bots {
         /// </summary>
         /// <param name="allowPerfectInformation">[Optional] Whether or not this bot is allowed perfect information about the game state (i.e. no obfuscation and therefore no determinisation). Default value is false.</param>
         /// <param name="ensembleSize">[Optional] The size of the ensemble to use. Default value is 1.</param>
+        /// <param name="playoutBotType">[Optional] The type of playout bot to be used during playouts. Default value is <see cref="PlayoutBotType.MAST"/>.</param>
         /// <param name="mastSelectionType">[Optional] The type of selection strategy used by the MAST playout. Default value is <see cref="MASTPlayoutBot.SelectionType.EGreedy"/>.</param>
         /// <param name="retainTaskStatistics">[Optional] Whether or not to retain the PlayerTask statistics between searches. Default value is false.</param>
         /// <param name="iterations">[Optional] The budget for the amount of iterations MCTS can use. Default value is <see cref="Constants.DEFAULT_MCTS_ITERATIONS"/>.</param>
@@ -178,9 +185,10 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="ucbConstantC">[Optional] Value for the c-constant in the UCB1 formula. Default value is <see cref="Constants.DEFAULT_UCB1_C"/>.</param>
         /// <param name="dimensionalOrdering">[Optional] The ordering for dimensions when using Hierarchical Expansion. Default value is <see cref="SabberStoneGameLogic.DimensionalOrderingType.None"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
-        public HMCTSBot(bool allowPerfectInformation = false, int ensembleSize = 1, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool retainTaskStatistics = false, BudgetType budgetType = BudgetType.Iterations, int iterations = Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET, long time = Constants.DEFAULT_COMPUTATION_TIME_BUDGET, int minimumVisitThresholdForExpansion = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_EXPANSION, int minimumVisitThresholdForSelection = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_SELECTION, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, double ucbConstantC = Constants.DEFAULT_UCB1_C, SabberStoneGameLogic.DimensionalOrderingType dimensionalOrdering = SabberStoneGameLogic.DimensionalOrderingType.None, bool debugInfoToConsole = false) {
+        public HMCTSBot(bool allowPerfectInformation = false, int ensembleSize = 1, PlayoutBotType playoutBotType = PlayoutBotType.MAST, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, bool retainTaskStatistics = false, BudgetType budgetType = BudgetType.Iterations, int iterations = Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET, long time = Constants.DEFAULT_COMPUTATION_TIME_BUDGET, int minimumVisitThresholdForExpansion = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_EXPANSION, int minimumVisitThresholdForSelection = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_SELECTION, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, double ucbConstantC = Constants.DEFAULT_UCB1_C, SabberStoneGameLogic.DimensionalOrderingType dimensionalOrdering = SabberStoneGameLogic.DimensionalOrderingType.None, bool debugInfoToConsole = false) {
             PerfectInformation = allowPerfectInformation;
             EnsembleSize = ensembleSize;
+            PlayoutBotType = playoutBotType;
             MASTSelectionType = mastSelectionType;
             RetainTaskStatistics = retainTaskStatistics;
             BudgetType = budgetType;
@@ -202,8 +210,22 @@ namespace AVThesis.SabberStone.Bots {
             Playout = playout;
 
             // Set the playout bots
-            MyPlayoutBot = new MASTPlayoutBot(MASTSelectionType, sabberStoneStateEvaluation, playout);
-            OpponentPlayoutBot = new MASTPlayoutBot(MASTSelectionType, sabberStoneStateEvaluation, playout);
+            switch (PlayoutBotType) {
+                case PlayoutBotType.Random:
+                    MyPlayoutBot = new RandomBot();
+                    OpponentPlayoutBot = new RandomBot();
+                    break;
+                case PlayoutBotType.Heuristic:
+                    MyPlayoutBot = new HeuristicBot();
+                    OpponentPlayoutBot = new HeuristicBot();
+                    break;
+                case PlayoutBotType.MAST:
+                    MyPlayoutBot = new MASTPlayoutBot(MASTSelectionType, sabberStoneStateEvaluation, playout);
+                    OpponentPlayoutBot = new MASTPlayoutBot(MASTSelectionType, sabberStoneStateEvaluation, playout);
+                    break;
+                default:
+                    throw new InvalidEnumArgumentException($"PlayoutBotType `{PlayoutBotType}' is not supported.");
+            }
 
             // We'll be cutting off the simulations after X turns, using a GoalStrategy.
             Goal = new GoalStrategyTurnCutoff(PlayoutTurnCutoff);
@@ -341,13 +363,12 @@ namespace AVThesis.SabberStone.Bots {
         public void SetController(Controller controller) {
             Player = controller;
 
+            MyPlayoutBot.SetController(Player);
+            OpponentPlayoutBot.SetController(Player.Opponent);
+
             // Set the playout bots correctly if we are using PlayoutStrategySabberStone
-            if (Playout is PlayoutStrategySabberStone playout) {
-                MyPlayoutBot.SetController(Player);
-                playout.AddPlayoutBot(Player.Id, MyPlayoutBot);
-                OpponentPlayoutBot.SetController(Player.Opponent);
-                playout.AddPlayoutBot(Player.Id, MyPlayoutBot);
-            }
+            Playout.AddPlayoutBot(Player.Id, MyPlayoutBot);
+            Playout.AddPlayoutBot(Player.Opponent.Id, OpponentPlayoutBot);
 
             // Create the searcher that will handle the searching and some administrative tasks
             Searcher = new SabberStoneSearch(Player, _debug);
