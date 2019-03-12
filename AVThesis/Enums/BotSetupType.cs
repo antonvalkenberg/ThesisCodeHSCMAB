@@ -2,6 +2,7 @@
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
 /// In parts inspired by a code framework written by G.J. Roelofs and T. Aliyev.
 /// </summary>
+// ReSharper disable InconsistentNaming
 namespace AVThesis.Enums {
 
     /// <summary>
@@ -63,6 +64,36 @@ namespace AVThesis.Enums {
         /// LSI bot with a Turn-Cutoff setting of 4.
         /// </summary>
         LSI_TC4,
+
+        /// <summary>
+        /// H-MCTS bot with an iteration budget of 1000.
+        /// </summary>
+        HMCTS_IT1K,
+
+        /// <summary>
+        /// N-MCTS bot with an iteration budget of 1000.
+        /// </summary>
+        NMCTS_IT1K,
+
+        /// <summary>
+        /// LSI bot with an iteration budget of 1000.
+        /// </summary>
+        LSI_IT1K,
+
+        /// <summary>
+        /// H-MCTS bot with an iteration budget of 5000.
+        /// </summary>
+        HMCTS_IT5K,
+
+        /// <summary>
+        /// N-MCTS bot with an iteration budget of 5000.
+        /// </summary>
+        NMCTS_IT5K,
+
+        /// <summary>
+        /// LSI bot with an iteration budget of 5000.
+        /// </summary>
+        LSI_IT5K,
 
     }
 
