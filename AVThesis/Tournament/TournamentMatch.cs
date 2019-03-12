@@ -80,7 +80,26 @@ namespace AVThesis.Tournament {
         #endregion
 
         #region Public Methods
-        
+
+        /// <summary>
+        /// Returns a SabberStone game configuration setup for a tournament match.
+        /// </summary>
+        /// <returns>A SabberStone game configuration setup for a tournament match.</returns>
+        public static GameConfig GetTournamentConfiguration() {
+            return new GameConfig {
+                Player1Name = Constants.SABBERSTONE_GAMECONFIG_PLAYER1_NAME,
+                Player1HeroClass = CardClass.HUNTER,
+                Player1Deck = Decks.GetRandomTournamentDeck(),
+                Player2Name = Constants.SABBERSTONE_GAMECONFIG_PLAYER2_NAME,
+                Player2HeroClass = CardClass.HUNTER,
+                Player2Deck = Decks.GetRandomTournamentDeck(),
+                FillDecks = false,
+                Shuffle = true,
+                SkipMulligan = false,
+                History = false
+            };
+        }
+
         /// <summary>
         /// Runs the entire match. Currently sequentially runs each game.
         /// </summary>

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using AVThesis.Datastructures;
 using SabberStoneCore.Model;
 // ReSharper disable StringLiteralTypo
 // ReSharper disable CommentTypo
@@ -25,6 +26,26 @@ namespace AVThesis.SabberStone {
                 { "MidrangeHunter", new List<Card>(MidrangeHunter) },
                 { "ControlHunter", new List<Card>(ControlHunter) }
             };
+        }
+
+        /// <summary>
+        /// All decks suitable for tournament play indexed by name.
+        /// </summary>
+        /// <returns>Dictionary containing all decks suitable for tournament play indexed by name.</returns>
+        public static Dictionary<string, List<Card>> AllTournamentDecks() {
+            return new Dictionary<string, List<Card>> {
+                { "AggroHunter", new List<Card>(AggroHunter) },
+                { "MidrangeHunter", new List<Card>(MidrangeHunter) },
+                { "ControlHunter", new List<Card>(ControlHunter) }
+            };
+        }
+
+        /// <summary>
+        /// Returns a random entry from the tournament decks collection.
+        /// </summary>
+        /// <returns>A random entry from the tournament decks collection.</returns>
+        public static List<Card> GetRandomTournamentDeck() {
+            return AllTournamentDecks().Values.RandomElementOrDefault();
         }
 
         /// <summary>

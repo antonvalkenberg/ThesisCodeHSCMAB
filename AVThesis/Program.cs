@@ -5,6 +5,7 @@ using SabberStoneCore.Config;
 using SabberStoneCore.Enums;
 using AVThesis.SabberStone.Bots;
 using AVThesis.SabberStone.Strategies;
+using AVThesis.Tournament;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -15,7 +16,7 @@ namespace AVThesis {
     public class Program {
 
 		public static void Main(string[] args) {
-            //RunTournamentMatch();
+            RunTournamentMatch();
             //RunQuickMatch();
 
 #pragma warning disable 219
@@ -24,22 +25,8 @@ namespace AVThesis {
         }
 
         public static void RunTournamentMatch() {
-            // Configure the tournament game structure
-            var gameConfig = new GameConfig {
-                Player1Name = Constants.SABBERSTONE_GAMECONFIG_PLAYER1_NAME,
-                Player1HeroClass = CardClass.HUNTER,
-                Player1Deck = Decks.DefaultDeck,
-                Player2Name = Constants.SABBERSTONE_GAMECONFIG_PLAYER2_NAME,
-                Player2HeroClass = CardClass.HUNTER,
-                Player2Deck = Decks.DefaultDeck,
-                FillDecks = false,
-                Shuffle = true,
-                SkipMulligan = false,
-                History = false
-            };
-
             // Create a new tournament match
-            var match = new Tournament.TournamentMatch(BotSetupType.RandomBot, BotSetupType.RandomBot, gameConfig, 1);
+            var match = new TournamentMatch(BotSetupType.RandomBot, BotSetupType.RandomBot, TournamentMatch.GetTournamentConfiguration(), 100);
             match.RunMatch();
         }
 
@@ -49,10 +36,10 @@ namespace AVThesis {
                 StartPlayer = 1,
                 Player1Name = Constants.SABBERSTONE_GAMECONFIG_PLAYER1_NAME,
                 Player1HeroClass = CardClass.HUNTER,
-                Player1Deck = Decks.DefaultDeck,
+                Player1Deck = Decks.GetRandomTournamentDeck(),
                 Player2Name = Constants.SABBERSTONE_GAMECONFIG_PLAYER2_NAME,
                 Player2HeroClass = CardClass.HUNTER,
-                Player2Deck = Decks.DefaultDeck,
+                Player2Deck = Decks.GetRandomTournamentDeck(),
                 FillDecks = false,
                 Shuffle = true,
                 SkipMulligan = false,
