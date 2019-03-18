@@ -188,12 +188,25 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="ensembleSize">[Optional] The size of the ensemble to use. Default value is 1.</param>
         /// <param name="playoutBotType">[Optional] The type of playout bot to be used during playouts. Default value is <see cref="PlayoutBotType.MAST"/>.</param>
         /// <param name="mastSelectionType">[Optional] The type of selection strategy used by the MAST playout. Default value is <see cref="MASTPlayoutBot.SelectionType.EGreedy"/>.</param>
-        /// <param name="iterations">[Optional] The budget for the amount of iterations NMCTS can use. Default value is <see cref="Constants.DEFAULT_NMCTS_ITERATIONS"/>.</param>
+        /// <param name="budgetType">[Optional] The type of budget that this bot will use. Default value is <see cref="BudgetType.Iterations"/>.</param>
+        /// <param name="iterations">[Optional] The budget for the amount of iterations NMCTS can use. Default value is <see cref="Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET"/>.</param>
+        /// <param name="time">[Optional] The budget for the amount of milliseconds NMCTS can spend on searching. Default value is <see cref="Constants.DEFAULT_COMPUTATION_TIME_BUDGET"/>.</param>
         /// <param name="playoutTurnCutoff">[Optional] The amount of turns after which to stop a simulation. Default value is <see cref="Constants.DEFAULT_PLAYOUT_TURN_CUTOFF"/>.</param>
         /// <param name="globalPolicy">[Optional] The exploration-threshold for the e-greedy global policy. Default value is <see cref="Constants.DEFAULT_NMCTS_GLOBAL_POLICY"/>.</param>
         /// <param name="localPolicy">[Optional] The exploration-threshold for the e-greedy local policy. Default value is <see cref="Constants.DEFAULT_NMCTS_LOCAL_POLICY"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
-        public NMCTSBot(Controller player, bool allowPerfectInformation = false, int ensembleSize = 1, PlayoutBotType playoutBotType = PlayoutBotType.MAST, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, BudgetType budgetType = BudgetType.Iterations, int iterations = Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET, long time = Constants.DEFAULT_COMPUTATION_TIME_BUDGET, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, double globalPolicy = Constants.DEFAULT_NMCTS_GLOBAL_POLICY, double localPolicy = Constants.DEFAULT_NMCTS_LOCAL_POLICY, bool debugInfoToConsole = false)
+        public NMCTSBot(Controller player,
+            bool allowPerfectInformation = false,
+            int ensembleSize = 1,
+            PlayoutBotType playoutBotType = PlayoutBotType.MAST,
+            MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy,
+            BudgetType budgetType = BudgetType.Iterations,
+            int iterations = Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET,
+            long time = Constants.DEFAULT_COMPUTATION_TIME_BUDGET,
+            int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF,
+            double globalPolicy = Constants.DEFAULT_NMCTS_GLOBAL_POLICY,
+            double localPolicy = Constants.DEFAULT_NMCTS_LOCAL_POLICY,
+            bool debugInfoToConsole = false)
             : this(allowPerfectInformation, ensembleSize, playoutBotType, mastSelectionType, budgetType, iterations, time, playoutTurnCutoff, globalPolicy, localPolicy, debugInfoToConsole) {
             SetController(player);
         }
@@ -205,12 +218,24 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="ensembleSize">[Optional] The size of the ensemble to use. Default value is 1.</param>
         /// <param name="playoutBotType">[Optional] The type of playout bot to be used during playouts. Default value is <see cref="PlayoutBotType.MAST"/>.</param>
         /// <param name="mastSelectionType">[Optional] The type of selection strategy used by the MAST playout. Default value is <see cref="MASTPlayoutBot.SelectionType.EGreedy"/>.</param>
-        /// <param name="iterations">[Optional] The budget for the amount of iterations NMCTS can use. Default value is <see cref="Constants.DEFAULT_NMCTS_ITERATIONS"/>.</param>
+        /// <param name="budgetType">[Optional] The type of budget that this bot will use. Default value is <see cref="BudgetType.Iterations"/>.</param>
+        /// <param name="iterations">[Optional] The budget for the amount of iterations NMCTS can use. Default value is <see cref="Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET"/>.</param>
+        /// <param name="time">[Optional] The budget for the amount of milliseconds NMCTS can spend on searching. Default value is <see cref="Constants.DEFAULT_COMPUTATION_TIME_BUDGET"/>.</param>
         /// <param name="playoutTurnCutoff">[Optional] The amount of turns after which to stop a simulation. Default value is <see cref="Constants.DEFAULT_PLAYOUT_TURN_CUTOFF"/>.</param>
         /// <param name="globalPolicy">[Optional] The exploration-threshold for the e-greedy global policy. Default value is <see cref="Constants.DEFAULT_NMCTS_GLOBAL_POLICY"/>.</param>
         /// <param name="localPolicy">[Optional] The exploration-threshold for the e-greedy local policy. Default value is <see cref="Constants.DEFAULT_NMCTS_LOCAL_POLICY"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
-        public NMCTSBot(bool allowPerfectInformation = false, int ensembleSize = 1, PlayoutBotType playoutBotType = PlayoutBotType.MAST, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, BudgetType budgetType = BudgetType.Iterations, int iterations = Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET, long time = Constants.DEFAULT_COMPUTATION_TIME_BUDGET, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, double globalPolicy = Constants.DEFAULT_NMCTS_GLOBAL_POLICY, double localPolicy = Constants.DEFAULT_NMCTS_LOCAL_POLICY, bool debugInfoToConsole = false) {
+        public NMCTSBot(bool allowPerfectInformation = false,
+            int ensembleSize = 1,
+            PlayoutBotType playoutBotType = PlayoutBotType.MAST,
+            MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy,
+            BudgetType budgetType = BudgetType.Iterations,
+            int iterations = Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET,
+            long time = Constants.DEFAULT_COMPUTATION_TIME_BUDGET,
+            int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF,
+            double globalPolicy = Constants.DEFAULT_NMCTS_GLOBAL_POLICY,
+            double localPolicy = Constants.DEFAULT_NMCTS_LOCAL_POLICY,
+            bool debugInfoToConsole = false) {
             PerfectInformation = allowPerfectInformation;
             EnsembleSize = ensembleSize;
             PlayoutBotType = playoutBotType;

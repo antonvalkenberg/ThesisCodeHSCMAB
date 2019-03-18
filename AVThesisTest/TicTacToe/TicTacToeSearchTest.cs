@@ -65,11 +65,9 @@ namespace AVThesisTest.TicTacToe {
         }
 
         public override LSI<object, TicTacToeState, TicTacToeMove, object, TreeSearchNode<TicTacToeState, TicTacToeMove>, OddmentTable<int>> SetupLSI(ISideInformationStrategy<object, TicTacToeState, TicTacToeMove, object, TicTacToeMove, OddmentTable<int>> sideInformationStrategy, ILSISamplingStrategy<TicTacToeState, TicTacToeMove, OddmentTable<int>> samplingStrategy) {
-            var samplesForGeneration = 2500;
-            var samplesForEvaluation = 4000;
             var playoutStrategy = new AgentPlayout<object, TicTacToeState, TicTacToeMove, object, TicTacToeMove>(Agent);
             var evaluationStrategy = EvaluationStrategy;
-            var search = new LSI<object, TicTacToeState, TicTacToeMove, object, TreeSearchNode<TicTacToeState, TicTacToeMove>, OddmentTable<int>>(samplesForGeneration, samplesForEvaluation, sideInformationStrategy, samplingStrategy, playoutStrategy, evaluationStrategy, GameLogic);
+            var search = new LSI<object, TicTacToeState, TicTacToeMove, object, TreeSearchNode<TicTacToeState, TicTacToeMove>, OddmentTable<int>>(sideInformationStrategy, samplingStrategy, playoutStrategy, evaluationStrategy, GameLogic, samples: 10000);
 
             return search;
         }

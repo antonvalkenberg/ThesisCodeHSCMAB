@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using AVThesis.Datastructures;
 using AVThesis.Game;
@@ -20,7 +21,32 @@ namespace AVThesis.Search.LSI {
     /// <typeparam name="N">A Type of node that the search uses.</typeparam>
     /// <typeparam name="T">The Type of side information that the search uses.</typeparam>
     public class LSI<D, P, A, S, N, T> : ISearchStrategy<D, P, A, S, A> where D : class where P : State where A : class where S : class where N : Node<A>, new() where T : class {
-        
+
+        #region Constants
+
+        /// <summary>
+        /// The default percentage of the computation budget of LSI that is used during the generation phase.
+        /// </summary>
+        public const double DEFAULT_BUDGET_GENERATION_PERCENTAGE = 0.25;
+
+        /// <summary>
+        /// The default adjustment factor applied to the evaluation budget for LSI.
+        /// Note: this factor should be empirically determined due to the nature of the SequentialHalving algorithm used during LSI evaluation phase.
+        /// </summary>
+        public const double DEFAULT_EVALUATION_SAMPLES_ADJUSTMENT_FACTOR = .4;
+
+        /// <summary>
+        /// The amount of playouts to run when determining sample sizes when on a time budget.
+        /// </summary>
+        public const int TIME_BUDGET_TEST_PLAYOUTS = 25;
+
+        /// <summary>
+        /// The factor with which to multiply a single sample's time when determining sample sizes on a time budget.
+        /// </summary>
+        public const double TIME_BUDGET_SAFETY_MARGIN = 1.5;
+
+        #endregion
+
         #region Helper Class
 
         private class ActionValue {
@@ -40,16 +66,6 @@ namespace AVThesis.Search.LSI {
         #endregion
 
         #region Properties
-
-        /// <summary>
-        /// The amount of samples to be used during the Generation phase.
-        /// </summary>
-        public int GenerationSamples { get; set; }
-
-        /// <summary>
-        /// The amount of samples to be used during the Evaluation phase.
-        /// </summary>
-        public int EvaluationSamples { get; set; }
 
         /// <summary>
         /// The table containing the side information.
@@ -82,6 +98,36 @@ namespace AVThesis.Search.LSI {
         public IGameLogic<D, P, A, S, A, A> GameLogic { get; set; }
 
         /// <summary>
+        /// The amount of time in milliseconds that the search is allowed to run for.
+        /// </summary>
+        public long Time { get; set; }
+
+        /// <summary>
+        /// The amount of samples that the search is allowed to use.
+        /// </summary>
+        public int Samples { get; set; }
+
+        /// <summary>
+        /// The portion of samples to be spent during the generation phase.
+        /// </summary>
+        public double GenerationBudgetPortion { get; set; }
+
+        /// <summary>
+        /// The adjustment factor needed to keep the samples used during the evaluation phase within budget.
+        /// </summary>
+        public double EvaluationBudgetAdjustment { get; set; }
+
+        /// <summary>
+        /// The amount of samples to be used during the Generation phase.
+        /// </summary>
+        public int GenerationSamples { get; set; }
+
+        /// <summary>
+        /// The amount of samples to be used during the Evaluation phase.
+        /// </summary>
+        public int EvaluationSamples { get; set; }
+
+        /// <summary>
         /// Used to keep track of the actual number of samples LSI uses during the evaluation phase.
         /// </summary>
         public int SamplesUsedEvaluation { get; set; }
@@ -93,26 +139,59 @@ namespace AVThesis.Search.LSI {
         /// <summary>
         /// Creates a new instance of a Linear Side Information search.
         /// </summary>
-        /// <param name="generationSamples">The amount of samples to be used during the Generation phase.</param>
-        /// <param name="evaluationSamples">The amount of samples to be used during the Evaluation phase.</param>
         /// <param name="sideInformationStrategy">The strategy used to create the side information.</param>
         /// <param name="samplingStrategy">A strategy to sample actions during the Generation process.</param>
         /// <param name="playout">The strategy used to play out a game in simulation.</param>
         /// <param name="evaluation">The evaluation strategy for determining the value of samples.</param>
         /// <param name="gameLogic">The game specific logic required for searching.</param>
-        public LSI(int generationSamples, int evaluationSamples, ISideInformationStrategy<D, P, A, S, A, T> sideInformationStrategy, ILSISamplingStrategy<P, A, T> samplingStrategy, IPlayoutStrategy<D, P, A, S, A> playout, IStateEvaluation<D, P, A, S, A, N> evaluation, IGameLogic<D, P, A, S, A, A> gameLogic) {
-            GenerationSamples = generationSamples;
-            EvaluationSamples = evaluationSamples;
+        /// <param name="time">[Optional] The time budget for this search. Default value is <see cref="Constants.NO_LIMIT_ON_THINKING_TIME"/>.</param>
+        /// <param name="samples">[Optional] The iteration budget for this search. Default value is <see cref="Constants.NO_LIMIT_ON_ITERATIONS"/>.</param>
+        /// <param name="generationBudgetPortion">[Optional] The portion of samples to be spent during the generation phase. Default value is <see cref="DEFAULT_BUDGET_GENERATION_PERCENTAGE"/>.</param>
+        /// <param name="evaluationBudgetAdjustment">[Optional] The adjustment factor needed to keep the samples used during the evaluation phase within budget. Default value is <see cref="DEFAULT_EVALUATION_SAMPLES_ADJUSTMENT_FACTOR"/>.</param>
+        public LSI(ISideInformationStrategy<D, P, A, S, A, T> sideInformationStrategy, ILSISamplingStrategy<P, A, T> samplingStrategy, IPlayoutStrategy<D, P, A, S, A> playout, IStateEvaluation<D, P, A, S, A, N> evaluation, IGameLogic<D, P, A, S, A, A> gameLogic, long time = Constants.NO_LIMIT_ON_THINKING_TIME, int samples = Constants.NO_LIMIT_ON_ITERATIONS, double generationBudgetPortion = DEFAULT_BUDGET_GENERATION_PERCENTAGE, double evaluationBudgetAdjustment = DEFAULT_EVALUATION_SAMPLES_ADJUSTMENT_FACTOR) {
             SideInformationStrategy = sideInformationStrategy;
             SamplingStrategy = samplingStrategy;
             Playout = playout;
             Evaluation = evaluation;
             GameLogic = gameLogic;
+            Time = time;
+            Samples = samples;
+            GenerationBudgetPortion = generationBudgetPortion;
+            EvaluationBudgetAdjustment = evaluationBudgetAdjustment;
         }
 
         #endregion
 
         #region Private Methods
+
+        /// <summary>
+        /// Determines the sample sizes to be used for the search.
+        /// <param name="context">The current search context.</param>
+        /// </summary>
+        private void DetermineSampleSizes(SearchContext<D, P, A, S, A> context) {
+            
+            // If we are on a time budget, run some number of test playouts to estimate the amount of samples we should use.
+            if (Time != Constants.NO_LIMIT_ON_THINKING_TIME) {
+
+                // Check how long it takes to run X playouts
+                var timer = Stopwatch.StartNew();
+                for (var i = 0; i < TIME_BUDGET_TEST_PLAYOUTS; i++) {
+                    Playout.Playout(context, context.Source.Copy());
+                }
+                
+                Console.WriteLine($"Running {TIME_BUDGET_TEST_PLAYOUTS} test playouts took {timer.ElapsedMilliseconds}ms");
+
+                // Determine how long a single sample took
+                var testDuration = timer.ElapsedMilliseconds;
+                var sampleDuration = testDuration / (TIME_BUDGET_TEST_PLAYOUTS * 1.0);
+                // Estimate how many samples we can run in the remaining time
+                var estimatedSamples = (Time - testDuration) / (sampleDuration * TIME_BUDGET_SAFETY_MARGIN);
+                Samples = (int) estimatedSamples;
+            }
+
+            GenerationSamples = (int)(Samples * GenerationBudgetPortion);
+            EvaluationSamples = (int)(Samples * (1 - GenerationBudgetPortion) * EvaluationBudgetAdjustment);
+        }
 
         /// <summary>
         /// Generates the interesting subset of actions C* from C.
@@ -131,7 +210,7 @@ namespace AVThesis.Search.LSI {
             // Create combined-actions by sampling the side information.
             var sampledActions = new List<A>();
             for (var i = 0; i < EvaluationSamples; i++) {
-                sampledActions.Add(SamplingStrategy.Sample((P)context.Source.Copy(), SideInformation));
+                sampledActions.Add(SamplingStrategy.Sample(context.Source, SideInformation));
             }
 
             return sampledActions;
@@ -183,7 +262,7 @@ namespace AVThesis.Search.LSI {
 
                 double value = 0;
                 for (var i = 0; i < samplesPerAction; i++) {
-                    var endState = Playout.Playout(context, newState);
+                    var endState = Playout.Playout(context, (P)newState.Copy());
                     value += Evaluation.Evaluate(context, tempNode, endState);
                     SamplesUsedEvaluation++;
                 }
@@ -201,6 +280,9 @@ namespace AVThesis.Search.LSI {
         #region Public Methods
 
         public void Search(SearchContext<D, P, A, S, A> context) {
+            // Determine the samples sizes that should be used during each phase.
+            DetermineSampleSizes(context);
+
             // Let's keep track of how many samples LSI actually uses during evaluation.
             SamplesUsedEvaluation = 0;
 

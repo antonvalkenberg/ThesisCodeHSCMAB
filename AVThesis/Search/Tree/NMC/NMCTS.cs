@@ -155,7 +155,7 @@ namespace AVThesis.Search.Tree.NMC {
                 var selectedNode = NaïveSelectAndExpand(context, root, gMAB);
 
                 // Simulate
-                P endState = PlayoutStrategy.Playout(context, selectedNode.State.Copy());
+                var endState = PlayoutStrategy.Playout(context, (P)selectedNode.State.Copy());
 
                 // Backpropagation
                 BackPropagationStrategy.BackPropagate(context, EvaluationStrategy, selectedNode, endState);

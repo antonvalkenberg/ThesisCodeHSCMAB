@@ -167,7 +167,7 @@ namespace AVThesis.SabberStone.Bots {
             /// <inheritdoc />
             public SabberStoneAction Sample(SabberStoneState state, OddmentTable<SabberStonePlayerTask> sideInformation) {
                 var copyState = (SabberStoneState)state.Copy();
-                var availableTasks = GetAvailablePlayerTasks(state);
+                var availableTasks = GetAvailablePlayerTasks(copyState);
                 var action = new SabberStoneAction();
                 var tries = 0;
 
@@ -305,14 +305,19 @@ namespace AVThesis.SabberStone.Bots {
         public MASTPlayoutBot.SelectionType MASTSelectionType { get; set; }
 
         /// <summary>
-        /// The amount of samples to use during the generation phase.
+        /// The budget for the amount of samples LSI can use.
         /// </summary>
-        public int SamplesForGeneration { get; set; }
+        public int Samples { get; set; }
 
         /// <summary>
-        /// The amount of samples to use during the evaluation phase.
+        /// The budget for the amount of milliseconds LSI can spend on searching.
         /// </summary>
-        public int SamplesForEvaluation { get; set; }
+        public long Time { get; set; }
+
+        /// <summary>
+        /// The type of budget that this bot will use.
+        /// </summary>
+        public BudgetType BudgetType { get; set; }
 
         #endregion
 
@@ -327,11 +332,21 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="playoutBotType">[Optional] The type of playout bot to be used during playouts. Default value is <see cref="PlayoutBotType.MAST"/>.</param>
         /// <param name="mastSelectionType">[Optional] The type of selection strategy used by the M.A.S.T. playout. Default value is <see cref="MASTPlayoutBot.SelectionType.EGreedy"/>.</param>
         /// <param name="playoutTurnCutoff">[Optional] The amount of turns after which to stop a simulation. Default value is <see cref="Constants.DEFAULT_PLAYOUT_TURN_CUTOFF"/>.</param>
-        /// <param name="samplesForGeneration">[Optional] The amount of samples to use during the generation phase. Default value is <see cref="Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET"/> * <see cref="Constants.DEFAULT_LSI_BUDGET_GENERATION_PERCENTAGE"/>.</param>
-        /// <param name="samplesForEvaluation">[Optional] The amount of samples to use during the evaluation phase. Default value is <see cref="Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET"/> * <see cref="Constants.DEFAULT_LSI_BUDGET_EVALUATION_PERCENTAGE"/> * <see cref="Constants.DEFAULT_LSI_EVALUATION_SAMPLES_ADJUSTMENT_FACTOR"/>.</param>
+        /// <param name="budgetType">[Optional] The type of budget that this bot will use. Default value is <see cref="BudgetType.Iterations"/>.</param>
+        /// <param name="samples">[Optional] The budget for the amount of iterations LSI can use. Default value is <see cref="Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET"/>.</param>
+        /// <param name="time">[Optional] The budget for the amount of milliseconds LSI can spend on searching. Default value is <see cref="Constants.DEFAULT_COMPUTATION_TIME_BUDGET"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
-        public LSIBot(Controller player, bool allowPerfectInformation = false, int ensembleSize = 1, PlayoutBotType playoutBotType = PlayoutBotType.MAST, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, int samplesForGeneration = (int)(Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET * Constants.DEFAULT_LSI_BUDGET_GENERATION_PERCENTAGE), int samplesForEvaluation = (int)(Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET * Constants.DEFAULT_LSI_BUDGET_EVALUATION_PERCENTAGE * Constants.DEFAULT_LSI_EVALUATION_SAMPLES_ADJUSTMENT_FACTOR), bool debugInfoToConsole = false)
-            : this(allowPerfectInformation, ensembleSize, playoutBotType, mastSelectionType, playoutTurnCutoff, samplesForGeneration, samplesForEvaluation, debugInfoToConsole) {
+        public LSIBot(Controller player,
+            bool allowPerfectInformation = false,
+            int ensembleSize = 1,
+            PlayoutBotType playoutBotType = PlayoutBotType.MAST,
+            MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy,
+            int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF,
+            BudgetType budgetType = BudgetType.Iterations,
+            int samples = Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET,
+            long time = Constants.DEFAULT_COMPUTATION_TIME_BUDGET,
+            bool debugInfoToConsole = false)
+            : this(allowPerfectInformation, ensembleSize, playoutBotType, mastSelectionType, playoutTurnCutoff, budgetType, samples, time, debugInfoToConsole) {
             SetController(player);
         }
 
@@ -343,17 +358,27 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="playoutBotType">[Optional] The type of playout bot to be used during playouts. Default value is <see cref="PlayoutBotType.MAST"/>.</param>
         /// <param name="mastSelectionType">[Optional] The type of selection strategy used by the M.A.S.T. playout. Default value is <see cref="MASTPlayoutBot.SelectionType.EGreedy"/>.</param>
         /// <param name="playoutTurnCutoff">[Optional] The amount of turns after which to stop a simulation. Default value is <see cref="Constants.DEFAULT_PLAYOUT_TURN_CUTOFF"/>.</param>
-        /// <param name="samplesForGeneration">[Optional] The amount of samples to use during the generation phase. Default value is <see cref="Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET"/> * <see cref="Constants.DEFAULT_LSI_BUDGET_GENERATION_PERCENTAGE"/>.</param>
-        /// <param name="samplesForEvaluation">[Optional] The amount of samples to use during the evaluation phase. Default value is <see cref="Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET"/> * <see cref="Constants.DEFAULT_LSI_BUDGET_EVALUATION_PERCENTAGE"/> * <see cref="Constants.DEFAULT_LSI_EVALUATION_SAMPLES_ADJUSTMENT_FACTOR"/>.</param>
+        /// <param name="budgetType">[Optional] The type of budget that this bot will use. Default value is <see cref="BudgetType.Iterations"/>.</param>
+        /// <param name="samples">[Optional] The budget for the amount of iterations LSI can use. Default value is <see cref="Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET"/>.</param>
+        /// <param name="time">[Optional] The budget for the amount of milliseconds LSI can spend on searching. Default value is <see cref="Constants.DEFAULT_COMPUTATION_TIME_BUDGET"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
-        public LSIBot(bool allowPerfectInformation = false, int ensembleSize = 1, PlayoutBotType playoutBotType = PlayoutBotType.MAST, MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy, int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF, int samplesForGeneration = (int)(Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET * Constants.DEFAULT_LSI_BUDGET_GENERATION_PERCENTAGE), int samplesForEvaluation = (int)(Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET * Constants.DEFAULT_LSI_BUDGET_EVALUATION_PERCENTAGE * Constants.DEFAULT_LSI_EVALUATION_SAMPLES_ADJUSTMENT_FACTOR), bool debugInfoToConsole = false) {
+        public LSIBot(bool allowPerfectInformation = false,
+            int ensembleSize = 1,
+            PlayoutBotType playoutBotType = PlayoutBotType.MAST,
+            MASTPlayoutBot.SelectionType mastSelectionType = MASTPlayoutBot.SelectionType.EGreedy,
+            int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF,
+            BudgetType budgetType = BudgetType.Iterations,
+            int samples = Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET,
+            long time = Constants.DEFAULT_COMPUTATION_TIME_BUDGET,
+            bool debugInfoToConsole = false) {
             PerfectInformation = allowPerfectInformation;
             EnsembleSize = ensembleSize;
             PlayoutBotType = playoutBotType;
             MASTSelectionType = mastSelectionType;
             PlayoutTurnCutoff = playoutTurnCutoff;
-            SamplesForGeneration = samplesForGeneration;
-            SamplesForEvaluation = samplesForEvaluation;
+            BudgetType = budgetType;
+            Samples = samples;
+            Time = time;
             _debug = debugInfoToConsole;
 
             // Create the ensemble search
@@ -415,18 +440,28 @@ namespace AVThesis.SabberStone.Bots {
             if (_debug) Console.WriteLine($"Starting an LSI search in turn {(stateCopy.Game.Turn + 1) / 2}");
             
             // Adjust sample sizes again for use in the Ensemble
-            var samplesForEvaluation = EnsembleSize > 0 ? SamplesForEvaluation / EnsembleSize : SamplesForEvaluation; // Note: Integer division by design.
-            var samplesForGeneration = EnsembleSize > 0 ? SamplesForGeneration / EnsembleSize : SamplesForGeneration; // Note: Integer division by design.
+            var samples = Search.Constants.NO_LIMIT_ON_ITERATIONS;
+            var time = (long)Search.Constants.NO_LIMIT_ON_THINKING_TIME;
+            switch (BudgetType) {
+                case BudgetType.Iterations:
+                    samples = EnsembleSize > 0 ? Samples / EnsembleSize : Samples; // Note: Integer division by design.
+                    break;
+                case BudgetType.Time:
+                    time = EnsembleSize > 0 ? Time / EnsembleSize : Time; // Note: Integer division by design.
+                    break;
+                default:
+                    throw new InvalidEnumArgumentException($"BudgetType `{BudgetType}' is not supported.");
+            }
 
             // Create a new LSI search
             var search = new LSI<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, TreeSearchNode<SabberStoneState, SabberStoneAction>, OddmentTable<SabberStonePlayerTask>>(
-                samplesForGeneration,
-                samplesForEvaluation,
                 SideInformationStrategy,
                 SamplingStrategy,
                 Playout,
                 Evaluation,
-                GameLogic);
+                GameLogic,
+                time,
+                samples);
             
             // Reset the solutions collection
             EnsembleSolutions = new List<SabberStoneAction>();
@@ -442,10 +477,9 @@ namespace AVThesis.SabberStone.Bots {
             // Determine a solution
             var solution = Searcher.VoteForSolution(EnsembleSolutions, state);
 
-            var time = timer.ElapsedMilliseconds;
             if (_debug) Console.WriteLine();
             if (_debug) Console.WriteLine($"LSI returned with solution: {solution}");
-            if (_debug) Console.WriteLine($"My total calculation time was: {time} ms");
+            if (_debug) Console.WriteLine($"My total calculation time was: {timer.ElapsedMilliseconds}ms, using {search.Samples} samples.");
             if (_debug) Console.WriteLine($"Actual evaluation samples used during last search: {search.SamplesUsedEvaluation}");
 
             // Check if the solution is a complete action.
@@ -481,12 +515,12 @@ namespace AVThesis.SabberStone.Bots {
 
         /// <inheritdoc />
         public string Name() {
-            var sfg = $"_{SamplesForGeneration}g";
-            var sfe = $"_{SamplesForEvaluation}e";
+            var it = Samples != Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET ? $"_{Samples}it" : "";
+            var ti = Time != Constants.DEFAULT_COMPUTATION_TIME_BUDGET ? $"_{Time}ti" : "";
             var ptc = PlayoutTurnCutoff != Constants.DEFAULT_PLAYOUT_TURN_CUTOFF ? $"_{PlayoutTurnCutoff}tc" : "";
             var es = EnsembleSize > 1 ? $"_{EnsembleSize}es" : "";
             var pi = PerfectInformation ? "_PI" : "";
-            return $"{BOT_NAME}{sfg}{sfe}{ptc}{es}{pi}";
+            return $"{BOT_NAME}{it}{ti}{ptc}{es}{pi}";
         }
 
         #endregion
@@ -494,4 +528,5 @@ namespace AVThesis.SabberStone.Bots {
         #endregion
 
     }
+
 }

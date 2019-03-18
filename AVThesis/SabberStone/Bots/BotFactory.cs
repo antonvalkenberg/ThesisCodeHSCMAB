@@ -59,13 +59,13 @@ namespace AVThesis.SabberStone.Bots {
                 case BotSetupType.NMCTS_IT1K:
                     return new NMCTSBot(iterations: 1000);
                 case BotSetupType.LSI_IT1K:
-                    return new LSIBot(samplesForGeneration: (int)(1000 * Constants.DEFAULT_LSI_BUDGET_GENERATION_PERCENTAGE), samplesForEvaluation: (int)(1000 * Constants.DEFAULT_LSI_BUDGET_EVALUATION_PERCENTAGE * Constants.DEFAULT_LSI_EVALUATION_SAMPLES_ADJUSTMENT_FACTOR));
+                    return new LSIBot(samples: 1000);
                 case BotSetupType.HMCTS_IT5K:
                     return new HMCTSBot(iterations: 5000);
                 case BotSetupType.NMCTS_IT5K:
                     return new NMCTSBot(iterations: 5000);
                 case BotSetupType.LSI_IT5K:
-                    return new LSIBot(samplesForGeneration: (int)(5000 * Constants.DEFAULT_LSI_BUDGET_GENERATION_PERCENTAGE), samplesForEvaluation: (int)(5000 * Constants.DEFAULT_LSI_BUDGET_EVALUATION_PERCENTAGE * Constants.DEFAULT_LSI_EVALUATION_SAMPLES_ADJUSTMENT_FACTOR));
+                    return new LSIBot(samples: 5000);
                 default:
                     throw new InvalidEnumArgumentException($"BotSetupType `{botType}' is not supported.");
             }
