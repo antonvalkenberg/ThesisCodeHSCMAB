@@ -198,7 +198,7 @@ namespace AVThesis.Search.Tree.NMC {
             // Check if any of the children of the current node have the sampled action as their payload
             var childHashes = node.Children.Select(i => i.PayloadHash);
             if (childHashes.Contains(actionHash)) {
-                var existingChild = node.Children.FirstOrDefault(i => i.Payload.GetHashCode() == actionHash);
+                var existingChild = node.Children.Find(i => i.Payload.GetHashCode() == actionHash);
                 // Check if taking this action still has the same player as active
                 if (existingChild.State.CurrentPlayer() == node.State.CurrentPlayer())
                     return NaïveSelectAndExpand(context, existingChild, gMAB);
