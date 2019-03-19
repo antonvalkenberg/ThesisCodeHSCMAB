@@ -179,8 +179,6 @@ namespace AVThesis.Search.LSI {
                     Playout.Playout(context, context.Source.Copy());
                 }
                 
-                Console.WriteLine($"Running {TIME_BUDGET_TEST_PLAYOUTS} test playouts took {timer.ElapsedMilliseconds}ms");
-
                 // Determine how long a single sample took
                 var testDuration = timer.ElapsedMilliseconds;
                 var sampleDuration = testDuration / (TIME_BUDGET_TEST_PLAYOUTS * 1.0);
@@ -293,7 +291,7 @@ namespace AVThesis.Search.LSI {
 
             // Evaluate and set the best combined-action in C* as solution to the search.
             context.Solution = Evaluate(context, cStar);
-
+            context.BudgetSpent = GenerationSamples + SamplesUsedEvaluation;
             context.Status = SearchContext<D, P, A, S, A>.SearchStatus.Success;
         }
 

@@ -22,7 +22,7 @@ namespace AVThesis.Search {
         /// <param name="context">The current search context.</param>
         /// <param name="searchFunction">The function that runs the actual search.</param>
         /// <param name="ensembleSize">The size of the ensemble.</param>
-        void EnsembleSearch(SearchContext<D, P, A, S, Sol> context, Func<SearchContext<D, P, A, S, Sol>, P, A> searchFunction, int ensembleSize);
+        void EnsembleSearch(SearchContext<D, P, A, S, Sol> context, Func<SearchContext<D, P, A, S, Sol>, A> searchFunction, int ensembleSize);
 
     }
 

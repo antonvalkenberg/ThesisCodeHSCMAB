@@ -84,6 +84,11 @@ namespace AVThesis.Search {
         /// </summary>
         public ICloneStrategy<P> Cloner { get; set; } = new StateClone<P>();
 
+        /// <summary>
+        /// Container for the amount of budget spent during the search.
+        /// </summary>
+        public long BudgetSpent { get; set; }
+
         #endregion
 
         /// <summary>

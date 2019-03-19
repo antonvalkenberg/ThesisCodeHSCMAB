@@ -320,6 +320,11 @@ namespace AVThesis.SabberStone.Bots {
             return $"{BOT_NAME}_{Selection}_{setting}";
         }
 
+        /// <inheritdoc />
+        public long BudgetSpent() {
+            return 0;
+        }
+
         #endregion
 
     }

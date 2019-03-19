@@ -36,5 +36,12 @@ namespace AVThesis.SabberStone {
         /// <returns>String representing the bot's name.</returns>
         string Name();
 
+        /// <summary>
+        /// Returns the amount of budget spent while calculating the latest action.
+        /// Note: this amount is relative to the strategy that the bot uses, i.e. it can either represent time or iterations.
+        /// </summary>
+        /// <returns>The amount of budget spent while calculating the latest action.</returns>
+        long BudgetSpent();
+
     }
 }

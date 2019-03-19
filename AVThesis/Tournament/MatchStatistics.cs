@@ -66,9 +66,9 @@ namespace AVThesis.Tournament {
             public int FinalTurn { get; set; }
 
             /// <summary>
-            /// The actions executed in this game along with the computing time used, indexed by player name.
+            /// The actions executed in this game along with the computing time used and budget spent, indexed by player name.
             /// </summary>
-            public Dictionary<string, List<Tuple<List<SabberStonePlayerTask>, TimeSpan>>> GameActions { get; set; }
+            public Dictionary<string, List<Tuple<List<SabberStonePlayerTask>, TimeSpan, long>>> GameActions { get; set; }
 
             #endregion
 
@@ -87,7 +87,7 @@ namespace AVThesis.Tournament {
                 Player2Name = player2Name;
                 StartingPlayerName = startingPlayerName;
                 Status = State.RUNNING;
-                GameActions = new Dictionary<string, List<Tuple<List<SabberStonePlayerTask>, TimeSpan>>> {{Player1Name, new List<Tuple<List<SabberStonePlayerTask>, TimeSpan>>()}, {Player2Name, new List<Tuple<List<SabberStonePlayerTask>, TimeSpan>>()}};
+                GameActions = new Dictionary<string, List<Tuple<List<SabberStonePlayerTask>, TimeSpan, long>>> {{Player1Name, new List<Tuple<List<SabberStonePlayerTask>, TimeSpan, long>>()}, {Player2Name, new List<Tuple<List<SabberStonePlayerTask>, TimeSpan, long>>()}};
             }
 
             #endregion
@@ -112,9 +112,10 @@ namespace AVThesis.Tournament {
             /// <param name="player">The name of the player that performed the action.</param>
             /// <param name="tasks">The tasks that were executed.</param>
             /// <param name="actionTime">The time that was spent on computing the action.</param>
-            public void AddAction(string player, List<SabberStonePlayerTask> tasks, TimeSpan actionTime) {
+            /// <param name="actionIterations">The amount of iterations spent on computing the action.</param>
+            public void AddAction(string player, List<SabberStonePlayerTask> tasks, TimeSpan actionTime, long actionIterations) {
                 var playerName = string.Equals(player, Constants.SABBERSTONE_GAMECONFIG_PLAYER1_NAME) ? Player1Name : Player2Name;
-                GameActions[playerName].Add(new Tuple<List<SabberStonePlayerTask>, TimeSpan>(tasks, actionTime));
+                GameActions[playerName].Add(new Tuple<List<SabberStonePlayerTask>, TimeSpan, long>(tasks, actionTime, actionIterations));
             }
 
             /// <summary>
@@ -146,7 +147,7 @@ namespace AVThesis.Tournament {
                     writer.WriteLine("");
                     writer.WriteLine($"*{kvPair.Key} - Total Computing Time: {TimeSpan.FromMilliseconds(kvPair.Value.Sum(i => i.Item2.TotalMilliseconds)):g}");
                     foreach (var tuple in kvPair.Value) {
-                        writer.WriteLine($"Time: {tuple.Item2:g}");
+                        writer.WriteLine($"Time: {tuple.Item2:g} - Iterations: {tuple.Item3}");
                         foreach (var task in tuple.Item1) {
                             writer.WriteLine(task);
                         }
@@ -217,7 +218,9 @@ namespace AVThesis.Tournament {
             var writer = new StreamWriter(ResultsFilePath, true);
             var player1Time = TimeSpan.FromMilliseconds(CurrentGame.GameActions[Player1].Sum(i => i.Item2.TotalMilliseconds));
             var player2Time = TimeSpan.FromMilliseconds(CurrentGame.GameActions[Player2].Sum(i => i.Item2.TotalMilliseconds));
-            writer.WriteLine($"{CurrentGame.WinningPlayer()},{CurrentGame.Player1HP},{CurrentGame.Player2HP},{CurrentGame.FinalTurn},{player1Time:g},{player2Time:g}");
+            var player1Iterations = CurrentGame.GameActions[Player1].Sum(i => i.Item3);
+            var player2Iterations = CurrentGame.GameActions[Player2].Sum(i => i.Item3);
+            writer.WriteLine($"{CurrentGame.WinningPlayer()},{CurrentGame.Player1HP},{CurrentGame.Player2HP},{CurrentGame.FinalTurn},{player1Time:g},{player2Time:g},{player1Iterations},{player2Iterations}");
             writer.Close();
         }
 
@@ -240,8 +243,9 @@ namespace AVThesis.Tournament {
         /// <param name="player">The name of the player that performed the action.</param>
         /// <param name="tasks">The tasks that were executed as part of the action.</param>
         /// <param name="actionTime">The computation time that was spent on the action.</param>
-        public void ProcessAction(string player, List<SabberStonePlayerTask> tasks, TimeSpan actionTime) {
-            CurrentGame.AddAction(player, tasks, actionTime);
+        /// <param name="actionIterations">The amount of iterations that was spent on computing the action.</param>
+        public void ProcessAction(string player, List<SabberStonePlayerTask> tasks, TimeSpan actionTime, long actionIterations) {
+            CurrentGame.AddAction(player, tasks, actionTime, actionIterations);
         }
 
         /// <summary>

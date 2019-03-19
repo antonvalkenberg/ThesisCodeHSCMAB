@@ -126,6 +126,11 @@ namespace AVThesis.SabberStone.Bots {
             return Player == null ? BOT_NAME : $"{BOT_NAME}-{PlayerID()}";
         }
 
+        /// <inheritdoc />
+        public long BudgetSpent() {
+            return 0;
+        }
+
         #endregion
 
     }

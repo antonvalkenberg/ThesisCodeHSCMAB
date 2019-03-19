@@ -66,6 +66,12 @@ namespace AVThesis.SabberStone.Bots {
                     return new NMCTSBot(iterations: 5000);
                 case BotSetupType.LSI_IT5K:
                     return new LSIBot(samples: 5000);
+                case BotSetupType.HMCTS_TI5S:
+                    return new HMCTSBot(budgetType: BudgetType.Time, time: 5000);
+                case BotSetupType.NMCTS_TI5S:
+                    return new NMCTSBot(budgetType: BudgetType.Time, time: 5000);
+                case BotSetupType.LSI_TI5S:
+                    return new LSIBot(budgetType: BudgetType.Time, time: 5000);
                 default:
                     throw new InvalidEnumArgumentException($"BotSetupType `{botType}' is not supported.");
             }

@@ -110,7 +110,7 @@ namespace AVThesis.Search.Tree.MCTS {
 
             var finalNode = FinalNodeSelectionStrategy.SelectFinalNode(context, root);
             context.Solution = SolutionStrategy.Solution(context, finalNode);
-
+            context.BudgetSpent = it;
             context.Status = SearchContext<D, P, A, S, Sol>.SearchStatus.Success;
         }
 

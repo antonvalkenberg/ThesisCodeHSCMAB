@@ -111,6 +111,11 @@ namespace AVThesis.SabberStone.Bots {
         public int Iterations { get; set; }
 
         /// <summary>
+        /// The total amount of iterations spent during the calculation of the latest solution.
+        /// </summary>
+        public long IterationsSpent { get; set; }
+
+        /// <summary>
         /// The budget for the amount of milliseconds MCTS can spend on searching.
         /// </summary>
         public long Time { get; set; }
@@ -346,7 +351,8 @@ namespace AVThesis.SabberStone.Bots {
             var search = (MCTS<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>)Builder.Build();
             var context = SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>.GameSearchSetup(GameLogic, EnsembleSolutions, gameState, null, search);
             Ensemble.EnsembleSearch(context, Searcher.Search, EnsembleSize);
-            
+            IterationsSpent = EnsembleSolutions.Sum(i => i.BudgetUsed);
+
             // Determine the best tasks to play based on the ensemble search, or just take the one in case of a single search.
             var solution = EnsembleSize > 1 ? Searcher.DetermineBestTasks(state) : EnsembleSolutions.First();
 
@@ -404,6 +410,11 @@ namespace AVThesis.SabberStone.Bots {
             // Create the searcher that will handle the searching and some administrative tasks
             Searcher = new SabberStoneSearch(Player, _debug);
             GameLogic.Searcher = Searcher;
+        }
+
+        /// <inheritdoc />
+        public long BudgetSpent() {
+            return IterationsSpent;
         }
 
         #endregion

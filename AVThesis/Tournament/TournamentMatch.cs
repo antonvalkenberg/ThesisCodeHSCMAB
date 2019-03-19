@@ -217,7 +217,7 @@ namespace AVThesis.Tournament {
             }
 
             // Store the action in the match-statistics
-            MatchStatistics.ProcessAction(currentPlayerName, executedTasks, timer.Elapsed);
+            MatchStatistics.ProcessAction(currentPlayerName, executedTasks, timer.Elapsed, bot.BudgetSpent());
             if (_printToConsole) Console.WriteLine($"*Action computation time: {timer.Elapsed:g}");
         }
 

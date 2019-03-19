@@ -52,7 +52,7 @@ namespace AVThesis.SabberStone.Strategies {
         /// <param name="context">The current search context.</param>
         /// <param name="searchFunction">The function that runs the actual search.</param>
         /// <param name="ensembleSize">The amount of searches to perform in the ensemble.</param>
-        public void EnsembleSearch(SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, Func<SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>, SabberStoneState, SabberStoneAction> searchFunction, int ensembleSize) {
+        public void EnsembleSearch(SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, Func<SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>, SabberStoneAction> searchFunction, int ensembleSize) {
             var gameState = context.Source;
             var rootStartedPlaying = gameState.Game.FirstPlayer.Id == gameState.CurrentPlayer();
 
@@ -112,7 +112,9 @@ namespace AVThesis.SabberStone.Strategies {
                 }
 
                 // Call the search function
-                var solution = searchFunction(clonedContext, context.Source);
+                var solution = searchFunction(clonedContext);
+
+                solution.BudgetUsed = clonedContext.BudgetSpent;
 
                 // Use domain in SearchContext to save solutions
                 context.Domain.Add(solution);

@@ -666,6 +666,10 @@ namespace AVThesis.SabberStone.Bots {
             return BOT_NAME;
         }
 
+        public long BudgetSpent() {
+            return 0;
+        }
+
         #endregion
 
     }

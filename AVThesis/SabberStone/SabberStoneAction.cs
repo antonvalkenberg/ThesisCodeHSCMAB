@@ -25,6 +25,11 @@ namespace AVThesis.SabberStone {
         /// </summary>
         public List<SabberStonePlayerTask> Tasks { get; }
 
+        /// <summary>
+        /// Container for the budget used on calculating this action.
+        /// </summary>
+        public long BudgetUsed { get; set; }
+
         #endregion
 
         #region Constructor

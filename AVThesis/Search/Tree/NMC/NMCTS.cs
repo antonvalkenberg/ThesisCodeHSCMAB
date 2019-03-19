@@ -163,7 +163,7 @@ namespace AVThesis.Search.Tree.NMC {
 
             var finalNode = FinalNodeSelectionStrategy.SelectFinalNode(context, root);
             context.Solution = SolutionStrategy.Solution(context, finalNode);
-
+            context.BudgetSpent = it;
             context.Status = SearchContext<D, P, A, S, Sol>.SearchStatus.Success;
         }
 

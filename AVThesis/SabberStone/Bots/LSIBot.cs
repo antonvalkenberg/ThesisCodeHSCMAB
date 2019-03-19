@@ -310,6 +310,11 @@ namespace AVThesis.SabberStone.Bots {
         public int Samples { get; set; }
 
         /// <summary>
+        /// The total amount of samples spent during the calculation of the latest solution.
+        /// </summary>
+        public long SamplesSpent { get; set; }
+
+        /// <summary>
         /// The budget for the amount of milliseconds LSI can spend on searching.
         /// </summary>
         public long Time { get; set; }
@@ -473,14 +478,14 @@ namespace AVThesis.SabberStone.Bots {
 
             // Execute the search
             Ensemble.EnsembleSearch(context, Searcher.Search, EnsembleSize);
+            SamplesSpent = EnsembleSolutions.Sum(i => i.BudgetUsed);
 
             // Determine a solution
             var solution = Searcher.VoteForSolution(EnsembleSolutions, state);
 
             if (_debug) Console.WriteLine();
             if (_debug) Console.WriteLine($"LSI returned with solution: {solution}");
-            if (_debug) Console.WriteLine($"My total calculation time was: {timer.ElapsedMilliseconds}ms, using {search.Samples} samples.");
-            if (_debug) Console.WriteLine($"Actual evaluation samples used during last search: {search.SamplesUsedEvaluation}");
+            if (_debug) Console.WriteLine($"My total calculation time was: {timer.ElapsedMilliseconds}ms");
 
             // Check if the solution is a complete action.
             if (!solution.IsComplete()) {
@@ -521,6 +526,11 @@ namespace AVThesis.SabberStone.Bots {
             var es = EnsembleSize > 1 ? $"_{EnsembleSize}es" : "";
             var pi = PerfectInformation ? "_PI" : "";
             return $"{BOT_NAME}{it}{ti}{ptc}{es}{pi}";
+        }
+
+        /// <inheritdoc />
+        public long BudgetSpent() {
+            return SamplesSpent;
         }
 
         #endregion

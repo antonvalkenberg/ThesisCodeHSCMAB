@@ -64,9 +64,8 @@ namespace AVThesis.SabberStone {
         /// Note: this method is called by the <see cref="EnsembleStrategySabberStone"/>.
         /// </summary>
         /// <param name="context">The context of the search.</param>
-        /// <param name="state">The current game state.</param>
         /// <returns>SabberStoneAction that is the solution to the search.</returns>
-        public SabberStoneAction Search(SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, SabberStoneState state) {
+        public SabberStoneAction Search(SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context) {
             var timer = System.Diagnostics.Stopwatch.StartNew();
             if (_debug) Console.WriteLine();
 
@@ -109,9 +108,8 @@ namespace AVThesis.SabberStone {
                 solutionStrategy.ClearTaskValues();
             }
 
-            var time = timer.ElapsedMilliseconds;
             if (_debug) Console.WriteLine($"Searcher returned with solution: {solution}");
-            if (_debug) Console.WriteLine($"Calculation time was: {time} ms.");
+            if (_debug) Console.WriteLine($"Calculation time was: {timer.ElapsedMilliseconds} ms.");
             if (_debug) Console.WriteLine();
             return solution;
         }
