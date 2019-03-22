@@ -252,7 +252,6 @@ namespace AVThesis.Tournament {
             }
             catch (Exception e) {
                 Console.WriteLine(e);
-                WriteExceptionToFile(e);
             }
             finally {
                 writer.Close();

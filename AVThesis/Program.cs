@@ -16,7 +16,7 @@ namespace AVThesis {
     public class Program {
 
 		public static void Main(string[] args) {
-            RunTournamentMatch();
+            //RunTournamentMatch();
             //RunQuickMatch();
 
 #pragma warning disable 219
@@ -26,7 +26,7 @@ namespace AVThesis {
 
         public static void RunTournamentMatch() {
             // Create a new tournament match
-            var match = new TournamentMatch(BotSetupType.RandomBot, BotSetupType.DefaultLSI, TournamentMatch.GetTournamentConfiguration(), 10);
+            var match = new TournamentMatch(BotSetupType.RandomBot, BotSetupType.RandomBot, TournamentMatch.GetTournamentConfiguration(), 10);
             match.RunMatch();
         }
 

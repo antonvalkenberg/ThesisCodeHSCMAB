@@ -490,7 +490,6 @@ namespace AVThesis.SabberStone.Bots {
             // Check if the solution is a complete action.
             if (!solution.IsComplete()) {
                 // Otherwise add an End-Turn task before returning.
-                Console.WriteLine("Solution was an incomplete action; adding End-Turn task.");
                 solution.Tasks.Add((SabberStonePlayerTask)EndTurnTask.Any(Player));
             }
 
