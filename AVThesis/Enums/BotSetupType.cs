@@ -96,6 +96,21 @@ namespace AVThesis.Enums {
         LSI_IT5K,
 
         /// <summary>
+        /// H-MCTS bot with the default time budget.
+        /// </summary>
+        HMCTS_TI,
+
+        /// <summary>
+        /// N-MCTS bot with the default time budget.
+        /// </summary>
+        NMCTS_TI,
+
+        /// <summary>
+        /// LSI bot with the default time budget.
+        /// </summary>
+        LSI_TI,
+
+        /// <summary>
         /// H-MCTS bot with a time budget of 5 seconds.
         /// </summary>
         HMCTS_TI5S,

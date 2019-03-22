@@ -217,7 +217,7 @@ namespace AVThesis.Tournament {
             }
 
             // Store the action in the match-statistics
-            MatchStatistics.ProcessAction(currentPlayerName, executedTasks, timer.Elapsed, bot.BudgetSpent());
+            MatchStatistics.ProcessAction(currentPlayerName, executedTasks, timer.Elapsed, bot.BudgetSpent(), bot.MaxDepth());
             if (_printToConsole) Console.WriteLine($"*Action computation time: {timer.Elapsed:g}");
         }
 
@@ -227,7 +227,7 @@ namespace AVThesis.Tournament {
         /// <param name="exception">The exception to write to the file.</param>
         private void WriteExceptionToFile(Exception exception) {
             var writer = new StreamWriter(ExceptionFilePath, true);
-            writer.WriteLine("");
+            writer.WriteLine(exception.GetType().AssemblyQualifiedName);
             writer.WriteLine(exception.Message);
             writer.WriteLine(exception.StackTrace);
             writer.WriteLine("");
@@ -245,12 +245,14 @@ namespace AVThesis.Tournament {
             try {
                 writer.WriteLine(task);
                 writer.WriteLine("Caused:");
+                writer.WriteLine(exception.GetType().AssemblyQualifiedName);
                 writer.WriteLine(exception.Message);
                 writer.WriteLine(exception.StackTrace);
                 writer.WriteLine("");
             }
             catch (Exception e) {
                 Console.WriteLine(e);
+                WriteExceptionToFile(e);
             }
             finally {
                 writer.Close();

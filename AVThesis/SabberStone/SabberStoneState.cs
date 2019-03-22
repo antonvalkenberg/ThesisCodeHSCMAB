@@ -270,6 +270,11 @@ namespace AVThesis.SabberStone {
             return 2;
         }
 
+        /// <inheritdoc />
+        public override bool IsTerminal() {
+            return Game.State == SabberStoneCore.Enums.State.COMPLETE;
+        }
+
         #endregion
 
     }

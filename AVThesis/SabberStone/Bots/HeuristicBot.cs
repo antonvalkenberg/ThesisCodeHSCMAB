@@ -670,6 +670,10 @@ namespace AVThesis.SabberStone.Bots {
             return 0;
         }
 
+        public int MaxDepth() {
+            return 1;
+        }
+
         #endregion
 
     }

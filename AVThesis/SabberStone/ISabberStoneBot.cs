@@ -1,4 +1,5 @@
-﻿using SabberStoneCore.Model.Entities;
+﻿using AVThesis.Search.Tree;
+using SabberStoneCore.Model.Entities;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -42,6 +43,13 @@ namespace AVThesis.SabberStone {
         /// </summary>
         /// <returns>The amount of budget spent while calculating the latest action.</returns>
         long BudgetSpent();
+
+        /// <summary>
+        /// Returns the maximum depth reached by the search technique.
+        /// Note: only relevant for bots using a <see cref="TreeSearch{D,P,A,S,Sol}"/>
+        /// </summary>
+        /// <returns></returns>
+        int MaxDepth();
 
     }
 }

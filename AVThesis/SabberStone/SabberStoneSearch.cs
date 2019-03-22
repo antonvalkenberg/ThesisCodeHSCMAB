@@ -40,6 +40,12 @@ namespace AVThesis.SabberStone {
         /// </summary>
         public Dictionary<int, PlayerTaskStatistics> TaskStatistics { get; set; }
 
+        /// <summary>
+        /// The maximum depth reached by the current search.
+        /// Note: only work for searches of Type <see cref="TreeSearch{D,P,A,S,Sol}"/>.
+        /// </summary>
+        public int CurrentMaxDepth { get; set; }
+
         #endregion
 
         #region Constructors
@@ -103,6 +109,9 @@ namespace AVThesis.SabberStone {
                     if (!TaskStatistics.ContainsKey(taskHash)) TaskStatistics.Add(taskHash, new PlayerTaskStatistics(tuple.Item1, tuple.Item2));
                     else TaskStatistics[taskHash].AddValue(tuple.Item2);
                 }
+
+                // Record the search's maximum depth
+                CurrentMaxDepth = search.MaxDepth;
 
                 // Make sure to clear the values for the next search
                 solutionStrategy.ClearTaskValues();

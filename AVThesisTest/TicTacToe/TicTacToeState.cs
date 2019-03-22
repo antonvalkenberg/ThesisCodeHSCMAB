@@ -75,6 +75,10 @@ namespace AVThesisTest.TicTacToe {
             return 2;
         }
 
+        public override bool IsTerminal() {
+            return Done;
+        }
+
     }
 
 }

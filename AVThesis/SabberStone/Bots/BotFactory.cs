@@ -72,6 +72,12 @@ namespace AVThesis.SabberStone.Bots {
                     return new NMCTSBot(budgetType: BudgetType.Time, time: 5000);
                 case BotSetupType.LSI_TI5S:
                     return new LSIBot(budgetType: BudgetType.Time, time: 5000);
+                case BotSetupType.HMCTS_TI:
+                    return new HMCTSBot(budgetType: BudgetType.Time);
+                case BotSetupType.NMCTS_TI:
+                    return new NMCTSBot(budgetType: BudgetType.Time);
+                case BotSetupType.LSI_TI:
+                    return new LSIBot(budgetType: BudgetType.Time);
                 default:
                     throw new InvalidEnumArgumentException($"BotSetupType `{botType}' is not supported.");
             }

@@ -131,6 +131,11 @@ namespace AVThesis.SabberStone.Bots {
             return 0;
         }
 
+        /// <inheritdoc />
+        public int MaxDepth() {
+            return 0;
+        }
+
         #endregion
 
     }

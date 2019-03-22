@@ -56,6 +56,11 @@ namespace AVThesis.Search.Tree {
         /// </summary>
         public int Iterations { get; set; }
 
+        /// <summary>
+        /// The maximum depth of a node encountered during the search.
+        /// </summary>
+        public int MaxDepth { get; set; }
+
         #endregion
 
         #region Constructors

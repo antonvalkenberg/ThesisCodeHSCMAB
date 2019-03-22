@@ -151,8 +151,12 @@ namespace AVThesis.Search.Tree.NMC {
 
                 it++;
 
-                // SelectAndExpand
-                var selectedNode = NaïveSelectAndExpand(context, root, gMAB);
+                // SelectAndExpand, reference the iteration counter because it might be updated in the recursive call
+                var selectedNode = NaïveSelectAndExpand(context, root, gMAB, ref it);
+
+                // Keep track of the maximum depth we reach
+                var nodeDepth = selectedNode.CalculateDepth();
+                if (nodeDepth > MaxDepth) MaxDepth = nodeDepth;
 
                 // Simulate
                 var endState = PlayoutStrategy.Playout(context, (P)selectedNode.State.Copy());
@@ -177,12 +181,10 @@ namespace AVThesis.Search.Tree.NMC {
         /// <param name="context">The current search context.</param>
         /// <param name="node">The node from which to expand the tree.</param>
         /// <param name="gMAB">The global Multi-Armed-Bandit collection.</param>
+        /// <param name="it">The iteration count of the main search.</param>
         /// <returns>A <see cref="TreeSearchNode{S,A}"/> from which represents the selected node for the Simulation phase.</returns>
-        private TreeSearchNode<P, A> NaïveSelectAndExpand(SearchContext<D, P, A, S, Sol> context, TreeSearchNode<P, A> node, IDictionary<long, Dictionary<int, LocalArm>> gMAB) {
-            var state = context.Cloner.Clone(node.State);
-            var apply = context.Application;
-
-            // a = NaïveSampling(node.state, player)
+        private TreeSearchNode<P, A> NaïveSelectAndExpand(SearchContext<D, P, A, S, Sol> context, TreeSearchNode<P, A> node, IDictionary<long, Dictionary<int, LocalArm>> gMAB, ref int it) {
+            // a = NaïveSampling(node.state, node.state.currentPlayer)
             // if `a' leads to a child of `node'
             // then
             //      return SelectAndExpand(node.GetChild(a))
@@ -192,22 +194,21 @@ namespace AVThesis.Search.Tree.NMC {
             //      return newNode
 
             // Find an action through the NaïveSampling process
-            var action = NaïveSampling(context, state, gMAB);
+            var action = NaïveSampling(context, node.State, gMAB);
             var actionHash = action.GetHashCode();
 
             // Check if any of the children of the current node have the sampled action as their payload
-            var childHashes = node.Children.Select(i => i.PayloadHash);
-            if (childHashes.Contains(actionHash)) {
-                var existingChild = node.Children.Find(i => i.Payload.GetHashCode() == actionHash);
-                // Check if taking this action still has the same player as active
-                if (existingChild.State.CurrentPlayer() == node.State.CurrentPlayer())
-                    return NaïveSelectAndExpand(context, existingChild, gMAB);
-                // If not, we have reached the end of t
-                return existingChild;
+            var existingChild = node.Children.FirstOrDefault(i => i.PayloadHash == actionHash);
+            if (existingChild != null) {
+                // Move down the tree unless we have reached a terminal node
+                if (existingChild.State.IsTerminal()) return existingChild;
+                // Increase the iteration count, since we'll be doing more sampling and simulating
+                it++;
+                return NaïveSelectAndExpand(context, existingChild, gMAB, ref it);
             }
 
             // If none of the current children on the node have the action as payload, create a new child
-            var newState = apply.Apply(context, state, action);
+            var newState = context.Application.Apply(context, context.Cloner.Clone(node.State), action);
             var newNode = new TreeSearchNode<P, A>(node, newState, action);
             // Add it to the node's children and return the child
             node.AddChild(newNode);

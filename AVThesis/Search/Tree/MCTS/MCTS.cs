@@ -104,6 +104,10 @@ namespace AVThesis.Search.Tree.MCTS {
                     endState = PlayoutStrategy.Playout(context, endState);
                 }
 
+                // Keep track of the maximum depth we reach
+                var nodeDepth = target.CalculateDepth();
+                if (nodeDepth > MaxDepth) MaxDepth = nodeDepth;
+
                 // Backpropagation
                 BackPropagationStrategy.BackPropagate(context, EvaluationStrategy, target, endState);
             }

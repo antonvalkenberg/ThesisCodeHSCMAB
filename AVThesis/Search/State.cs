@@ -65,6 +65,12 @@ namespace AVThesis.Search {
         /// <returns>The number of players in the game.</returns>
         public abstract int NumberOfPlayers();
 
+        /// <summary>
+        /// Whether or not this state represents a terminal state.
+        /// </summary>
+        /// <returns></returns>
+        public abstract bool IsTerminal();
+
         #endregion
 
     }

@@ -416,6 +416,11 @@ namespace AVThesis.SabberStone.Bots {
         public long BudgetSpent() {
             return IterationsSpent;
         }
+        
+        /// <inheritdoc />
+        public int MaxDepth() {
+            return Searcher.CurrentMaxDepth;
+        }
 
         #endregion
 
