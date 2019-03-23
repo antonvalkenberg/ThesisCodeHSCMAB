@@ -201,18 +201,16 @@ namespace AVThesis.Tournament {
                 try {
                     // Process the task
                     game.Game.Process(item.Task);
+                    executedTasks.Add(item);
                 }
                 catch (Exception e) {
-                    Console.WriteLine($"ERROR: Exception thrown while processing task {item.Task}");
-                    WriteExceptionToFile(e, item);
+                    Console.WriteLine($"ERROR: Exception thrown while processing a task for {game.Game.CurrentPlayer.Name} in turn {game.Game.Turn}.");
+                    WriteExceptionToFile(e);
                     // If the game is still running and the current player is still active, pass the turn
                     if (game.Game.CurrentPlayer.Id == bot.PlayerID())
                         game.Game.Process(EndTurnTask.Any(game.Game.CurrentPlayer));
                     // Do not continue with any other tasks in this action
                     break;
-                }
-                finally {
-                    executedTasks.Add(item);
                 }
             }
 
