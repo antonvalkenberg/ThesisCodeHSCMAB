@@ -224,8 +224,8 @@ namespace AVThesis.Tournament {
             var player2Time = TimeSpan.FromMilliseconds(CurrentGame.GameActions[Player2].Sum(i => i.Item2.TotalMilliseconds));
             var player1Iterations = CurrentGame.GameActions[Player1].Sum(i => i.Item3);
             var player2Iterations = CurrentGame.GameActions[Player2].Sum(i => i.Item3);
-            var player1IterationsPerAction = player1Iterations / (CurrentGame.GameActions[Player1].Count * 1.0);
-            var player2IterationsPerAction = player2Iterations / (CurrentGame.GameActions[Player2].Count * 1.0);
+            var player1IterationsPerAction = player1Iterations / (Math.Max(CurrentGame.GameActions[Player1].Count, 1) * 1.0);
+            var player2IterationsPerAction = player2Iterations / (Math.Max(CurrentGame.GameActions[Player2].Count, 1) * 1.0);
             var player1MaxDepth = CurrentGame.GameActions[Player1].Max(i => i.Item4);
             var player2MaxDepth = CurrentGame.GameActions[Player2].Max(i => i.Item4);
             var player1AvgDepth = CurrentGame.GameActions[Player1].Average(i => i.Item4);
