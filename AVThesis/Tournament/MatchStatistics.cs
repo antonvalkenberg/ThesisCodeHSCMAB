@@ -218,13 +218,15 @@ namespace AVThesis.Tournament {
         /// </summary>
         private void WriteGameResultToFile() {
             var writer = new StreamWriter(ResultsFilePath, true);
+            var hpDifference = Math.Max(CurrentGame.Player1HP, CurrentGame.Player2HP) - Math.Min(CurrentGame.Player1HP, CurrentGame.Player2HP);
+            var sharedTurns = (CurrentGame.FinalTurn / 2) + (CurrentGame.FinalTurn % 2);
             var player1Time = TimeSpan.FromMilliseconds(CurrentGame.GameActions[Player1].Sum(i => i.Item2.TotalMilliseconds));
             var player2Time = TimeSpan.FromMilliseconds(CurrentGame.GameActions[Player2].Sum(i => i.Item2.TotalMilliseconds));
             var player1Iterations = CurrentGame.GameActions[Player1].Sum(i => i.Item3);
             var player2Iterations = CurrentGame.GameActions[Player2].Sum(i => i.Item3);
             var player1AvgDepth = CurrentGame.GameActions[Player1].Average(i => i.Item4);
             var player2AvgDepth = CurrentGame.GameActions[Player2].Average(i => i.Item4);
-            writer.WriteLine($"{CurrentGame.WinningPlayer()},{CurrentGame.Player1HP},{CurrentGame.Player2HP},{CurrentGame.FinalTurn},{player1Time:g},{player2Time:g},{player1Iterations},{player2Iterations},{player1AvgDepth:N1},{player2AvgDepth:N1}");
+            writer.WriteLine($"{CurrentGame.WinningPlayer()},{CurrentGame.Player1HP},{CurrentGame.Player2HP},{hpDifference},{CurrentGame.FinalTurn},{sharedTurns},{player1Time:g},{player2Time:g},{player1Iterations},{player2Iterations},{player1AvgDepth:N1},{player2AvgDepth:N1}");
             writer.Close();
         }
 
