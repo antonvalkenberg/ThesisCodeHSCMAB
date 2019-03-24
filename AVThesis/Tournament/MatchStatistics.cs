@@ -224,9 +224,13 @@ namespace AVThesis.Tournament {
             var player2Time = TimeSpan.FromMilliseconds(CurrentGame.GameActions[Player2].Sum(i => i.Item2.TotalMilliseconds));
             var player1Iterations = CurrentGame.GameActions[Player1].Sum(i => i.Item3);
             var player2Iterations = CurrentGame.GameActions[Player2].Sum(i => i.Item3);
+            var player1IterationsPerAction = player1Iterations / (CurrentGame.GameActions[Player1].Count * 1.0);
+            var player2IterationsPerAction = player2Iterations / (CurrentGame.GameActions[Player2].Count * 1.0);
+            var player1MaxDepth = CurrentGame.GameActions[Player1].Max(i => i.Item4);
+            var player2MaxDepth = CurrentGame.GameActions[Player2].Max(i => i.Item4);
             var player1AvgDepth = CurrentGame.GameActions[Player1].Average(i => i.Item4);
             var player2AvgDepth = CurrentGame.GameActions[Player2].Average(i => i.Item4);
-            writer.WriteLine($"{CurrentGame.WinningPlayer()},{CurrentGame.Player1HP},{CurrentGame.Player2HP},{hpDifference},{CurrentGame.FinalTurn},{sharedTurns},{player1Time:g},{player2Time:g},{player1Iterations},{player2Iterations},{player1AvgDepth:N1},{player2AvgDepth:N1}");
+            writer.WriteLine($"{CurrentGame.WinningPlayer()},{CurrentGame.Player1HP},{CurrentGame.Player2HP},{hpDifference},{CurrentGame.FinalTurn},{sharedTurns},{player1Time:g},{player2Time:g},{player1Iterations},{player2Iterations},{player1IterationsPerAction:F1},{player2IterationsPerAction:F1},{player1MaxDepth},{player2MaxDepth},{player1AvgDepth:N1},{player2AvgDepth:N1}");
             writer.Close();
         }
 
