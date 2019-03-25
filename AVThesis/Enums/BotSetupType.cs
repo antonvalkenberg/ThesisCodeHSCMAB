@@ -165,6 +165,21 @@ namespace AVThesis.Enums {
         /// </summary>
         HMCTS_C05_TI5S,
 
+        /// <summary>
+        /// H-MCTS bot with MAST playout bots using UBC1 selection and a time budget of 5 seconds.
+        /// </summary>
+        HMCTS_MAST_UCB_TI5S,
+
+        /// <summary>
+        /// N-MCTS bot with MAST playout bots using UCB1 selection and a time budget of 5 seconds.
+        /// </summary>
+        NMCTS_MAST_UCB_TI5S,
+
+        /// <summary>
+        /// LSI bot with MAST playout bots using UCB1 selection and a time budget of 5 seconds.
+        /// </summary>
+        LSI_MAST_UCB_TI5S,
+
     }
 
 }
