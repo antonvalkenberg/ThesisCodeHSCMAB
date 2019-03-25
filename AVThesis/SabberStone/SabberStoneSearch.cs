@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Remoting.Contexts;
 using AVThesis.Datastructures;
 using AVThesis.SabberStone.Bots;
 using AVThesis.SabberStone.Strategies;
@@ -89,10 +90,12 @@ namespace AVThesis.SabberStone {
             var playoutStrategyProperty = context.Search.GetType().GetProperty("PlayoutStrategy");
             if (playoutStrategyProperty != null) {
                 var playoutStrategy = playoutStrategyProperty.GetMethod.Invoke(context.Search, null);
-                if (playoutStrategy is PlayoutStrategySabberStone playout) {
+                if (playoutStrategy.GetType().FullName.Equals(typeof(PlayoutStrategySabberStone).FullName)) {
+                    var playout = (PlayoutStrategySabberStone) playoutStrategy;
                     if (playout.Bots.ContainsKey(context.Source.CurrentPlayer())) {
                         var contextBot = playout.Bots[context.Source.CurrentPlayer()];
-                        if (contextBot is MASTPlayoutBot playoutBot) {
+                        if (contextBot.GetType().FullName.Equals(typeof(MASTPlayoutBot).FullName)) {
+                            var playoutBot = (MASTPlayoutBot) contextBot;
                             // Use the MAST statistics as a baseline
                             TaskStatistics = new Dictionary<int, PlayerTaskStatistics>(playoutBot.MASTTable);
                         }
@@ -101,7 +104,8 @@ namespace AVThesis.SabberStone {
             }
 
             // Check if the search has a SolutionStrategy so that task-values can be saved
-            if (context.Search is TreeSearch<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> search) {
+            if (context.Search.GetType().FullName.Equals(typeof(TreeSearch<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>).FullName)) {
+                var search = (TreeSearch<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction>) context.Search;
                 // Retrieve the task values from the solution strategy and process them into our property
                 var solutionStrategy = (SolutionStrategySabberStone)search.SolutionStrategy;
                 foreach (var tuple in solutionStrategy.TaskValues) {

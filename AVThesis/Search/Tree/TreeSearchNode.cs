@@ -217,13 +217,13 @@ namespace AVThesis.Search.Tree {
         }
 
         public override bool Equals(object obj) {
-            if (obj is null) return false;
+            if (obj == null) return false;
             if (ReferenceEquals(this, obj)) return true;
             return obj.GetType() == GetType() && Equals((TreeSearchNode<S, A>)obj);
         }
 
         public bool Equals(TreeSearchNode<S, A> other) {
-            if (other is null) return false;
+            if (other == null) return false;
             if (ReferenceEquals(this, other)) return true;
             return GetHashCode() == other.GetHashCode();
         }
