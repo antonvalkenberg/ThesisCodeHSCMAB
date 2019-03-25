@@ -154,6 +154,16 @@ namespace AVThesis.Enums {
         /// LSI bot with a Turn-Cutoff setting of 4 and a time budget of 5 seconds.
         /// </summary>
         LSI_TC4_TI5S,
+        
+        /// <summary>
+        /// H-MCTS bot with a UCT-c-constant setting of 0.2 and a time budget of 5 seconds.
+        /// </summary>
+        HMCTS_C02_TI5S,
+
+        /// <summary>
+        /// H-MCTS bot with a UCT-c-constant setting of 0.5 and a time budget of 5 seconds.
+        /// </summary>
+        HMCTS_C05_TI5S,
 
     }
 
