@@ -214,13 +214,13 @@ namespace AVThesis.Search {
         }
 
         public override bool Equals(object obj) {
-            if (obj == null) return false;
+            if (obj is null) return false;
             if (ReferenceEquals(this, obj)) return true;
             return obj.GetType() == GetType() && Equals((SearchNode<S, A>)obj);
         }
 
         public bool Equals(SearchNode<S, A> other) {
-            if (other == null) return false;
+            if (other is null) return false;
             if (ReferenceEquals(this, other)) return true;
             return GetHashCode() == other.GetHashCode();
         }

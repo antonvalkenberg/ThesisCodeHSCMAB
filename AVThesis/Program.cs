@@ -17,7 +17,7 @@ namespace AVThesis {
 
 		public static void Main(string[] args) {
             //RunTournamentMatch();
-            RunQuickMatch();
+            //RunQuickMatch();
 
 #pragma warning disable 219
             string catcher = null;
@@ -47,8 +47,8 @@ namespace AVThesis {
             }));
 
             // Create two bots to play
-            var bot1 = BotFactory.CreateSabberStoneBot(BotSetupType.DefaultHMCTS, game.Player1);
-            var bot2 = BotFactory.CreateSabberStoneBot(BotSetupType.DefaultNMCTS, game.Player2);
+            var bot1 = BotFactory.CreateSabberStoneBot(BotSetupType.RandomBot, game.Player1);
+            var bot2 = BotFactory.CreateSabberStoneBot(BotSetupType.RandomBot, game.Player2);
 
             game.Game.StartGame();
 
