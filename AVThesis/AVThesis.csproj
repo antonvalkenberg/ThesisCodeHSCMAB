@@ -59,13 +59,11 @@
     <StartupObject>AVThesis.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="SabberStoneCore, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>resources\SabberStoneCore.dll</HintPath>
     </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Agent\IAgent.cs" />

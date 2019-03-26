@@ -324,6 +324,11 @@ namespace AVThesis.SabberStone.Bots {
         /// </summary>
         public BudgetType BudgetType { get; set; }
 
+        /// <summary>
+        /// The percentage of the budget that should be spent during the generation phase.
+        /// </summary>
+        public double GenerationBudgetPercentage { get; set; }
+
         #endregion
 
         #region Constructor
@@ -340,6 +345,7 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="budgetType">[Optional] The type of budget that this bot will use. Default value is <see cref="BudgetType.Iterations"/>.</param>
         /// <param name="samples">[Optional] The budget for the amount of iterations LSI can use. Default value is <see cref="Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET"/>.</param>
         /// <param name="time">[Optional] The budget for the amount of milliseconds LSI can spend on searching. Default value is <see cref="Constants.DEFAULT_COMPUTATION_TIME_BUDGET"/>.</param>
+        /// <param name="generationBudgetPercentage">[Optional] The percentage of the budget that should be spent during the generation phase. Default value is <see cref="LSI{D,P,A,S,N,T}.DEFAULT_BUDGET_GENERATION_PERCENTAGE"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
         public LSIBot(Controller player,
             bool allowPerfectInformation = false,
@@ -350,8 +356,9 @@ namespace AVThesis.SabberStone.Bots {
             BudgetType budgetType = BudgetType.Iterations,
             int samples = Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET,
             long time = Constants.DEFAULT_COMPUTATION_TIME_BUDGET,
+            double generationBudgetPercentage = LSI<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, TreeSearchNode<SabberStoneState, SabberStoneAction>, OddmentTable<SabberStonePlayerTask>>.DEFAULT_BUDGET_GENERATION_PERCENTAGE,
             bool debugInfoToConsole = false)
-            : this(allowPerfectInformation, ensembleSize, playoutBotType, mastSelectionType, playoutTurnCutoff, budgetType, samples, time, debugInfoToConsole) {
+            : this(allowPerfectInformation, ensembleSize, playoutBotType, mastSelectionType, playoutTurnCutoff, budgetType, samples, time, generationBudgetPercentage, debugInfoToConsole) {
             SetController(player);
         }
 
@@ -366,6 +373,7 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="budgetType">[Optional] The type of budget that this bot will use. Default value is <see cref="BudgetType.Iterations"/>.</param>
         /// <param name="samples">[Optional] The budget for the amount of iterations LSI can use. Default value is <see cref="Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET"/>.</param>
         /// <param name="time">[Optional] The budget for the amount of milliseconds LSI can spend on searching. Default value is <see cref="Constants.DEFAULT_COMPUTATION_TIME_BUDGET"/>.</param>
+        /// <param name="generationBudgetPercentage">[Optional] The percentage of the budget that should be spent during the generation phase. Default value is <see cref="LSI{D,P,A,S,N,T}.DEFAULT_BUDGET_GENERATION_PERCENTAGE"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
         public LSIBot(bool allowPerfectInformation = false,
             int ensembleSize = 1,
@@ -375,6 +383,7 @@ namespace AVThesis.SabberStone.Bots {
             BudgetType budgetType = BudgetType.Iterations,
             int samples = Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET,
             long time = Constants.DEFAULT_COMPUTATION_TIME_BUDGET,
+            double generationBudgetPercentage = LSI<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, TreeSearchNode<SabberStoneState, SabberStoneAction>, OddmentTable<SabberStonePlayerTask>>.DEFAULT_BUDGET_GENERATION_PERCENTAGE,
             bool debugInfoToConsole = false) {
             PerfectInformation = allowPerfectInformation;
             EnsembleSize = ensembleSize;
@@ -384,6 +393,7 @@ namespace AVThesis.SabberStone.Bots {
             BudgetType = budgetType;
             Samples = samples;
             Time = time;
+            GenerationBudgetPercentage = generationBudgetPercentage;
             _debug = debugInfoToConsole;
 
             // Create the ensemble search
@@ -466,7 +476,9 @@ namespace AVThesis.SabberStone.Bots {
                 Evaluation,
                 GameLogic,
                 time,
-                samples);
+                samples,
+                GenerationBudgetPercentage
+                );
             
             // Reset the solutions collection
             EnsembleSolutions = new List<SabberStoneAction>();

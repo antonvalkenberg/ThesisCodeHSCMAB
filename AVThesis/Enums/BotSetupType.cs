@@ -180,6 +180,16 @@ namespace AVThesis.Enums {
         /// </summary>
         LSI_MAST_UCB_TI5S,
 
+        /// <summary>
+        /// LSI bot that uses 50% of its budget in the generation phase and a time budget of 5 seconds.
+        /// </summary>
+        LSI_05GEN_TI5S,
+
+        /// <summary>
+        /// LSI bot that uses 75% of its budget in the generation phase and a time budget of 5 seconds.
+        /// </summary>
+        LSI_075GEN_TI5S,
+
     }
 
 }
