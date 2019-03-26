@@ -251,16 +251,17 @@ namespace AVThesis.Search.LSI {
         /// <param name="samplesPerAction">How many samples to run per action.</param>
         /// <returns>Collection of actions which Count is half of the original collection, rounded up. This collection is ordered by descending value.</returns>
         private List<ActionValue> SelectBestHalf(SearchContext<D, P, A, S, A> context, IReadOnlyCollection<ActionValue> actions, int samplesPerAction) {
+            var clone = context.Cloner;
 
             // Evaluate each action by running a playout for it.
             foreach (var item in actions) {
 
                 var tempNode = new N { Payload = item.Action };
-                var newState = GameLogic.Apply(context, (P)context.Source.Copy(), item.Action);
+                var newState = GameLogic.Apply(context, clone.Clone(context.Source), item.Action);
 
                 double value = 0;
                 for (var i = 0; i < samplesPerAction; i++) {
-                    var endState = Playout.Playout(context, (P)newState.Copy());
+                    var endState = Playout.Playout(context, clone.Clone(newState));
                     value += Evaluation.Evaluate(context, tempNode, endState);
                     SamplesUsedEvaluation++;
                 }
