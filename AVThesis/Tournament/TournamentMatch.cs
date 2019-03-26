@@ -118,7 +118,7 @@ namespace AVThesis.Tournament {
         /// </summary>
         /// <param name="gameIndex">The index of the game that should be run.</param>
         public void RunGame(int gameIndex) {
-            Console.WriteLine($"** Starting Game {gameIndex+1} of {NumberOfGames}");
+            Console.WriteLine($"{DateTime.Now:T} -> Starting Game {gameIndex+1} of {NumberOfGames}");
             try {
                 var timer = Stopwatch.StartNew();
 
