@@ -10,6 +10,8 @@ namespace AVThesis.Enums {
     /// </summary>
     public enum BotSetupType {
 
+        #region Default settings
+
         /// <summary>
         /// See <see cref="SabberStone.Bots.RandomBot"/>.
         /// </summary>
@@ -34,6 +36,10 @@ namespace AVThesis.Enums {
         /// LSI bot with all default settings.
         /// </summary>
         DefaultLSI,
+
+        #endregion
+
+        #region Playout length settings
 
         /// <summary>
         /// H-MCTS bot with a Turn-Cutoff setting of 2.
@@ -65,6 +71,10 @@ namespace AVThesis.Enums {
         /// </summary>
         LSI_TC4,
 
+        #endregion
+
+        #region Iteration budget settings
+
         /// <summary>
         /// H-MCTS bot with an iteration budget of 1000.
         /// </summary>
@@ -94,6 +104,10 @@ namespace AVThesis.Enums {
         /// LSI bot with an iteration budget of 5000.
         /// </summary>
         LSI_IT5K,
+
+        #endregion
+
+        #region Time budget settings
 
         /// <summary>
         /// H-MCTS bot with the default time budget.
@@ -125,6 +139,10 @@ namespace AVThesis.Enums {
         /// </summary>
         LSI_TI5S,
 
+        #endregion
+
+        #region Timed playout length test
+
         /// <summary>
         /// H-MCTS bot with a Turn-Cutoff setting of 2 and a time budget of 5 seconds.
         /// </summary>
@@ -154,7 +172,11 @@ namespace AVThesis.Enums {
         /// LSI bot with a Turn-Cutoff setting of 4 and a time budget of 5 seconds.
         /// </summary>
         LSI_TC4_TI5S,
-        
+
+        #endregion
+
+        #region H-MCTS c constant test
+
         /// <summary>
         /// H-MCTS bot with a UCT-c-constant setting of 0.2 and a time budget of 5 seconds.
         /// </summary>
@@ -164,6 +186,10 @@ namespace AVThesis.Enums {
         /// H-MCTS bot with a UCT-c-constant setting of 0.5 and a time budget of 5 seconds.
         /// </summary>
         HMCTS_C05_TI5S,
+
+        #endregion
+
+        #region MAST selection type test
 
         /// <summary>
         /// H-MCTS bot with MAST playout bots using UBC1 selection and a time budget of 5 seconds.
@@ -180,6 +206,10 @@ namespace AVThesis.Enums {
         /// </summary>
         LSI_MAST_UCB_TI5S,
 
+        #endregion
+
+        #region LSI generation vs evaluation budget test
+
         /// <summary>
         /// LSI bot that uses 50% of its budget in the generation phase and a time budget of 5 seconds.
         /// </summary>
@@ -189,6 +219,42 @@ namespace AVThesis.Enums {
         /// LSI bot that uses 75% of its budget in the generation phase and a time budget of 5 seconds.
         /// </summary>
         LSI_075GEN_TI5S,
+
+        #endregion
+
+        #region N-MCTS global and local policy tests
+
+        /// <summary>
+        /// N-MCTS bot with a global policy of 0.1 and a time budget of 5 seconds.
+        /// </summary>
+        NMCTS_01GLOBAL_TI5S,
+
+        /// <summary>
+        /// N-MCTS bot with a global policy of 0.25 and a time budget of 5 seconds.
+        /// </summary>
+        NMCTS_025GLOBAL_TI5S,
+
+        /// <summary>
+        /// N-MCTS bot with a global policy of 0.33 and a time budget of 5 seconds.
+        /// </summary>
+        NMCTS_033GLOBAL_TI5S,
+
+        /// <summary>
+        /// N-MCTS bot with a local policy of 0.25 and a time budget of 5 seconds.
+        /// </summary>
+        NMCTS_025LOCAL_TI5S,
+
+        /// <summary>
+        /// N-MCTS bot with a local policy of 0.33 and a time budget of 5 seconds.
+        /// </summary>
+        NMCTS_033LOCAL_TI5S,
+
+        /// <summary>
+        /// N-MCTS bot with a local policy of 0.5 and a time budget of 5 seconds.
+        /// </summary>
+        NMCTS_05LOCAL_TI5S,
+
+        #endregion
 
     }
 
