@@ -96,7 +96,7 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="ucbConstantC">[Optional] Value for the c-constant in the UCB1 formula. Default value is <see cref="Constants.DEFAULT_UCB1_C"/>.</param>
         public MASTPlayoutBot(SelectionType selection, EvaluationStrategyHearthStone evaluation, PlayoutStrategySabberStone playout, double eGreedyThreshold = Constants.DEFAULT_E_GREEDY_THRESHOLD, double ucbConstantC = Constants.DEFAULT_UCB1_C) {
             Selection = selection;
-            RandomPlayoutBot = new RandomBot();
+            RandomPlayoutBot = new RandomBot(filterDuplicatePositionTasks: true);
             Evaluation = evaluation;
             Playout = playout;
             EGreedyThreshold = eGreedyThreshold;
@@ -143,7 +143,7 @@ namespace AVThesis.SabberStone.Bots {
             // Determine whether or not to be greedy (chance is 1-e to use best action)
             if (Util.RNG.NextDouble() < EGreedyThreshold)
                 // Explore a random action
-                return RandomPlayoutBot.CreateRandomAction(state, true);
+                return RandomPlayoutBot.CreateRandomAction(state);
 
             var action = new SabberStoneAction();
             var stateClone = state.Game.Clone();
@@ -290,7 +290,7 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="controller">This bot's Controller.</param>
         public void SetController(Controller controller) {
             Player = controller;
-            RandomPlayoutBot = new RandomBot(controller);
+            RandomPlayoutBot = new RandomBot(controller, filterDuplicatePositionTasks: true);
             // Also reset the table of statistics
             ResetMASTData();
         }

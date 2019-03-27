@@ -407,8 +407,8 @@ namespace AVThesis.SabberStone.Bots {
             // Set the playout bots
             switch (PlayoutBotType) {
                 case PlayoutBotType.Random:
-                    MyPlayoutBot = new RandomBot();
-                    OpponentPlayoutBot = new RandomBot();
+                    MyPlayoutBot = new RandomBot(filterDuplicatePositionTasks: true);
+                    OpponentPlayoutBot = new RandomBot(filterDuplicatePositionTasks: true);
                     break;
                 case PlayoutBotType.Heuristic:
                     MyPlayoutBot = new HeuristicBot();

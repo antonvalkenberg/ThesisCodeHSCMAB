@@ -53,7 +53,7 @@ namespace AVThesis.SabberStone.Bots {
 
             /// <inheritdoc />
             public SabberStoneAction Sample(SabberStoneState state) {
-                return NaïveBot.CreateRandomAction(state, filterDuplicatePositionTasks: true);
+                return NaïveBot.CreateRandomAction(state);
             }
 
             #endregion
@@ -264,8 +264,8 @@ namespace AVThesis.SabberStone.Bots {
             // Set the playout bots
             switch (PlayoutBotType) {
                 case PlayoutBotType.Random:
-                    MyPlayoutBot = new RandomBot();
-                    OpponentPlayoutBot = new RandomBot();
+                    MyPlayoutBot = new RandomBot(filterDuplicatePositionTasks: true);
+                    OpponentPlayoutBot = new RandomBot(filterDuplicatePositionTasks: true);
                     break;
                 case PlayoutBotType.Heuristic:
                     MyPlayoutBot = new HeuristicBot();
@@ -280,7 +280,7 @@ namespace AVThesis.SabberStone.Bots {
             }
 
             // And the random sampling bot
-            RandomSamplingBot = new RandomBot();
+            RandomSamplingBot = new RandomBot(filterDuplicatePositionTasks: true);
 
             // We'll be cutting off the simulations after X turns, using a GoalStrategy
             Goal = new GoalStrategyTurnCutoff(PlayoutTurnCutoff);

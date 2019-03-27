@@ -28,22 +28,30 @@ namespace AVThesis.SabberStone.Bots {
         /// </summary>
         public Controller Player { get; set; }
 
+        /// <summary>
+        /// Whether or not to filter out excess positioning on playing cards.
+        /// </summary>
+        public bool FilterDuplicatePositionTasks { get; set; }
+
         #endregion
 
         #region Constructor
 
         /// <summary>
-        /// Constructs a new instance of RandomBot with a <see cref="SabberStoneCore.Model.Entities.Controller"/> representing the player.
+        /// Constructs a new instance of RandomBot with a <see cref="Controller"/> representing the player.
         /// </summary>
         /// <param name="player">The player.</param>
-        public RandomBot(Controller player) {
+        /// <param name="filterDuplicatePositionTasks">[Optional] Whether or not to filter out excess positioning on playing cards. Default value is false.</param>
+        public RandomBot(Controller player, bool filterDuplicatePositionTasks = false) : this(filterDuplicatePositionTasks) {
             Player = player;
         }
 
         /// <summary>
         /// Constructs a new instance of RandomBot without a set player.
+        /// <param name="filterDuplicatePositionTasks">[Optional] Whether or not to filter out excess positioning on playing cards. Default value is false.</param>
         /// </summary>
-        public RandomBot() {
+        public RandomBot(bool filterDuplicatePositionTasks = false) {
+            FilterDuplicatePositionTasks = filterDuplicatePositionTasks;
         }
 
         #endregion
@@ -54,9 +62,8 @@ namespace AVThesis.SabberStone.Bots {
         /// Creates a SabberStoneAction by randomly selecting one of the available PlayerTasks until the End_Turn task is selected.
         /// </summary>
         /// <param name="state">The game state for which an action should be created. Note: </param>
-        /// <param name="filterDuplicatePositionTasks">[Optional] Whether or not to filter out excess positioning on playing cards. Default value is false.</param>
         /// <returns>SabberStoneAction</returns>
-        public SabberStoneAction CreateRandomAction(SabberStoneState state, bool filterDuplicatePositionTasks = false) {
+        public SabberStoneAction CreateRandomAction(SabberStoneState state) {
             // Clone game so that we can process the selected tasks and get an updated options list.
             var clonedGame = state.Game.Clone();
             var playerID = clonedGame.CurrentPlayer.Id;
@@ -68,7 +75,7 @@ namespace AVThesis.SabberStone.Bots {
             while (clonedGame.CurrentPlayer.Id == playerID && clonedGame.State != State.COMPLETE) {
                 // Check if an duplicate positions need to be filtered out
                 var availableOptions = clonedGame.CurrentPlayer.Options();
-                if (filterDuplicatePositionTasks)
+                if (FilterDuplicatePositionTasks)
                     availableOptions = availableOptions.Where(i => i.ZonePosition <= 0).ToList();
                 // Select a random available task
                 var selectedTask = availableOptions.RandomElementOrDefault();

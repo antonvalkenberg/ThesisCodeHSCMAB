@@ -189,7 +189,7 @@ namespace AVThesis.Enums {
 
         #endregion
 
-        #region MAST selection type test
+        #region Playout strategy test
 
         /// <summary>
         /// H-MCTS bot with MAST playout bots using UBC1 selection and a time budget of 5 seconds.
@@ -205,6 +205,21 @@ namespace AVThesis.Enums {
         /// LSI bot with MAST playout bots using UCB1 selection and a time budget of 5 seconds.
         /// </summary>
         LSI_MAST_UCB_TI5S,
+
+        /// <summary>
+        /// H-MCTS bot with Random playout bots and a time budget of 5 seconds.
+        /// </summary>
+        HMCTS_RNG_PLAYOUT_TI5S,
+
+        /// <summary>
+        /// N-MCTS bot with Random playout bots and a time budget of 5 seconds.
+        /// </summary>
+        NMCTS_RNG_PLAYOUT_TI5S,
+
+        /// <summary>
+        /// LSI bot with Random playout bots and a time budget of 5 seconds.
+        /// </summary>
+        LSI_RNG_PLAYOUT_TI5S,
 
         #endregion
 

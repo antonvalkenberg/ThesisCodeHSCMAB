@@ -100,6 +100,12 @@ namespace AVThesis.SabberStone.Bots {
                     return new NMCTSBot(mastSelectionType: MASTPlayoutBot.SelectionType.UCB, budgetType: BudgetType.Time, time: 5000);
                 case BotSetupType.LSI_MAST_UCB_TI5S:
                     return new LSIBot(mastSelectionType: MASTPlayoutBot.SelectionType.UCB, budgetType: BudgetType.Time, time: 5000);
+                case BotSetupType.HMCTS_RNG_PLAYOUT_TI5S:
+                    return new HMCTSBot(playoutBotType: PlayoutBotType.Random, budgetType: BudgetType.Time, time: 5000);
+                case BotSetupType.NMCTS_RNG_PLAYOUT_TI5S:
+                    return new NMCTSBot(playoutBotType: PlayoutBotType.Random, budgetType: BudgetType.Time, time: 5000);
+                case BotSetupType.LSI_RNG_PLAYOUT_TI5S:
+                    return new LSIBot(playoutBotType: PlayoutBotType.Random, budgetType: BudgetType.Time, time: 5000);
                 case BotSetupType.LSI_05GEN_TI5S:
                     return new LSIBot(generationBudgetPercentage: 0.5, budgetType: BudgetType.Time, time: 5000);
                 case BotSetupType.LSI_075GEN_TI5S:
