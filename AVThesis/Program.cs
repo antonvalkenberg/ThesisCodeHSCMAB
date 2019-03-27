@@ -16,17 +16,13 @@ namespace AVThesis {
     public class Program {
 
 		public static void Main(string[] args) {
-            //RunTournamentMatch();
+            RunTournamentMatch();
             //RunQuickMatch();
-
-#pragma warning disable 219
-            string catcher = null;
-#pragma warning restore 219
         }
 
         public static void RunTournamentMatch() {
             // Create a new tournament match
-            var match = new TournamentMatch(BotSetupType.RandomBot, BotSetupType.RandomBot, TournamentMatch.GetTournamentConfiguration(), 10);
+            var match = new TournamentMatch(BotSetupType.RandomBot, BotSetupType.RandomBot, 1000);
             match.RunMatch();
         }
 

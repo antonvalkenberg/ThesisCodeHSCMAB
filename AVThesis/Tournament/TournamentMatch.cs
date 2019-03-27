@@ -36,11 +36,6 @@ namespace AVThesis.Tournament {
         public List<ISabberStoneBot> Bots { get; set; }
 
         /// <summary>
-        /// The configuration of the SabberStone Game that will be played.
-        /// </summary>
-        public GameConfig GameConfig { get; set; }
-
-        /// <summary>
         /// The amount of games that should be played in this match.
         /// </summary>
         public int NumberOfGames { get; set; }
@@ -65,14 +60,12 @@ namespace AVThesis.Tournament {
         /// </summary>
         /// <param name="bot1Setup">The setup for the first bot.</param>
         /// <param name="bot2Setup">The setup for the second bot.</param>
-        /// <param name="configuration">The SabberStone Game configuration for this match.</param>
         /// <param name="numberOfGames">The amount of games that should be played in this match.</param>
         /// <param name="printToConsole">[Optional] Whether or not to print game information to the Console.</param>
-        public TournamentMatch(BotSetupType bot1Setup, BotSetupType bot2Setup, GameConfig configuration, int numberOfGames, bool printToConsole = false) {
+        public TournamentMatch(BotSetupType bot1Setup, BotSetupType bot2Setup, int numberOfGames, bool printToConsole = false) {
             Bots = new List<ISabberStoneBot> { BotFactory.CreateSabberStoneBot(bot1Setup), BotFactory.CreateSabberStoneBot(bot2Setup) };
-            GameConfig = configuration;
             NumberOfGames = numberOfGames;
-            MatchStatistics = new MatchStatistics($"{bot1Setup.ToString()}[{configuration.Player1Name}]", $"{bot2Setup.ToString()}[{configuration.Player2Name}]", numberOfGames);
+            MatchStatistics = new MatchStatistics($"{bot1Setup.ToString()}[{Constants.SABBERSTONE_GAMECONFIG_PLAYER1_NAME}]", $"{bot2Setup.ToString()}[{Constants.SABBERSTONE_GAMECONFIG_PLAYER2_NAME}]", numberOfGames);
             _printToConsole = printToConsole;
         }
 
@@ -123,7 +116,7 @@ namespace AVThesis.Tournament {
                 var timer = Stopwatch.StartNew();
 
                 // Alternate which player starts.
-                var config = GameConfig.Clone();
+                var config = GetTournamentConfiguration();
                 config.StartPlayer = gameIndex % 2 + 1;
 
                 // Create a new game with the cloned configuration.
