@@ -37,7 +37,6 @@ namespace AVThesis.SabberStone.Strategies {
 
             // Gather stats that we need
             // TODO gather stats from cards in hand
-            // TODO think about board control when both player HPs are high
 
             // Opponent HP
             var oH = opponent.Hero.Health;
@@ -94,7 +93,34 @@ namespace AVThesis.SabberStone.Strategies {
             // If opponent can't be killed, but they can kill root player next turn, evaluation is -1
             if (canBeKilledByOpponentThisTurn) return -1;
             // If this is not a racing situation (yet), return a cautious number
-            if (notARaceSituation) return 0;
+            if (notARaceSituation) {
+                // Two aspects here (to keep it simple)
+                // -> root player's HP vs opponent's HP
+                // -> root player's #creatures vs opponent's #creatures
+
+                // Having more HP ánd more creatures is quite good
+                if (rH > oH && rootPlayerMinions.Length > opponentMinions.Length)
+                    return 0.75;
+                if (rH > oH && rootPlayerMinions.Length == opponentMinions.Length)
+                    return 0.25;
+                if (rH > oH && rootPlayerMinions.Length < opponentMinions.Length)
+                    return 0.1;
+
+                if (rH == oH && rootPlayerMinions.Length > opponentMinions.Length)
+                    return 0.33;
+                if (rH == oH && rootPlayerMinions.Length == opponentMinions.Length)
+                    return 0;
+                if (rH == oH && rootPlayerMinions.Length < opponentMinions.Length)
+                    return -0.33;
+
+                if (rH < oH && rootPlayerMinions.Length > opponentMinions.Length)
+                    return -0.1;
+                if (rH < oH && rootPlayerMinions.Length == opponentMinions.Length)
+                    return -0.25;
+                // Having less HP ánd less creatures is quite bad
+                if (rH < oH && rootPlayerMinions.Length < opponentMinions.Length)
+                    return -0.75;
+            }
             
             // If none of the above applies, look at the difference between when the opponent dies and when the root player dies
             var difference = oTD - rTD;
