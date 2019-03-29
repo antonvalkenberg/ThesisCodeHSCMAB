@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using AVThesis.Datastructures;
 using AVThesis.SabberStone.Strategies;
-using SabberStoneCore.Enums;
+using AVThesis.Search;
 using SabberStoneCore.Model.Entities;
+using State = SabberStoneCore.Enums.State;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -15,7 +17,7 @@ namespace AVThesis.SabberStone.Bots {
     /// <summary>
     /// A bot that uses the Move-Average Sampling Technique (MAST) to determine which moves to play.
     /// </summary>
-    public class MASTPlayoutBot : ISabberStoneBot {
+    public class MASTPlayoutBot : IPlayoutBot {
 
         #region Enums
 
@@ -23,7 +25,7 @@ namespace AVThesis.SabberStone.Bots {
         /// An enumeration of different types of strategies for selecting actions in MAST.
         /// </summary>
         public enum SelectionType {
-            EGreedy, UCB
+            EGreedy, UCB, Random
         }
 
         #endregion
@@ -57,11 +59,6 @@ namespace AVThesis.SabberStone.Bots {
         public EvaluationStrategyHearthStone Evaluation { get; set; }
 
         /// <summary>
-        /// The playout strategy being used during the simulation phase.
-        /// </summary>
-        public PlayoutStrategySabberStone Playout { get; set; }
-
-        /// <summary>
         /// The table of data on tasks, indexed by a task's hashcode.
         /// </summary>
         public Dictionary<int, PlayerTaskStatistics> MASTTable { get; set; }
@@ -91,18 +88,14 @@ namespace AVThesis.SabberStone.Bots {
         /// </summary>
         /// <param name="selection">The type of selection to use.</param>
         /// <param name="evaluation">The EvaluationStrategy used for evaluating a SabberStoneState.</param>
-        /// <param name="playout">The PlayoutStrategy used for simulating a game.</param>
         /// <param name="eGreedyThreshold">[Optional] Threshold for e-greedy selection. Default value is <see cref="Constants.DEFAULT_E_GREEDY_THRESHOLD"/>.</param>
         /// <param name="ucbConstantC">[Optional] Value for the c-constant in the UCB1 formula. Default value is <see cref="Constants.DEFAULT_UCB1_C"/>.</param>
-        public MASTPlayoutBot(SelectionType selection, EvaluationStrategyHearthStone evaluation, PlayoutStrategySabberStone playout, double eGreedyThreshold = Constants.DEFAULT_E_GREEDY_THRESHOLD, double ucbConstantC = Constants.DEFAULT_UCB1_C) {
+        public MASTPlayoutBot(SelectionType selection, EvaluationStrategyHearthStone evaluation, double eGreedyThreshold = Constants.DEFAULT_E_GREEDY_THRESHOLD, double ucbConstantC = Constants.DEFAULT_UCB1_C) {
             Selection = selection;
             RandomPlayoutBot = new RandomBot(filterDuplicatePositionTasks: true);
             Evaluation = evaluation;
-            Playout = playout;
             EGreedyThreshold = eGreedyThreshold;
             UCBConstantC = ucbConstantC;
-
-            playout.SimulationCompleted += SimulationCompleted;
 
             MASTTable = new Dictionary<int, PlayerTaskStatistics>();
             ActionsTaken = new List<SabberStoneAction>();
@@ -239,22 +232,6 @@ namespace AVThesis.SabberStone.Bots {
         #region Public Methods
 
         /// <summary>
-        /// Handles the <see cref="PlayoutStrategySabberStone.SimulationCompleted"/> event.
-        /// </summary>
-        /// <param name="sender">The object that triggered the event.</param>
-        /// <param name="eventArgs">The arguments of the event.</param>
-        public void SimulationCompleted(object sender, PlayoutStrategySabberStone.SimulationCompletedEventArgs eventArgs) {
-            // Evaluate the state.
-            var value = Evaluation.Evaluate(eventArgs.Context, null, eventArgs.EndState);
-            // Add data for all the actions that have been taken.
-            foreach (var action in ActionsTaken) {
-                AddData(action, value);
-            }
-            // Clear the taken actions.
-            ActionsTaken = new List<SabberStoneAction>();
-        }
-
-        /// <summary>
         /// Returns a SabberStoneAction for the current state.
         /// </summary>
         /// <param name="state">The current game state.</param>
@@ -274,9 +251,11 @@ namespace AVThesis.SabberStone.Bots {
                 case SelectionType.EGreedy:
                     selectedAction = SelectEGreedy(state);
                     break;
-                default:
+                case SelectionType.Random:
                     selectedAction = RandomPlayoutBot.CreateRandomAction(state);
                     break;
+                default:
+                    throw new InvalidEnumArgumentException($"SelectionType `{Selection}' is not supported.");
             }
 
             // Remember the action that was selected.
@@ -314,8 +293,11 @@ namespace AVThesis.SabberStone.Bots {
                 case SelectionType.UCB:
                     setting = $"{UCBConstantC:F1}";
                     break;
+                case SelectionType.Random:
+                    setting = "";
+                    break;
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new InvalidEnumArgumentException($"SelectionType `{Selection}' is not supported.");
             }
             return $"{BOT_NAME}_{Selection}_{setting}";
         }
@@ -328,6 +310,20 @@ namespace AVThesis.SabberStone.Bots {
         /// <inheritdoc />
         public int MaxDepth() {
             return 0;
+        }
+
+        /// <inheritdoc />
+        public void PlayoutCompleted(SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, SabberStoneState endState) {
+            // Evaluate the state.
+            var value = Evaluation.Evaluate(context, null, endState);
+            // Colour the value based on whether or not this playout bot is for the root player or not
+            value = context.Source.CurrentPlayer() == PlayerID() ? value : value * -1;
+            // Add data for all the actions that have been taken.
+            foreach (var action in ActionsTaken) {
+                AddData(action, value);
+            }
+            // Clear the taken actions.
+            ActionsTaken = new List<SabberStoneAction>();
         }
 
         #endregion

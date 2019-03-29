@@ -23,42 +23,12 @@ namespace AVThesis.SabberStone.Strategies {
 
         #endregion
 
-        #region Events
-
-        /// <summary>
-        /// The event that is triggered when a simulation is completed.
-        /// </summary>
-        public event EventHandler<SimulationCompletedEventArgs> SimulationCompleted;
-
-        /// <summary>
-        /// Invokes the EventHandler when a simulation is completed.
-        /// </summary>
-        /// <param name="e"></param>
-        protected virtual void OnSimulationCompleted(SimulationCompletedEventArgs e) {
-            SimulationCompleted?.Invoke(this, e);
-        }
-
-        /// <inheritdoc />
-        /// <summary>
-        /// Represents the data sent with the event of a simulation being completed.
-        /// </summary>
-        public class SimulationCompletedEventArgs : EventArgs {
-            public SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> Context { get; set; }
-            public SabberStoneState EndState { get; set; }
-            public SimulationCompletedEventArgs(SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, SabberStoneState endState) {
-                Context = context;
-                EndState = endState;
-            }
-        }
-
-        #endregion
-
         #region Properties
 
         /// <summary>
         /// The bots to be used during the playout, indexed by PlayerId
         /// </summary>
-        public Dictionary<int, ISabberStoneBot> Bots { get; set; }
+        public Dictionary<int, IPlayoutBot> Bots { get; set; }
 
         #endregion
 
@@ -66,7 +36,7 @@ namespace AVThesis.SabberStone.Strategies {
 
         public PlayoutStrategySabberStone() {
             // Create a default playout bot
-            Bots = new Dictionary<int, ISabberStoneBot> {{ DEFAULT_PLAYOUT_BOT_ID, new RandomBot()}};
+            Bots = new Dictionary<int, IPlayoutBot> {{ DEFAULT_PLAYOUT_BOT_ID, new RandomBot()}};
         }
 
         #endregion
@@ -78,7 +48,7 @@ namespace AVThesis.SabberStone.Strategies {
         /// </summary>
         /// <param name="controllerId">The unique identifier of the Controller for which the provided bot should be used.</param>
         /// <param name="bot">The bot that should be used during playout.</param>
-        public void AddPlayoutBot(int controllerId, ISabberStoneBot bot) {
+        public void AddPlayoutBot(int controllerId, IPlayoutBot bot) {
             if (!Bots.ContainsKey(controllerId)) Bots.Add(controllerId, null);
             Bots[controllerId] = bot;
         }
@@ -95,8 +65,10 @@ namespace AVThesis.SabberStone.Strategies {
                 PlayPlayerTurn(position);
             }
 
-            // Trigger the SimulationCompleted event.
-            OnSimulationCompleted(new SimulationCompletedEventArgs(context, position));
+            // Tell the playout bot(s) that the playout has completed.
+            foreach (var playoutBot in Bots) {
+                playoutBot.Value.PlayoutCompleted(context, position);
+            }
 
             return position;
         }
@@ -113,9 +85,10 @@ namespace AVThesis.SabberStone.Strategies {
         private void PlayPlayerTurn(SabberStoneState game) {
 
             // Select the correct playoutBot to use.
-            ISabberStoneBot turnBot;
+            IPlayoutBot turnBot;
             if (Bots.ContainsKey(game.CurrentPlayer())) turnBot = Bots[game.CurrentPlayer()];
             else {
+                // Fall back to the default playout bot if the current player does not have a playout bot specified.
                 turnBot = Bots[DEFAULT_PLAYOUT_BOT_ID];
                 turnBot.SetController(game.Game.CurrentPlayer);
             }

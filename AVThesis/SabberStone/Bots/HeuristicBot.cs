@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using AVThesis.Search;
 using SabberStoneCore.Enums;
 using SabberStoneCore.Exceptions;
 using SabberStoneCore.Model;
@@ -9,6 +10,7 @@ using SabberStoneCore.Model.Entities;
 using SabberStoneCore.Model.Zones;
 using SabberStoneCore.Tasks;
 using SabberStoneCore.Tasks.PlayerTasks;
+using State = SabberStoneCore.Enums.State;
 
 /*
  * EVA.cs
@@ -43,7 +45,7 @@ namespace AVThesis.SabberStone.Bots {
     /// A bot that chooses its moves based on a heuristic scoring of available moves, choosing the best score.
     /// This is an adaptation of the code submitted by Pablo Garcia-Sanchez and Alberto Tonda to the Hearthstone AI Competition at CIG 2018.
     /// </summary>
-    public class HeuristicBot : ISabberStoneBot {
+    public class HeuristicBot : IPlayoutBot {
 
         #region POGame
 
@@ -672,6 +674,9 @@ namespace AVThesis.SabberStone.Bots {
 
         public int MaxDepth() {
             return 1;
+        }
+
+        public void PlayoutCompleted(SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, SabberStoneState endState) {
         }
 
         #endregion

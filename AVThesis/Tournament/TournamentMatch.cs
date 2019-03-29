@@ -100,10 +100,6 @@ namespace AVThesis.Tournament {
             for (var i = 0; i < NumberOfGames; i++) {
                 RunGame(i);
             }
-
-            // Run all the games of the match.
-            // Note: this causes issues because of the event used during playout (PlayoutStrategySabberStone.SimulationCompleted).
-            //Parallel.For(0, NumberOfGames, RunGame);
         }
 
         /// <summary>

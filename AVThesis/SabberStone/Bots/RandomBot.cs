@@ -1,8 +1,10 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using AVThesis.Datastructures;
-using SabberStoneCore.Enums;
+using AVThesis.Search;
 using SabberStoneCore.Model.Entities;
 using SabberStoneCore.Tasks.PlayerTasks;
+using State = SabberStoneCore.Enums.State;
 
 /// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
@@ -13,7 +15,7 @@ namespace AVThesis.SabberStone.Bots {
     /// <summary>
     /// A bot that plays Hearthstone through random moves.
     /// </summary>
-    public class RandomBot : ISabberStoneBot {
+    public class RandomBot : IPlayoutBot {
 
         #region Constants
 
@@ -141,6 +143,10 @@ namespace AVThesis.SabberStone.Bots {
         /// <inheritdoc />
         public int MaxDepth() {
             return 0;
+        }
+        
+        /// <inheritdoc />
+        public void PlayoutCompleted(SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, SabberStoneState endState) {
         }
 
         #endregion

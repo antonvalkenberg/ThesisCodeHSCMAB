@@ -227,12 +227,12 @@ namespace AVThesis.SabberStone.Bots {
         /// <summary>
         /// The bot that is used during the playouts.
         /// </summary>
-        public ISabberStoneBot MyPlayoutBot { get; set; }
+        public IPlayoutBot MyPlayoutBot { get; set; }
 
         /// <summary>
         /// The bot that is used for the opponent's playouts.
         /// </summary>
-        public ISabberStoneBot OpponentPlayoutBot { get; set; }
+        public IPlayoutBot OpponentPlayoutBot { get; set; }
 
         /// <summary>
         /// The type of playout bot to be used during playouts.
@@ -401,8 +401,7 @@ namespace AVThesis.SabberStone.Bots {
 
             // Simulation will be handled by the Playout.
             var sabberStoneStateEvaluation = new EvaluationStrategyHearthStone();
-            var playout = new PlayoutStrategySabberStone();
-            Playout = playout;
+            Playout = new PlayoutStrategySabberStone();
 
             // Set the playout bots
             switch (PlayoutBotType) {
@@ -415,8 +414,8 @@ namespace AVThesis.SabberStone.Bots {
                     OpponentPlayoutBot = new HeuristicBot();
                     break;
                 case PlayoutBotType.MAST:
-                    MyPlayoutBot = new MASTPlayoutBot(MASTSelectionType, sabberStoneStateEvaluation, playout);
-                    OpponentPlayoutBot = new MASTPlayoutBot(MASTSelectionType, sabberStoneStateEvaluation, playout);
+                    MyPlayoutBot = new MASTPlayoutBot(MASTSelectionType, sabberStoneStateEvaluation);
+                    OpponentPlayoutBot = new MASTPlayoutBot(MASTSelectionType, sabberStoneStateEvaluation);
                     break;
                 default:
                     throw new InvalidEnumArgumentException($"PlayoutBotType `{PlayoutBotType}' is not supported.");
