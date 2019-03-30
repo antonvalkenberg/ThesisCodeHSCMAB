@@ -307,7 +307,13 @@ namespace AVThesis.SabberStone.Bots {
             
             // Process the currently selected tasks
             foreach (var task in action.Tasks) {
-                copyState.Game.Process(task.Task);
+                try {
+                    copyState.Game.Process(task.Task);
+                }
+                catch (Exception e) {
+                    Console.WriteLine($"ERROR: {e.GetType()} thrown while trying to process a task.");
+                    break;
+                }
             }
             // Ask the Searcher to determine the best tasks to complete the action
             var completingAction = Searcher.DetermineBestTasks(copyState);
