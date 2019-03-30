@@ -261,9 +261,16 @@ namespace AVThesis.Search.LSI {
 
                 double value = 0;
                 for (var i = 0; i < samplesPerAction; i++) {
-                    var endState = Playout.Playout(context, clone.Clone(newState));
-                    value += Evaluation.Evaluate(context, tempNode, endState);
-                    SamplesUsedEvaluation++;
+                    try {
+                        var endState = Playout.Playout(context, clone.Clone(newState));
+                        value += Evaluation.Evaluate(context, tempNode, endState);
+                        SamplesUsedEvaluation++;
+                    }
+                    catch (Exception e) {
+                        Console.WriteLine($"ERROR: {e.GetType()} while cloning state.");
+                        // Cloning here seems to very seldom cause a NullReference in the SabberStone dll
+                        // I believe failing and just using 0 as a value here is acceptable
+                    }
                 }
 
                 item.Value = value;
