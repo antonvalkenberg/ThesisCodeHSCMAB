@@ -189,6 +189,20 @@ namespace AVThesis.Enums {
 
         #endregion
 
+        #region H-MCTS Visit threshold tests
+
+        /// <summary>
+        /// H-MCTS bot with a minimum visit threshold of 0 for selection and a time budget of 5 seconds.
+        /// </summary>
+        HMCTS_SELECT_0_TI5S,
+
+        /// <summary>
+        /// H-MCTS bot with a minimum visit threshold of 0 for expansion and a time budget of 5 seconds.
+        /// </summary>
+        HMCTS_EXPAND_0_TI5S,
+
+        #endregion
+
         #region Playout strategy test
 
         /// <summary>

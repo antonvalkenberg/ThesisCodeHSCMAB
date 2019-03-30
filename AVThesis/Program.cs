@@ -22,7 +22,7 @@ namespace AVThesis {
 
         public static void RunTournamentMatch() {
             // Create a new tournament match
-            var match = new TournamentMatch(BotSetupType.RandomBot, BotSetupType.RandomBot, 1000);
+            var match = new TournamentMatch(BotSetupType.RandomBot, BotSetupType.RandomBot, 10);
             match.RunMatch();
         }
 

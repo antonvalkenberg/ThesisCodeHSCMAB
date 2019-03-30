@@ -122,6 +122,10 @@ namespace AVThesis.SabberStone.Bots {
                     return new NMCTSBot(localPolicy: 0.33, budgetType: BudgetType.Time, time: 5000);
                 case BotSetupType.NMCTS_05LOCAL_TI5S:
                     return new NMCTSBot(localPolicy: 0.5, budgetType: BudgetType.Time, time: 5000);
+                case BotSetupType.HMCTS_SELECT_0_TI5S:
+                    return new HMCTSBot(minimumVisitThresholdForSelection: 0, budgetType: BudgetType.Time, time: 5000);
+                case BotSetupType.HMCTS_EXPAND_0_TI5S:
+                    return new HMCTSBot(minimumVisitThresholdForExpansion: 0, budgetType: BudgetType.Time, time: 5000);
                 default:
                     throw new InvalidEnumArgumentException($"BotSetupType `{botType}' is not supported.");
             }
