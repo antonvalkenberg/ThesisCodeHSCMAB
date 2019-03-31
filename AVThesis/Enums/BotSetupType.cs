@@ -189,7 +189,7 @@ namespace AVThesis.Enums {
 
         #endregion
 
-        #region H-MCTS Visit threshold tests
+        #region H-MCTS Visit threshold test
 
         /// <summary>
         /// H-MCTS bot with a minimum visit threshold of 0 for selection and a time budget of 5 seconds.
@@ -251,7 +251,7 @@ namespace AVThesis.Enums {
 
         #endregion
 
-        #region N-MCTS global and local policy tests
+        #region N-MCTS global and local policy test
 
         /// <summary>
         /// N-MCTS bot with a global policy of 0.1 and a time budget of 5 seconds.
@@ -282,6 +282,40 @@ namespace AVThesis.Enums {
         /// N-MCTS bot with a local policy of 0.5 and a time budget of 5 seconds.
         /// </summary>
         NMCTS_05LOCAL_TI5S,
+
+        #endregion
+
+        #region Ensemble size test
+
+        /// <summary>
+        /// H-MCTS bot with an ensemble size of 2 and a time budget of 5 seconds.
+        /// </summary>
+        HMCTS_ES2_TI5S,
+
+        /// <summary>
+        /// H-MCTS bot with an ensemble size of 5 and a time budget of 5 seconds.
+        /// </summary>
+        HMCTS_ES5_TI5S,
+
+        /// <summary>
+        /// N-MCTS bot with an ensemble size of 2 and a time budget of 5 seconds.
+        /// </summary>
+        NMCTS_ES2_TI5S,
+
+        /// <summary>
+        /// N_MCTS bot with an ensemble size of 5 and a time budget of 5 seconds.
+        /// </summary>
+        NMCTS_ES5_TI5S,
+
+        /// <summary>
+        /// LSI bot with an ensemble size of 2 and a time budget of 5 seconds.
+        /// </summary>
+        LSI_ES2_TI5S,
+
+        /// <summary>
+        /// LSI bot with an ensemble size of 5 and a time budget of 5 seconds.
+        /// </summary>
+        LSI_ES5_TI5S,
 
         #endregion
 
