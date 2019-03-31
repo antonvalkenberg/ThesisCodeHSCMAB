@@ -214,7 +214,7 @@ namespace AVThesis.SabberStone {
                 var ties = votedOnTasks.Where(i => taskVotes[i.GetHashCode()] == mostVotes);
 
                 // Add one of the tasks with the most votes to the action
-                //TODO Ties during voting can be handled differently than random
+                //TODO Ties during voting can be handled differently than random, but handling ties based on visit count would require extra information from the separate searches' solutions.
                 var chosenTask = ties.RandomElementOrDefault();
                 action.AddTask(chosenTask);
 

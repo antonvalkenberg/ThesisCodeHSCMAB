@@ -359,7 +359,7 @@ namespace AVThesis.SabberStone.Bots {
             IterationsSpent = EnsembleSolutions.Sum(i => i.BudgetUsed);
 
             // Determine the best tasks to play based on the ensemble search, or just take the one in case of a single search.
-            var solution = EnsembleSize > 1 ? Searcher.DetermineBestTasks(state) : EnsembleSolutions.First();
+            var solution = EnsembleSize > 1 ? Searcher.VoteForSolution(EnsembleSolutions, state) : EnsembleSolutions.First();
 
             var time = timer.ElapsedMilliseconds;
             if (_debug) Console.WriteLine();
