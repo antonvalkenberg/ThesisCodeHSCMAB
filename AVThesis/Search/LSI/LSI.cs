@@ -267,7 +267,8 @@ namespace AVThesis.Search.LSI {
                         SamplesUsedEvaluation++;
                     }
                     catch (Exception e) {
-                        Console.WriteLine($"ERROR: {e.GetType()} while cloning state.");
+                        //Console.WriteLine($"ERROR: {e.GetType()} while cloning state.");
+                        // TODO fix
                         // Cloning here seems to very seldom cause a NullReference in the SabberStone dll
                         // I believe failing and just using 0 as a value here is acceptable
                     }
