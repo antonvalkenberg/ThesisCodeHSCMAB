@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using AVThesis.Datastructures;
+using AVThesis.Enums;
 using AVThesis.Game;
 using AVThesis.Search;
 using SabberStoneCore.Tasks;
@@ -140,13 +141,6 @@ namespace AVThesis.SabberStone {
 
         #region Enums
 
-        /// <summary>
-        /// Describes the types of dimensional ordering available when using Hierarchical Expansion.
-        /// </summary>
-        public enum DimensionalOrderingType {
-            EntropyAsc, EntropyDesc, TaskType, ManaAsc, ManaDesc, None
-        }
-
         #endregion
 
         #region Constants
@@ -234,6 +228,14 @@ namespace AVThesis.SabberStone {
                     tasksWithoutStatistics = tasks.Where(i => !taskStatistics.ContainsKey(((SabberStonePlayerTask)i).GetHashCode()));
                     tasksWithStatistics = tasks.Where(i => taskStatistics.ContainsKey(((SabberStonePlayerTask)i).GetHashCode()));
                     orderedTasks = tasksWithStatistics.OrderByDescending(i => Util.ShannonEntropy(taskStatistics[((SabberStonePlayerTask)i).GetHashCode()].ValueCollection));
+                    returnActions.AddRange(orderedTasks.Select(CreateActionFromSingleTask));
+                    returnActions.AddRange(tasksWithoutStatistics.Select(CreateActionFromSingleTask));
+                    break;
+                case DimensionalOrderingType.Evaluation:
+                    taskStatistics = Searcher.TaskStatistics;
+                    tasksWithoutStatistics = tasks.Where(i => !taskStatistics.ContainsKey(((SabberStonePlayerTask)i).GetHashCode()));
+                    tasksWithStatistics = tasks.Where(i => taskStatistics.ContainsKey(((SabberStonePlayerTask)i).GetHashCode()));
+                    orderedTasks = tasksWithStatistics.OrderByDescending(i => taskStatistics[((SabberStonePlayerTask) i).GetHashCode()].AverageValue());
                     returnActions.AddRange(orderedTasks.Select(CreateActionFromSingleTask));
                     returnActions.AddRange(tasksWithoutStatistics.Select(CreateActionFromSingleTask));
                     break;

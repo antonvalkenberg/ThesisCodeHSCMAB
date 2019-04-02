@@ -69,6 +69,7 @@
     <Compile Include="Agent\IAgent.cs" />
     <Compile Include="Agent\RandomAgent.cs" />
     <Compile Include="Enums\BotSetupType.cs" />
+    <Compile Include="Enums\DimensionalOrderingType.cs" />
     <Compile Include="Enums\PlayoutBotType.cs" />
     <Compile Include="SabberStone\Bots\BotFactory.cs" />
     <Compile Include="SabberStone\Bots\Constants.cs" />
