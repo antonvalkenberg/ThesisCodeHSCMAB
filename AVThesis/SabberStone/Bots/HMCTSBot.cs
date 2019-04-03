@@ -148,7 +148,7 @@ namespace AVThesis.SabberStone.Bots {
         /// <summary>
         /// The ordering for dimensions when using Hierarchical Expansion.
         /// </summary>
-        public SabberStoneGameLogic.DimensionalOrderingType DimensionalOrdering { get; set; }
+        public DimensionalOrderingType DimensionalOrdering { get; set; }
 
         #endregion
 
@@ -170,7 +170,7 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="minimumVisitThresholdForSelection">[Optional] The minimum number of visits before using the NodeEvaluation to select the best node. Default value is <see cref="Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_SELECTION"/>.</param>
         /// <param name="playoutTurnCutoff">[Optional] The amount of turns after which to stop a simulation. Default value is <see cref="Constants.DEFAULT_PLAYOUT_TURN_CUTOFF"/>.</param>
         /// <param name="ucbConstantC">[Optional] Value for the c-constant in the UCB1 formula. Default value is <see cref="Constants.DEFAULT_UCB1_C"/>.</param>
-        /// <param name="dimensionalOrdering">[Optional] The ordering for dimensions when using Hierarchical Expansion. Default value is <see cref="SabberStoneGameLogic.DimensionalOrderingType.None"/>.</param>
+        /// <param name="dimensionalOrdering">[Optional] The ordering for dimensions when using Hierarchical Expansion. Default value is <see cref="DimensionalOrderingType.None"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
         public HMCTSBot(Controller player,
             bool allowPerfectInformation = false,
@@ -185,7 +185,7 @@ namespace AVThesis.SabberStone.Bots {
             int minimumVisitThresholdForSelection = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_SELECTION,
             int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF,
             double ucbConstantC = Constants.DEFAULT_UCB1_C,
-            SabberStoneGameLogic.DimensionalOrderingType dimensionalOrdering = SabberStoneGameLogic.DimensionalOrderingType.None,
+            DimensionalOrderingType dimensionalOrdering = DimensionalOrderingType.None,
             bool debugInfoToConsole = false)
             : this(allowPerfectInformation, ensembleSize, playoutBotType, mastSelectionType, retainTaskStatistics, budgetType, iterations, time, minimumVisitThresholdForExpansion, minimumVisitThresholdForSelection, playoutTurnCutoff, ucbConstantC, dimensionalOrdering, debugInfoToConsole) {
             SetController(player);
@@ -206,7 +206,7 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="minimumVisitThresholdForSelection">[Optional] The minimum number of visits before using the NodeEvaluation to select the best node. Default value is <see cref="Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_SELECTION"/>.</param>
         /// <param name="playoutTurnCutoff">[Optional] The amount of turns after which to stop a simulation. Default value is <see cref="Constants.DEFAULT_PLAYOUT_TURN_CUTOFF"/>.</param>
         /// <param name="ucbConstantC">[Optional] Value for the c-constant in the UCB1 formula. Default value is <see cref="Constants.DEFAULT_UCB1_C"/>.</param>
-        /// <param name="dimensionalOrdering">[Optional] The ordering for dimensions when using Hierarchical Expansion. Default value is <see cref="SabberStoneGameLogic.DimensionalOrderingType.None"/>.</param>
+        /// <param name="dimensionalOrdering">[Optional] The ordering for dimensions when using Hierarchical Expansion. Default value is <see cref="DimensionalOrderingType.None"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
         public HMCTSBot(bool allowPerfectInformation = false,
             int ensembleSize = 1,
@@ -220,7 +220,7 @@ namespace AVThesis.SabberStone.Bots {
             int minimumVisitThresholdForSelection = Constants.DEFAULT_MCTS_MINIMUM_VISIT_THRESHOLD_FOR_SELECTION,
             int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF,
             double ucbConstantC = Constants.DEFAULT_UCB1_C,
-            SabberStoneGameLogic.DimensionalOrderingType dimensionalOrdering = SabberStoneGameLogic.DimensionalOrderingType.None,
+            DimensionalOrderingType dimensionalOrdering = DimensionalOrderingType.None,
             bool debugInfoToConsole = false) {
             PerfectInformation = allowPerfectInformation;
             EnsembleSize = ensembleSize;
