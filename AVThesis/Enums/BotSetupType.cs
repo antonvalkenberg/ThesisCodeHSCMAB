@@ -201,6 +201,11 @@ namespace AVThesis.Enums {
         /// </summary>
         HMCTS_EXPAND_0_TI5S,
 
+        /// <summary>
+        /// H-MCTS bot with a minimum visit threshold of 25 for expansion and a time budget of 5 seconds.
+        /// </summary>
+        HMCTS_EXPAND_25_TI5S,
+
         #endregion
 
         #region Playout strategy test

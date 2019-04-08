@@ -126,6 +126,8 @@ namespace AVThesis.SabberStone.Bots {
                     return new HMCTSBot(minimumVisitThresholdForSelection: 0, budgetType: BudgetType.Time, time: 5000);
                 case BotSetupType.HMCTS_EXPAND_0_TI5S:
                     return new HMCTSBot(minimumVisitThresholdForExpansion: 0, budgetType: BudgetType.Time, time: 5000);
+                case BotSetupType.HMCTS_EXPAND_25_TI5S:
+                    return new HMCTSBot(minimumVisitThresholdForExpansion: 25, budgetType: BudgetType.Time, time: 5000);
                 case BotSetupType.HMCTS_ES2_TI5S:
                     return new HMCTSBot(ensembleSize: 2, budgetType: BudgetType.Time, time: 5000);
                 case BotSetupType.HMCTS_ES5_TI5S:
