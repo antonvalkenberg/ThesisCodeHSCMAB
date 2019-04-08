@@ -112,14 +112,12 @@ namespace AVThesis.SabberStone.Bots {
                     return new LSIBot(generationBudgetPercentage: 0.75, budgetType: BudgetType.Time, time: 5000);
                 case BotSetupType.NMCTS_01GLOBAL_TI5S:
                     return new NMCTSBot(globalPolicy: 0.1, budgetType: BudgetType.Time, time: 5000);
-                case BotSetupType.NMCTS_025GLOBAL_TI5S:
-                    return new NMCTSBot(globalPolicy: 0.25, budgetType: BudgetType.Time, time: 5000);
                 case BotSetupType.NMCTS_033GLOBAL_TI5S:
                     return new NMCTSBot(globalPolicy: 0.33, budgetType: BudgetType.Time, time: 5000);
+                case BotSetupType.NMCTS_075GLOBAL_TI5S:
+                    return new NMCTSBot(globalPolicy: 0.75, budgetType: BudgetType.Time, time: 5000);
                 case BotSetupType.NMCTS_025LOCAL_TI5S:
                     return new NMCTSBot(localPolicy: 0.25, budgetType: BudgetType.Time, time: 5000);
-                case BotSetupType.NMCTS_033LOCAL_TI5S:
-                    return new NMCTSBot(localPolicy: 0.33, budgetType: BudgetType.Time, time: 5000);
                 case BotSetupType.NMCTS_05LOCAL_TI5S:
                     return new NMCTSBot(localPolicy: 0.5, budgetType: BudgetType.Time, time: 5000);
                 case BotSetupType.HMCTS_SELECT_0_TI5S:
