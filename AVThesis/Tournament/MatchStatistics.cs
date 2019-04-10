@@ -230,7 +230,9 @@ namespace AVThesis.Tournament {
             var player2MaxDepth = CurrentGame.GameActions[Player2].Max(i => i.Item4);
             var player1AvgDepth = CurrentGame.GameActions[Player1].Average(i => i.Item4);
             var player2AvgDepth = CurrentGame.GameActions[Player2].Average(i => i.Item4);
-            writer.WriteLine($"{CurrentGame.WinningPlayer()},{CurrentGame.Player1HP},{CurrentGame.Player2HP},{hpDifference},{CurrentGame.FinalTurn},{sharedTurns},{player1Time:g},{player2Time:g},{player1Iterations},{player2Iterations},{player1IterationsPerAction:F1},{player2IterationsPerAction:F1},{player1MaxDepth},{player2MaxDepth},{player1AvgDepth:N1},{player2AvgDepth:N1}");
+            var player1AvgTasks = CurrentGame.GameActions[Player1].Average(i => i.Item1.Count);
+            var player2AvgTasks = CurrentGame.GameActions[Player2].Average(i => i.Item1.Count);
+            writer.WriteLine($"{CurrentGame.WinningPlayer()},{CurrentGame.Player1HP},{CurrentGame.Player2HP},{hpDifference},{CurrentGame.FinalTurn},{sharedTurns},{player1Time:g},{player2Time:g},{player1Iterations},{player2Iterations},{player1IterationsPerAction:F1},{player2IterationsPerAction:F1},{player1MaxDepth},{player2MaxDepth},{player1AvgDepth:N1},{player2AvgDepth:N1},{player1AvgTasks:N1},{player2AvgTasks:N1}");
             writer.Close();
         }
 
