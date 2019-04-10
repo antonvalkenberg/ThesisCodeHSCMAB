@@ -114,6 +114,8 @@ namespace AVThesis.SabberStone.Bots {
                     return new NMCTSBot(globalPolicy: 0.1, budgetType: BudgetType.Time, time: 5000);
                 case BotSetupType.NMCTS_033GLOBAL_TI5S:
                     return new NMCTSBot(globalPolicy: 0.33, budgetType: BudgetType.Time, time: 5000);
+                case BotSetupType.NMCTS_050GLOBAL_TI5S:
+                    return new NMCTSBot(globalPolicy: 0.50, budgetType: BudgetType.Time, time: 5000);
                 case BotSetupType.NMCTS_075GLOBAL_TI5S:
                     return new NMCTSBot(globalPolicy: 0.75, budgetType: BudgetType.Time, time: 5000);
                 case BotSetupType.NMCTS_025LOCAL_TI5S:

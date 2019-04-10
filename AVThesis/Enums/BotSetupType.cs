@@ -269,6 +269,11 @@ namespace AVThesis.Enums {
         NMCTS_033GLOBAL_TI5S,
 
         /// <summary>
+        /// N-MCTS bot with a global policy of 0.50 and a time budget of 5 seconds.
+        /// </summary>
+        NMCTS_050GLOBAL_TI5S,
+
+        /// <summary>
         /// N-MCTS bot with a global policy of 0.75 and a time budget of 5 seconds.
         /// </summary>
         NMCTS_075GLOBAL_TI5S,
