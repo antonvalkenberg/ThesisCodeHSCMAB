@@ -3,6 +3,9 @@
 /// In parts inspired by a code framework written by G.J. Roelofs and T. Aliyev.
 /// </summary>
 // ReSharper disable InconsistentNaming
+
+using System.Diagnostics.CodeAnalysis;
+
 namespace AVThesis.Enums {
 
     /// <summary>
@@ -39,7 +42,7 @@ namespace AVThesis.Enums {
 
         #endregion
 
-        #region Playout length settings
+        #region Playout length test
 
         /// <summary>
         /// H-MCTS bot with a Turn-Cutoff setting of 2.
@@ -73,7 +76,7 @@ namespace AVThesis.Enums {
 
         #endregion
 
-        #region Iteration budget settings
+        #region Iteration budget test
 
         /// <summary>
         /// H-MCTS bot with an iteration budget of 1000.
@@ -107,7 +110,7 @@ namespace AVThesis.Enums {
 
         #endregion
 
-        #region Time budget settings
+        #region Time budget test
 
         /// <summary>
         /// H-MCTS bot with the default time budget.
@@ -175,7 +178,7 @@ namespace AVThesis.Enums {
 
         #endregion
 
-        #region H-MCTS c constant test
+        #region H-MCTS C constant test
 
         /// <summary>
         /// H-MCTS bot with a UCT-c-constant setting of 0.2 and a time budget of 5 seconds.
@@ -321,6 +324,36 @@ namespace AVThesis.Enums {
         /// LSI bot with an ensemble size of 5 and a time budget of 5 seconds.
         /// </summary>
         LSI_ES5_TI5S,
+
+        #endregion
+
+        #region H-MCTS Dimensional Ordering test
+
+        /// <summary>
+        /// H-MCTS bot with optimal settings, dimensional ordering by ascending entropy and a time budget of 5 seconds.
+        /// </summary>
+        HMCTS_Opt_EntAsc_Ti5s,
+
+        /// <summary>
+        /// H-MCTS bot with optimal settings, dimensional ordering by descending entropy and a time budget of 5 seconds.
+        /// </summary>
+        HMCTS_Opt_EntDesc_Ti5s,
+
+        /// <summary>
+        /// H-MCTS bot with optimal settings, dimensional ordering by average evaluation and a time budget of 5 seconds.
+        /// </summary>
+        [SuppressMessage("ReSharper", "IdentifierTypo")]
+        HMCTS_Opt_AvgEval_Ti5s,
+
+        /// <summary>
+        /// H-MCTS bot with optimal settings, dimensional ordering by task type and a time budget of 5 seconds.
+        /// </summary>
+        HMCTS_Opt_TaskType_Ti5s,
+
+        /// <summary>
+        /// H-MCTS bot with optimal settings, dimensional ordering by descending mana cost and a time budget of 5 seconds.
+        /// </summary>
+        HMCTS_Opt_ManaDesc_Ti5s,
 
         #endregion
 

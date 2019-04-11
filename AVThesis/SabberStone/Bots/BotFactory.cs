@@ -140,6 +140,16 @@ namespace AVThesis.SabberStone.Bots {
                     return new LSIBot(ensembleSize: 2, budgetType: BudgetType.Time, time: 5000);
                 case BotSetupType.LSI_ES5_TI5S:
                     return new LSIBot(ensembleSize: 5, budgetType: BudgetType.Time, time: 5000);
+                case BotSetupType.HMCTS_Opt_EntAsc_Ti5s:
+                    return new HMCTSBot(dimensionalOrdering: DimensionalOrderingType.EntropyAsc, playoutTurnCutoff: 4, mastSelectionType: MASTPlayoutBot.SelectionType.Random, ucbConstantC: 0.2, minimumVisitThresholdForExpansion: 0, minimumVisitThresholdForSelection: 0, budgetType: BudgetType.Time, time: 5000);
+                case BotSetupType.HMCTS_Opt_EntDesc_Ti5s:
+                    return new HMCTSBot(dimensionalOrdering: DimensionalOrderingType.EntropyDesc, playoutTurnCutoff: 4, mastSelectionType: MASTPlayoutBot.SelectionType.Random, ucbConstantC: 0.2, minimumVisitThresholdForExpansion: 0, minimumVisitThresholdForSelection: 0, budgetType: BudgetType.Time, time: 5000);
+                case BotSetupType.HMCTS_Opt_AvgEval_Ti5s:
+                    return new HMCTSBot(dimensionalOrdering: DimensionalOrderingType.Evaluation, playoutTurnCutoff: 4, mastSelectionType: MASTPlayoutBot.SelectionType.Random, ucbConstantC: 0.2, minimumVisitThresholdForExpansion: 0, minimumVisitThresholdForSelection: 0, budgetType: BudgetType.Time, time: 5000);
+                case BotSetupType.HMCTS_Opt_TaskType_Ti5s:
+                    return new HMCTSBot(dimensionalOrdering: DimensionalOrderingType.TaskType, playoutTurnCutoff: 4, mastSelectionType: MASTPlayoutBot.SelectionType.Random, ucbConstantC: 0.2, minimumVisitThresholdForExpansion: 0, minimumVisitThresholdForSelection: 0, budgetType: BudgetType.Time, time: 5000);
+                case BotSetupType.HMCTS_Opt_ManaDesc_Ti5s:
+                    return new HMCTSBot(dimensionalOrdering: DimensionalOrderingType.ManaDesc, playoutTurnCutoff: 4, mastSelectionType: MASTPlayoutBot.SelectionType.Random, ucbConstantC: 0.2, minimumVisitThresholdForExpansion: 0, minimumVisitThresholdForSelection: 0, budgetType: BudgetType.Time, time: 5000);
                 default:
                     throw new InvalidEnumArgumentException($"BotSetupType `{botType}' is not supported.");
             }
