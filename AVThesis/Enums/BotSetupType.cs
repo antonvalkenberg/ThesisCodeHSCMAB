@@ -355,6 +355,11 @@ namespace AVThesis.Enums {
         /// </summary>
         HMCTS_Opt_ManaDesc_Ti5s,
 
+        /// <summary>
+        /// H-MCTS bot with optimal settings, no dimensional ordering and a time budget of 5 seconds.
+        /// </summary>
+        HMCTS_Opt_NoOrder_Ti5s,
+
         #endregion
 
     }
