@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using AVThesis.Datastructures;
 using AVThesis.Enums;
@@ -23,6 +24,17 @@ namespace AVThesis.SabberStone.Bots {
     /// A bot that plays Hearthstone using Linear Side Information to find its best move.
     /// </summary>
     public class LSIBot : ISabberStoneBot {
+
+        #region Enums
+
+        /// <summary>
+        /// Enumeration of the types of strategies used to estimate the budget for LSI.
+        /// </summary>
+        public enum BudgetEstimationType {
+            AverageSampleTime, PreviousSearchAverage
+        }
+
+        #endregion
 
         #region Inner Classes
 
@@ -208,6 +220,204 @@ namespace AVThesis.SabberStone.Bots {
             
         }
 
+        private class AverageSampleTimeBudgetEstimationStrategy : IBudgetEstimationStrategy<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> {
+
+            #region Constants
+
+            /// <summary>
+            /// The amount of playouts to run when determining sample sizes when on a time budget.
+            /// </summary>
+            private const int TIME_BUDGET_TEST_PLAYOUTS = 25;
+
+            /// <summary>
+            /// The factor with which to multiply a single sample's time when determining sample sizes on a time budget.
+            /// </summary>
+            private const double TIME_BUDGET_SAFETY_MARGIN = 1.2;
+
+            #endregion
+
+            #region Properties
+
+            /// <summary>
+            /// The type of budget that is being used by the LSI search.
+            /// </summary>
+            private BudgetType BudgetType { get; }
+
+            /// <summary>
+            /// The amount of budget that the search is allowed to expend.
+            /// Note: what this represents is relative to the type of budget.
+            /// </summary>
+            private long BudgetAllowance { get; }
+
+            /// <summary>
+            /// The percentage of the budget that should be spent during the generation phase.
+            /// </summary>
+            private double GenerationBudgetPercentage { get; }
+
+            /// <summary>
+            /// The strategy used to play out a game in simulation.
+            /// </summary>
+            private PlayoutStrategySabberStone Playout { get; }
+
+            #endregion
+
+            #region Constructors
+
+            /// <summary>
+            /// Constructs a new instance of AverageSampleTimeBudgetEstimationStrategy.
+            /// </summary>
+            /// <param name="budgetType">The type of budget that is being used by the LSI search.</param>
+            /// <param name="budgetAllowance">The amount of budget that the search is allowed to expend.</param>
+            /// <param name="generationBudgetPercentage">The percentage of the budget that should be spent during the generation phase.</param>
+            /// <param name="playout">The strategy used to play out a game in simulation.</param>
+            public AverageSampleTimeBudgetEstimationStrategy(BudgetType budgetType, long budgetAllowance, double generationBudgetPercentage, PlayoutStrategySabberStone playout) {
+                BudgetType = budgetType;
+                BudgetAllowance = budgetAllowance;
+                GenerationBudgetPercentage = generationBudgetPercentage;
+                Playout = playout;
+            }
+
+            #endregion
+
+            #region Public Methods
+
+            /// <inheritdoc />
+            public void DetermineSampleSizes(SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, out int generationSamples, out int evaluationSamples) {
+                long estimatedSamples;
+
+                switch (BudgetType) {
+                    case BudgetType.Iterations:
+                        // If we're running on an iterations budget, we know exactly how many we can spend.
+                        estimatedSamples = BudgetAllowance;
+                        break;
+                    case BudgetType.Time:
+                        // If we're running on a time budget, estimate the duration of a single sample by running some test samples.
+                        estimatedSamples = EstimateBudgetWithTestPlayouts(context, Playout, BudgetAllowance);
+                        break;
+                    default:
+                        throw new InvalidEnumArgumentException($"BudgetType `{BudgetType}' is not supported.");
+                }
+
+                generationSamples = (int)(estimatedSamples * GenerationBudgetPercentage);
+                evaluationSamples = (int)(estimatedSamples * (1 - GenerationBudgetPercentage) * Constants.DEFAULT_LSI_EVALUATION_SAMPLES_ADJUSTMENT_FACTOR);
+            }
+
+            /// <summary>
+            /// Attempts to estimate the amount of samples that can be run within the allowed budget.
+            /// </summary>
+            /// <param name="context">The search context.</param>
+            /// <param name="playout">The simulation strategy being used.</param>
+            /// <param name="budgetInMilliseconds">The budget that can be spent on the entire search, specified in milliseconds.</param>
+            /// <returns>A number indicating the estimated amount of samples that can be run while remaining with budget.</returns>
+            public static long EstimateBudgetWithTestPlayouts(SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, PlayoutStrategySabberStone playout, long budgetInMilliseconds) {
+                // Check how long it takes to run X playouts
+                var timer = Stopwatch.StartNew();
+                for (var i = 0; i < TIME_BUDGET_TEST_PLAYOUTS; i++) {
+                    playout.Playout(context, context.Source.Copy());
+                }
+                timer.Stop();
+                // Determine how long a single sample took
+                var testDuration = timer.ElapsedMilliseconds;
+                var sampleDuration = testDuration / (TIME_BUDGET_TEST_PLAYOUTS * 1.0);
+                // Estimate how many samples we can run in the remaining time
+                return (long)((budgetInMilliseconds - testDuration) / (sampleDuration * TIME_BUDGET_SAFETY_MARGIN));
+            }
+
+            #endregion
+
+        }
+
+        private class PreviousSearchAverageBudgetEstimationStrategy : IBudgetEstimationStrategy<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> {
+            
+            #region Properties
+
+            /// <summary>
+            /// The amount of time spent during the last search.
+            /// </summary>
+            public long PreviousSearchTime { private get; set; }
+
+            /// <summary>
+            /// The amount of samples spent during the last search.
+            /// </summary>
+            public long PreviousSearchIterations { private get; set; }
+
+            /// <summary>
+            /// The type of budget that is being used by the LSI search.
+            /// </summary>
+            private BudgetType BudgetType { get; }
+
+            /// <summary>
+            /// The amount of budget that the search is allowed to expend.
+            /// Note: what this represents is relative to the type of budget.
+            /// </summary>
+            private long BudgetAllowance { get; }
+
+            /// <summary>
+            /// The percentage of the budget that should be spent during the generation phase.
+            /// </summary>
+            private double GenerationBudgetPercentage { get; }
+
+            /// <summary>
+            /// The strategy used to play out a game in simulation.
+            /// </summary>
+            private PlayoutStrategySabberStone Playout { get; }
+
+            #endregion
+
+            #region Constructors
+
+            /// <summary>
+            /// Constructs a new instance of PreviousSearchAverageBudgetEstimationStrategy.
+            /// </summary>
+            /// <param name="budgetType">The type of budget that is being used by the LSI search.</param>
+            /// <param name="budgetAllowance">The amount of budget that the search is allowed to expend.</param>
+            /// <param name="generationBudgetPercentage">The percentage of the budget that should be spent during the generation phase.</param>
+            /// <param name="playout">The strategy used to play out a game in simulation.</param>
+            public PreviousSearchAverageBudgetEstimationStrategy(BudgetType budgetType, long budgetAllowance, double generationBudgetPercentage, PlayoutStrategySabberStone playout) {
+                BudgetType = budgetType;
+                BudgetAllowance = budgetAllowance;
+                GenerationBudgetPercentage = generationBudgetPercentage;
+                Playout = playout;
+            }
+
+            #endregion
+
+            #region Public Methods
+
+            /// <inheritdoc />
+            public void DetermineSampleSizes(SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, out int generationSamples, out int evaluationSamples) {
+                long estimatedSamples;
+
+                switch (BudgetType) {
+                    case BudgetType.Iterations:
+                        // If we're running on an iterations budget, we know exactly how many we can spend.
+                        estimatedSamples = BudgetAllowance;
+                        break;
+                    case BudgetType.Time:
+                        // If we're running on a time budget, we can check what the previous search was able to run.
+                        if (PreviousSearchTime > 0 && PreviousSearchIterations > 0) {
+                            var sampleDuration = PreviousSearchTime / (PreviousSearchIterations * 1.0);
+                            // We can now estimate how many samples go into the budget we are allowed to spend
+                            estimatedSamples = (long) (BudgetAllowance / sampleDuration);
+                        }
+                        else {
+                            // If we don't have any statistics on the previous search (maybe cause this is going to be the first)
+                            // use an estimation strategy based on a couple playouts
+                            estimatedSamples = AverageSampleTimeBudgetEstimationStrategy.EstimateBudgetWithTestPlayouts(context, Playout, BudgetAllowance);
+                        }
+                        break;
+                    default:
+                        throw new InvalidEnumArgumentException($"BudgetType `{BudgetType}' is not supported.");
+                }
+
+                generationSamples = (int)(estimatedSamples * GenerationBudgetPercentage);
+                evaluationSamples = (int)(estimatedSamples * (1 - GenerationBudgetPercentage) * Constants.DEFAULT_LSI_EVALUATION_SAMPLES_ADJUSTMENT_FACTOR);
+            }
+
+            #endregion
+
+        }
+
         #endregion
 
         #region Constants
@@ -275,6 +485,11 @@ namespace AVThesis.SabberStone.Bots {
         public ILSISamplingStrategy<SabberStoneState, SabberStoneAction, OddmentTable<SabberStonePlayerTask>> SamplingStrategy { get; set; }
 
         /// <summary>
+        /// The strategy used to estimate the sample sizes for the budget of this bot's LSI search.
+        /// </summary>
+        public IBudgetEstimationStrategy<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> BudgetEstimationStrategy { get; set; }
+
+        /// <summary>
         /// Whether or not this bot is allowed perfect information about the game state (i.e. no obfuscation and therefore no determinisation).
         /// </summary>
         public bool PerfectInformation { get; set; }
@@ -329,6 +544,11 @@ namespace AVThesis.SabberStone.Bots {
         /// </summary>
         public double GenerationBudgetPercentage { get; set; }
 
+        /// <summary>
+        /// The type of budget estimation strategy we'll be using.
+        /// </summary>
+        public BudgetEstimationType BudgetEstimation { get; set; }
+
         #endregion
 
         #region Constructor
@@ -345,7 +565,8 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="budgetType">[Optional] The type of budget that this bot will use. Default value is <see cref="BudgetType.Iterations"/>.</param>
         /// <param name="samples">[Optional] The budget for the amount of iterations LSI can use. Default value is <see cref="Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET"/>.</param>
         /// <param name="time">[Optional] The budget for the amount of milliseconds LSI can spend on searching. Default value is <see cref="Constants.DEFAULT_COMPUTATION_TIME_BUDGET"/>.</param>
-        /// <param name="generationBudgetPercentage">[Optional] The percentage of the budget that should be spent during the generation phase. Default value is <see cref="LSI{D,P,A,S,N,T}.DEFAULT_BUDGET_GENERATION_PERCENTAGE"/>.</param>
+        /// <param name="generationBudgetPercentage">[Optional] The percentage of the budget that should be spent during the generation phase. Default value is <see cref="Constants.DEFAULT_LSI_BUDGET_GENERATION_PERCENTAGE"/>.</param>
+        /// <param name="budgetEstimationType">[Optional] The type of strategy used to estimate the budget for LSI. Default value is <see cref="BudgetEstimationType.AverageSampleTime"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
         public LSIBot(Controller player,
             bool allowPerfectInformation = false,
@@ -356,9 +577,10 @@ namespace AVThesis.SabberStone.Bots {
             BudgetType budgetType = BudgetType.Iterations,
             int samples = Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET,
             long time = Constants.DEFAULT_COMPUTATION_TIME_BUDGET,
-            double generationBudgetPercentage = LSI<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, TreeSearchNode<SabberStoneState, SabberStoneAction>, OddmentTable<SabberStonePlayerTask>>.DEFAULT_BUDGET_GENERATION_PERCENTAGE,
+            double generationBudgetPercentage = Constants.DEFAULT_LSI_BUDGET_GENERATION_PERCENTAGE,
+            BudgetEstimationType budgetEstimationType = BudgetEstimationType.AverageSampleTime,
             bool debugInfoToConsole = false)
-            : this(allowPerfectInformation, ensembleSize, playoutBotType, mastSelectionType, playoutTurnCutoff, budgetType, samples, time, generationBudgetPercentage, debugInfoToConsole) {
+            : this(allowPerfectInformation, ensembleSize, playoutBotType, mastSelectionType, playoutTurnCutoff, budgetType, samples, time, generationBudgetPercentage, budgetEstimationType, debugInfoToConsole) {
             SetController(player);
         }
 
@@ -373,7 +595,8 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="budgetType">[Optional] The type of budget that this bot will use. Default value is <see cref="BudgetType.Iterations"/>.</param>
         /// <param name="samples">[Optional] The budget for the amount of iterations LSI can use. Default value is <see cref="Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET"/>.</param>
         /// <param name="time">[Optional] The budget for the amount of milliseconds LSI can spend on searching. Default value is <see cref="Constants.DEFAULT_COMPUTATION_TIME_BUDGET"/>.</param>
-        /// <param name="generationBudgetPercentage">[Optional] The percentage of the budget that should be spent during the generation phase. Default value is <see cref="LSI{D,P,A,S,N,T}.DEFAULT_BUDGET_GENERATION_PERCENTAGE"/>.</param>
+        /// <param name="generationBudgetPercentage">[Optional] The percentage of the budget that should be spent during the generation phase. Default value is <see cref="Constants.DEFAULT_LSI_BUDGET_GENERATION_PERCENTAGE"/>.</param>
+        /// <param name="budgetEstimationType">[Optional] The type of strategy used to estimate the budget for LSI. Default value is <see cref="BudgetEstimationType.AverageSampleTime"/>.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
         public LSIBot(bool allowPerfectInformation = false,
             int ensembleSize = 1,
@@ -383,7 +606,8 @@ namespace AVThesis.SabberStone.Bots {
             BudgetType budgetType = BudgetType.Iterations,
             int samples = Constants.DEFAULT_COMPUTATION_ITERATION_BUDGET,
             long time = Constants.DEFAULT_COMPUTATION_TIME_BUDGET,
-            double generationBudgetPercentage = LSI<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, TreeSearchNode<SabberStoneState, SabberStoneAction>, OddmentTable<SabberStonePlayerTask>>.DEFAULT_BUDGET_GENERATION_PERCENTAGE,
+            double generationBudgetPercentage = Constants.DEFAULT_LSI_BUDGET_GENERATION_PERCENTAGE,
+            BudgetEstimationType budgetEstimationType = BudgetEstimationType.AverageSampleTime,
             bool debugInfoToConsole = false) {
             PerfectInformation = allowPerfectInformation;
             EnsembleSize = ensembleSize;
@@ -394,10 +618,26 @@ namespace AVThesis.SabberStone.Bots {
             Samples = samples;
             Time = time;
             GenerationBudgetPercentage = generationBudgetPercentage;
+            BudgetEstimation = budgetEstimationType;
             _debug = debugInfoToConsole;
 
             // Create the ensemble search
             Ensemble = new EnsembleStrategySabberStone(enableStateObfuscation: true, enablePerfectInformation: PerfectInformation);
+
+            // Adjust sample sizes for use in the Ensemble
+            long budgetAllowance;
+            switch (BudgetType) {
+                case BudgetType.Iterations:
+                    Samples = EnsembleSize > 0 ? Samples / EnsembleSize : Samples; // Note: Integer division by design.
+                    budgetAllowance = Samples;
+                    break;
+                case BudgetType.Time:
+                    Time = EnsembleSize > 0 ? Time / EnsembleSize : Time; // Note: Integer division by design.
+                    budgetAllowance = Time;
+                    break;
+                default:
+                    throw new InvalidEnumArgumentException($"BudgetType `{BudgetType}' is not supported.");
+            }
 
             // Simulation will be handled by the Playout.
             var sabberStoneStateEvaluation = new EvaluationStrategyHearthStone();
@@ -419,6 +659,18 @@ namespace AVThesis.SabberStone.Bots {
                     break;
                 default:
                     throw new InvalidEnumArgumentException($"PlayoutBotType `{PlayoutBotType}' is not supported.");
+            }
+
+            // Set the budget estimation strategy.
+            switch (BudgetEstimation) {
+                case BudgetEstimationType.AverageSampleTime:
+                    BudgetEstimationStrategy = new AverageSampleTimeBudgetEstimationStrategy(BudgetType, budgetAllowance, GenerationBudgetPercentage, Playout);
+                    break;
+                case BudgetEstimationType.PreviousSearchAverage:
+                    BudgetEstimationStrategy = new PreviousSearchAverageBudgetEstimationStrategy(BudgetType, budgetAllowance, GenerationBudgetPercentage, Playout);
+                    break;
+                default:
+                    throw new InvalidEnumArgumentException($"BudgetEstimationType `{budgetEstimationType}' is not supported.");
             }
 
             // LSI will need a goal-strategy to determine when a simulation is done
@@ -446,27 +698,13 @@ namespace AVThesis.SabberStone.Bots {
 
         /// <inheritdoc />
         public SabberStoneAction Act(SabberStoneState state) {
-            var timer = System.Diagnostics.Stopwatch.StartNew();
+            var timer = Stopwatch.StartNew();
             var stateCopy = (SabberStoneState)state.Copy();
 
             if (_debug) Console.WriteLine();
             if (_debug) Console.WriteLine(Name());
             if (_debug) Console.WriteLine($"Starting an LSI search in turn {(stateCopy.Game.Turn + 1) / 2}");
             
-            // Adjust sample sizes again for use in the Ensemble
-            var samples = Search.Constants.NO_LIMIT_ON_ITERATIONS;
-            var time = (long)Search.Constants.NO_LIMIT_ON_THINKING_TIME;
-            switch (BudgetType) {
-                case BudgetType.Iterations:
-                    samples = EnsembleSize > 0 ? Samples / EnsembleSize : Samples; // Note: Integer division by design.
-                    break;
-                case BudgetType.Time:
-                    time = EnsembleSize > 0 ? Time / EnsembleSize : Time; // Note: Integer division by design.
-                    break;
-                default:
-                    throw new InvalidEnumArgumentException($"BudgetType `{BudgetType}' is not supported.");
-            }
-
             // Create a new LSI search
             var search = new LSI<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, TreeSearchNode<SabberStoneState, SabberStoneAction>, OddmentTable<SabberStonePlayerTask>>(
                 SideInformationStrategy,
@@ -474,9 +712,7 @@ namespace AVThesis.SabberStone.Bots {
                 Playout,
                 Evaluation,
                 GameLogic,
-                time,
-                samples,
-                GenerationBudgetPercentage
+                BudgetEstimationStrategy
                 );
             
             // Reset the solutions collection
@@ -494,6 +730,7 @@ namespace AVThesis.SabberStone.Bots {
             // Determine a solution
             var solution = Searcher.VoteForSolution(EnsembleSolutions, state);
 
+            timer.Stop();
             if (_debug) Console.WriteLine();
             if (_debug) Console.WriteLine($"LSI returned with solution: {solution}");
             if (_debug) Console.WriteLine($"My total calculation time was: {timer.ElapsedMilliseconds}ms");
@@ -502,6 +739,12 @@ namespace AVThesis.SabberStone.Bots {
             if (!solution.IsComplete()) {
                 // Otherwise add an End-Turn task before returning.
                 solution.Tasks.Add((SabberStonePlayerTask)EndTurnTask.Any(Player));
+            }
+
+            // If we are estimating the budget by using the previous search's results, save these now
+            if (BudgetEstimation == BudgetEstimationType.PreviousSearchAverage && BudgetEstimationStrategy is PreviousSearchAverageBudgetEstimationStrategy estimationStrategy) {
+                estimationStrategy.PreviousSearchTime = timer.ElapsedMilliseconds;
+                estimationStrategy.PreviousSearchIterations = SamplesSpent;
             }
 
             if (_debug) Console.WriteLine();

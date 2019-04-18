@@ -40,6 +40,21 @@ namespace AVThesis.SabberStone.Bots {
 
         #endregion
 
+        #region LSI
+
+        /// <summary>
+        /// The default percentage of the computation budget of LSI that is used during the generation phase.
+        /// </summary>
+        public const double DEFAULT_LSI_BUDGET_GENERATION_PERCENTAGE = 0.25;
+
+        /// <summary>
+        /// The default adjustment factor applied to the evaluation budget for LSI.
+        /// Note: this factor should be empirically determined due to the nature of the SequentialHalving algorithm used during LSI evaluation phase.
+        /// </summary>
+        public const double DEFAULT_LSI_EVALUATION_SAMPLES_ADJUSTMENT_FACTOR = .4;
+
+        #endregion
+
         #region MCTS
 
         /// <summary>

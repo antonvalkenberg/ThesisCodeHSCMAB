@@ -120,6 +120,7 @@
     <Compile Include="Search\ISearchStrategy.cs" />
     <Compile Include="Search\ISolutionStrategy.cs" />
     <Compile Include="Search\IStateEvaluation.cs" />
+    <Compile Include="Search\LSI\IBudgetEstimationStrategy.cs" />
     <Compile Include="Search\LSI\ILSISamplingStrategy.cs" />
     <Compile Include="Search\LSI\ISideInformationStrategy.cs" />
     <Compile Include="Search\LSI\LSI.cs" />

@@ -1,4 +1,5 @@
-﻿using AVThesis.Datastructures;
+﻿using System;
+using AVThesis.Datastructures;
 using AVThesis.Search;
 using AVThesis.Search.LSI;
 using AVThesis.Search.Tree;
@@ -67,9 +68,9 @@ namespace AVThesisTest.TicTacToe {
         public override LSI<object, TicTacToeState, TicTacToeMove, object, TreeSearchNode<TicTacToeState, TicTacToeMove>, OddmentTable<int>> SetupLSI(ISideInformationStrategy<object, TicTacToeState, TicTacToeMove, object, TicTacToeMove, OddmentTable<int>> sideInformationStrategy, ILSISamplingStrategy<TicTacToeState, TicTacToeMove, OddmentTable<int>> samplingStrategy) {
             var playoutStrategy = new AgentPlayout<object, TicTacToeState, TicTacToeMove, object, TicTacToeMove>(Agent);
             var evaluationStrategy = EvaluationStrategy;
-            var search = new LSI<object, TicTacToeState, TicTacToeMove, object, TreeSearchNode<TicTacToeState, TicTacToeMove>, OddmentTable<int>>(sideInformationStrategy, samplingStrategy, playoutStrategy, evaluationStrategy, GameLogic, samples: 10000);
+            //var search = new LSI<object, TicTacToeState, TicTacToeMove, object, TreeSearchNode<TicTacToeState, TicTacToeMove>, OddmentTable<int>>(sideInformationStrategy, samplingStrategy, playoutStrategy, evaluationStrategy, GameLogic);
 
-            return search;
+            throw new NotImplementedException();
         }
 
         public override void TestAI(SearchContext<object, TicTacToeState, TicTacToeMove, object, TicTacToeMove> context) {
