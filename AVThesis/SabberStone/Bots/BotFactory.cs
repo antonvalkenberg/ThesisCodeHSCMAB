@@ -152,6 +152,8 @@ namespace AVThesis.SabberStone.Bots {
                     return new HMCTSBot(dimensionalOrdering: DimensionalOrderingType.ManaDesc, playoutTurnCutoff: 4, mastSelectionType: MASTPlayoutBot.SelectionType.Random, ucbConstantC: 0.2, minimumVisitThresholdForExpansion: 0, minimumVisitThresholdForSelection: 0, budgetType: BudgetType.Time, time: 5000);
                 case BotSetupType.HMCTS_Opt_NoOrder_Ti5s:
                     return new HMCTSBot(dimensionalOrdering: DimensionalOrderingType.None, playoutTurnCutoff: 4, mastSelectionType: MASTPlayoutBot.SelectionType.Random, ucbConstantC: 0.2, minimumVisitThresholdForExpansion: 0, minimumVisitThresholdForSelection: 0, budgetType: BudgetType.Time, time: 5000);
+                case BotSetupType.LSI_PrevSearch_Ti5s:
+                    return new LSIBot(budgetType: BudgetType.Time, time: 5000, budgetEstimationType: LSIBot.BudgetEstimationType.PreviousSearchAverage);
                 default:
                     throw new InvalidEnumArgumentException($"BotSetupType `{botType}' is not supported.");
             }

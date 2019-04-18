@@ -362,6 +362,15 @@ namespace AVThesis.Enums {
 
         #endregion
 
+        #region LSI Budget Estimation test
+
+        /// <summary>
+        /// LSI bot that uses the previous search to estimate its the number of samples it can run in its time budget of 5 seconds.
+        /// </summary>
+        LSI_PrevSearch_Ti5s,
+
+        #endregion
+
     }
 
 }
