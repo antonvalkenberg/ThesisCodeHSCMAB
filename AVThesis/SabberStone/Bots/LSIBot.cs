@@ -232,7 +232,7 @@ namespace AVThesis.SabberStone.Bots {
             /// <summary>
             /// The factor with which to multiply a single sample's time when determining sample sizes on a time budget.
             /// </summary>
-            private const double TIME_BUDGET_SAFETY_MARGIN = 1.5;
+            public const double TIME_BUDGET_SAFETY_MARGIN = 1.5;
 
             #endregion
 
@@ -398,7 +398,7 @@ namespace AVThesis.SabberStone.Bots {
                         if (PreviousSearchTime > 0 && PreviousSearchIterations > 0) {
                             var sampleDuration = PreviousSearchTime / (PreviousSearchIterations * 1.0);
                             // We can now estimate how many samples go into the budget we are allowed to spend
-                            estimatedSamples = (long) (BudgetAllowance / sampleDuration);
+                            estimatedSamples = (long) (BudgetAllowance / (sampleDuration * AverageSampleTimeBudgetEstimationStrategy.TIME_BUDGET_SAFETY_MARGIN));
                         }
                         else {
                             // If we don't have any statistics on the previous search (maybe cause this is going to be the first)
