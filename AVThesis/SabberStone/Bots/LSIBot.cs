@@ -232,7 +232,7 @@ namespace AVThesis.SabberStone.Bots {
             /// <summary>
             /// The factor with which to multiply a single sample's time when determining sample sizes on a time budget.
             /// </summary>
-            private const double TIME_BUDGET_SAFETY_MARGIN = 1.2;
+            private const double TIME_BUDGET_SAFETY_MARGIN = 1.5;
 
             #endregion
 

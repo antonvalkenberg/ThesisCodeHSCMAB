@@ -41,6 +41,16 @@ namespace AVThesis.Tournament {
         public int NumberOfGames { get; set; }
 
         /// <summary>
+        /// The type of budget that this match will be limited on.
+        /// </summary>
+        public BudgetType BudgetType { get; set; }
+
+        /// <summary>
+        /// The amount of budget that is available to the players, relative to the <see cref="BudgetType"/>.
+        /// </summary>
+        public long BudgetLimit { get; set; }
+
+        /// <summary>
         /// Statistics regarding the match.
         /// </summary>
         public MatchStatistics MatchStatistics { get; set; }
@@ -61,11 +71,15 @@ namespace AVThesis.Tournament {
         /// <param name="bot1Setup">The setup for the first bot.</param>
         /// <param name="bot2Setup">The setup for the second bot.</param>
         /// <param name="numberOfGames">The amount of games that should be played in this match.</param>
+        /// <param name="budgetType">The type of budget that this match will be limited on.</param>
+        /// <param name="budgetLimit">The amount of budget that is available to the players, relative to the <see cref="BudgetType"/>.</param>
         /// <param name="printToConsole">[Optional] Whether or not to print game information to the Console.</param>
-        public TournamentMatch(BotSetupType bot1Setup, BotSetupType bot2Setup, int numberOfGames, bool printToConsole = false) {
+        public TournamentMatch(BotSetupType bot1Setup, BotSetupType bot2Setup, int numberOfGames, BudgetType budgetType, long budgetLimit, bool printToConsole = false) {
             Bots = new List<ISabberStoneBot> { BotFactory.CreateSabberStoneBot(bot1Setup), BotFactory.CreateSabberStoneBot(bot2Setup) };
             NumberOfGames = numberOfGames;
-            MatchStatistics = new MatchStatistics($"{bot1Setup.ToString()}[{Constants.SABBERSTONE_GAMECONFIG_PLAYER1_NAME}]", $"{bot2Setup.ToString()}[{Constants.SABBERSTONE_GAMECONFIG_PLAYER2_NAME}]", numberOfGames);
+            BudgetType = budgetType;
+            BudgetLimit = (long)(budgetLimit * 1.02); // I'll allow a 2% margin on the budget limitation.
+            MatchStatistics = new MatchStatistics($"{bot1Setup.ToString()}[{Constants.SABBERSTONE_GAMECONFIG_PLAYER1_NAME}]", $"{bot2Setup.ToString()}[{Constants.SABBERSTONE_GAMECONFIG_PLAYER2_NAME}]", numberOfGames, BudgetType, BudgetLimit);
             _printToConsole = printToConsole;
         }
 
@@ -185,7 +199,6 @@ namespace AVThesis.Tournament {
             // Process the tasks in the action
             var executedTasks = new List<SabberStonePlayerTask>();
             foreach (var item in action.Tasks) {
-
                 if (_printToConsole) Console.WriteLine(item.Task.FullPrint());
                 try {
                     // Process the task

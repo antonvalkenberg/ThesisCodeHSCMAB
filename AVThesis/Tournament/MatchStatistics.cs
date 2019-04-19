@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using AVThesis.Enums;
 using AVThesis.SabberStone;
 using SabberStoneCore.Enums;
 
@@ -182,6 +183,16 @@ namespace AVThesis.Tournament {
         public string Player2 { get; set; }
 
         /// <summary>
+        /// The type of budget that this match will be limited on.
+        /// </summary>
+        public BudgetType BudgetType { get; set; }
+
+        /// <summary>
+        /// The amount of budget that is available to the players, relative to the <see cref="BudgetType"/>.
+        /// </summary>
+        public long BudgetLimit { get; set; }
+
+        /// <summary>
         /// The game that is currently in progress in this match.
         /// </summary>
         public GameStatistics CurrentGame { get; set; }
@@ -201,11 +212,14 @@ namespace AVThesis.Tournament {
         /// <param name="player1">The name of Player1 within this match's <see cref="SabberStoneCore.Model.Game"/>s.</param>
         /// <param name="player2">The name of Player2 within this match's <see cref="SabberStoneCore.Model.Game"/>s.</param>
         /// <param name="numberOfGames">The number of games that this match lasts for.</param>
-        public MatchStatistics(string player1, string player2, int numberOfGames) {
+        /// <param name="budgetType">The type of budget that this match will be limited on.</param>
+        /// <param name="budgetLimit">The amount of budget that is available to the players, relative to the <see cref="BudgetType"/>.</param>
+        public MatchStatistics(string player1, string player2, int numberOfGames, BudgetType budgetType, long budgetLimit) {
             Player1 = player1;
             Player2 = player2;
             Games = new List<GameStatistics>(numberOfGames);
-
+            BudgetType = budgetType;
+            BudgetLimit = budgetLimit;
             ResultsFilePath = Path.Combine(Path.GetDirectoryName(typeof(MatchStatistics).Assembly.Location), $"{Player1}-{Player2}.txt");
         }
 
@@ -232,7 +246,9 @@ namespace AVThesis.Tournament {
             var player2AvgDepth = CurrentGame.GameActions[Player2].Average(i => i.Item4);
             var player1AvgTasks = CurrentGame.GameActions[Player1].Average(i => i.Item1.Count);
             var player2AvgTasks = CurrentGame.GameActions[Player2].Average(i => i.Item1.Count);
-            writer.WriteLine($"{CurrentGame.WinningPlayer()},{CurrentGame.Player1HP},{CurrentGame.Player2HP},{hpDifference},{CurrentGame.FinalTurn},{sharedTurns},{player1Time:g},{player2Time:g},{player1Iterations},{player2Iterations},{player1IterationsPerAction:F1},{player2IterationsPerAction:F1},{player1MaxDepth},{player2MaxDepth},{player1AvgDepth:N1},{player2AvgDepth:N1},{player1AvgTasks:N1},{player2AvgTasks:N1}");
+            var player1BudgetViolations = BudgetType == BudgetType.Iterations ? CurrentGame.GameActions[Player1].Count(i => i.Item3 > BudgetLimit) : CurrentGame.GameActions[Player1].Count(i => i.Item2.TotalMilliseconds > BudgetLimit);
+            var player2BudgetViolations = BudgetType == BudgetType.Iterations ? CurrentGame.GameActions[Player2].Count(i => i.Item3 > BudgetLimit) : CurrentGame.GameActions[Player2].Count(i => i.Item2.TotalMilliseconds > BudgetLimit);
+            writer.WriteLine($"{CurrentGame.WinningPlayer()},{CurrentGame.Player1HP},{CurrentGame.Player2HP},{hpDifference},{CurrentGame.FinalTurn},{sharedTurns},{player1Time:g},{player2Time:g},{player1Iterations},{player2Iterations},{player1IterationsPerAction:F1},{player2IterationsPerAction:F1},{player1MaxDepth},{player2MaxDepth},{player1AvgDepth:N1},{player2AvgDepth:N1},{player1AvgTasks:N1},{player2AvgTasks:N1},{player1BudgetViolations},{player2BudgetViolations}");
             writer.Close();
         }
 
