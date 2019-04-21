@@ -42,7 +42,7 @@ namespace AVThesis.Enums {
 
         #endregion
 
-        #region Playout length test
+        #region Playout length
 
         /// <summary>
         /// H-MCTS bot with a Turn-Cutoff setting of 2.
@@ -76,7 +76,7 @@ namespace AVThesis.Enums {
 
         #endregion
 
-        #region Iteration budget test
+        #region Iteration budget
 
         /// <summary>
         /// H-MCTS bot with an iteration budget of 1000.
@@ -110,7 +110,7 @@ namespace AVThesis.Enums {
 
         #endregion
 
-        #region Time budget test
+        #region Time budget
 
         /// <summary>
         /// H-MCTS bot with the default time budget.
@@ -144,7 +144,7 @@ namespace AVThesis.Enums {
 
         #endregion
 
-        #region Timed playout length test
+        #region Timed playout length
 
         /// <summary>
         /// H-MCTS bot with a Turn-Cutoff setting of 2 and a time budget of 5 seconds.
@@ -178,7 +178,7 @@ namespace AVThesis.Enums {
 
         #endregion
 
-        #region H-MCTS C constant test
+        #region H-MCTS C constant
 
         /// <summary>
         /// H-MCTS bot with a UCT-c-constant setting of 0.2 and a time budget of 5 seconds.
@@ -192,7 +192,7 @@ namespace AVThesis.Enums {
 
         #endregion
 
-        #region H-MCTS Visit threshold test
+        #region H-MCTS thresholds
 
         /// <summary>
         /// H-MCTS bot with a minimum visit threshold of 0 for selection and a time budget of 5 seconds.
@@ -211,7 +211,7 @@ namespace AVThesis.Enums {
 
         #endregion
 
-        #region Playout strategy test
+        #region Playout strategy
 
         /// <summary>
         /// H-MCTS bot with MAST playout bots using UBC1 selection and a time budget of 5 seconds.
@@ -245,7 +245,7 @@ namespace AVThesis.Enums {
 
         #endregion
 
-        #region LSI generation vs evaluation budget test
+        #region LSI generation budget
 
         /// <summary>
         /// LSI bot that uses 50% of its budget in the generation phase and a time budget of 5 seconds.
@@ -259,7 +259,7 @@ namespace AVThesis.Enums {
 
         #endregion
 
-        #region N-MCTS global and local policy test
+        #region N-MCTS pi_0 and pi_g
 
         /// <summary>
         /// N-MCTS bot with a global policy of 0.1 and a time budget of 5 seconds.
@@ -293,7 +293,7 @@ namespace AVThesis.Enums {
 
         #endregion
 
-        #region Ensemble size test
+        #region Ensemble size
 
         /// <summary>
         /// H-MCTS bot with an ensemble size of 2 and a time budget of 5 seconds.
@@ -327,7 +327,16 @@ namespace AVThesis.Enums {
 
         #endregion
 
-        #region H-MCTS Dimensional Ordering test
+        #region LSI Budget Estimation
+
+        /// <summary>
+        /// LSI bot that uses the previous search to estimate its the number of samples it can run in its time budget of 5 seconds.
+        /// </summary>
+        LSI_PrevSearch_Ti5s,
+
+        #endregion
+
+        #region H-MCTS Dimensional Ordering
 
         /// <summary>
         /// H-MCTS bot with optimal settings, dimensional ordering by ascending entropy and a time budget of 5 seconds.
@@ -362,12 +371,31 @@ namespace AVThesis.Enums {
 
         #endregion
 
-        #region LSI Budget Estimation test
+        #region Round Robin Tournament
 
         /// <summary>
-        /// LSI bot that uses the previous search to estimate its the number of samples it can run in its time budget of 5 seconds.
+        /// H-MCTS bot with optimal settings and a time budget of 5 seconds.
         /// </summary>
-        LSI_PrevSearch_Ti5s,
+        HMCTS_Opt_Ti5s,
+
+        /// <summary>
+        /// LSI bot with optimal settings and a time budget of 5 seconds.
+        /// </summary>
+        LSI_Opt_Ti5s,
+
+        /// <summary>
+        /// N-MCTS bot with optimal settings and a time budget of 5 seconds.
+        /// </summary>
+        NMCTS_Opt_Ti5s,
+
+        #endregion
+
+        #region Full information bots
+
+        /// <summary>
+        /// H-MCTS bot with default settings, full information (no obfuscation and determinisation) and a time budget of 5 seconds.
+        /// </summary>
+        HMCTS_FullInfo_Ti5s,
 
         #endregion
 
