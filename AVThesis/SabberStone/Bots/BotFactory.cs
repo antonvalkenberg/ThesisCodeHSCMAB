@@ -168,6 +168,8 @@ namespace AVThesis.SabberStone.Bots {
                     return new HMCTSBot(allowPerfectInformation: false, ensembleSize: 1, playoutBotType: PlayoutBotType.MAST, mastSelectionType: MASTPlayoutBot.SelectionType.Random, retainTaskStatistics: false, budgetType: BudgetType.Time, iterations: 0, time: 30000, minimumVisitThresholdForExpansion: 0, minimumVisitThresholdForSelection: 0, playoutTurnCutoff: 4, ucbConstantC: 0.2, dimensionalOrdering: DimensionalOrderingType.EntropyDesc);
                 case BotSetupType.HMCTS_Opt_Ti60s:
                     return new HMCTSBot(allowPerfectInformation: false, ensembleSize: 1, playoutBotType: PlayoutBotType.MAST, mastSelectionType: MASTPlayoutBot.SelectionType.Random, retainTaskStatistics: false, budgetType: BudgetType.Time, iterations: 0, time: 60000, minimumVisitThresholdForExpansion: 0, minimumVisitThresholdForSelection: 0, playoutTurnCutoff: 4, ucbConstantC: 0.2, dimensionalOrdering: DimensionalOrderingType.EntropyDesc);
+                case BotSetupType.HMCTS_Opt_HeuEval_Ti5s:
+                    return new HMCTSBot(allowPerfectInformation: false, ensembleSize: 1, playoutBotType: PlayoutBotType.MAST, mastSelectionType: MASTPlayoutBot.SelectionType.Random, retainTaskStatistics: false, budgetType: BudgetType.Time, iterations: 0, time: 5000, minimumVisitThresholdForExpansion: 0, minimumVisitThresholdForSelection: 0, playoutTurnCutoff: 4, ucbConstantC: 0.2, dimensionalOrdering: DimensionalOrderingType.EntropyDesc, useHeuristicEvaluation: true);
                 default:
                     throw new InvalidEnumArgumentException($"BotSetupType `{botType}' is not supported.");
             }

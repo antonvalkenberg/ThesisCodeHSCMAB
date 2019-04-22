@@ -1,11 +1,11 @@
-﻿/// <summary>
+﻿using System.Diagnostics.CodeAnalysis;
+// ReSharper disable IdentifierTypo
+// ReSharper disable InconsistentNaming
+
+/// <summary>
 /// Written by A.J.J. Valkenberg, used in his Master Thesis on Artificial Intelligence.
 /// In parts inspired by a code framework written by G.J. Roelofs and T. Aliyev.
 /// </summary>
-// ReSharper disable InconsistentNaming
-
-using System.Diagnostics.CodeAnalysis;
-
 namespace AVThesis.Enums {
 
     /// <summary>
@@ -351,7 +351,6 @@ namespace AVThesis.Enums {
         /// <summary>
         /// H-MCTS bot with optimal settings, dimensional ordering by average evaluation and a time budget of 5 seconds.
         /// </summary>
-        [SuppressMessage("ReSharper", "IdentifierTypo")]
         HMCTS_Opt_AvgEval_Ti5s,
 
         /// <summary>
@@ -406,6 +405,15 @@ namespace AVThesis.Enums {
         /// H-MCTS bot with optimal settings and a time budget of 60 seconds.
         /// </summary>
         HMCTS_Opt_Ti60s,
+
+        #endregion
+
+        #region Heuristic evaluation function
+
+        /// <summary>
+        /// H-MCTS bot with optimal settings, using the HeuristicBot's evaluation function and a time budget of 5 seconds.
+        /// </summary>
+        HMCTS_Opt_HeuEval_Ti5s,
 
         #endregion
 
