@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using AVThesis.SabberStone.Bots;
 using AVThesis.Search;
 using AVThesis.Search.Tree;
 
@@ -14,6 +16,33 @@ namespace AVThesis.SabberStone.Strategies {
     /// Represents a way of evaluating a board state in HearthStone.
     /// </summary>
     public class EvaluationStrategyHearthStone : IStateEvaluation<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction, TreeSearchNode<SabberStoneState, SabberStoneAction>> {
+        
+        #region Properties
+
+        /// <summary>
+        /// The heuristic agent that contains another evaluation function.
+        /// </summary>
+        public HeuristicBot HeuristicAgent { get; set; }
+
+        /// <summary>
+        /// Whether or not to use the heuristic agent's evaluation function.
+        /// </summary>
+        public bool UseHeuristicBotEvaluation { get; set; }
+
+        #endregion
+
+        #region Constructors
+
+        /// <summary>
+        /// Creates a new instance of this state evaluation strategy.
+        /// </summary>
+        /// <param name="useHeuristicBotEvaluation">[Optional] Whether or not to use the heuristic agent's evaluation function. Default value is false.</param>
+        public EvaluationStrategyHearthStone(bool useHeuristicBotEvaluation = false) {
+            UseHeuristicBotEvaluation = useHeuristicBotEvaluation;
+            if (useHeuristicBotEvaluation) HeuristicAgent = new HeuristicBot();
+        }
+
+        #endregion
 
         #region Public Methods
 
@@ -25,6 +54,19 @@ namespace AVThesis.SabberStone.Strategies {
         /// <param name="state">The state that should be evaluated.</param>
         /// <returns>Double representing the value of the state with respect to the node.</returns>
         public double Evaluate(SearchContext<List<SabberStoneAction>, SabberStoneState, SabberStoneAction, object, SabberStoneAction> context, TreeSearchNode<SabberStoneState, SabberStoneAction> node, SabberStoneState state) {
+
+            // Check if we can and want to use the HeuristicBot's evaluation
+            if (UseHeuristicBotEvaluation) {
+                // This scoring function is actually used to score the effect of tasks, but we are using it here to score the effect of the transition from our Source state to the state from which we are currently evaluating.
+                // TODO using the HeuristicBot's evaluation function could be improved
+                var heuristicEvaluation = HeuristicAgent.EvaluateStateTransition(context.Source, state);
+                // Colour the evaluation depending on who the active player is in the state
+                var isRootPlayer = state.CurrentPlayer() == context.Source.CurrentPlayer();
+                heuristicEvaluation = isRootPlayer ? heuristicEvaluation : heuristicEvaluation * -1;
+                // Normalise the value between -1 and 1. The min and max values have been empirically set and equal the min and max possible evaluations that are returned by the HeuristicBot's function.
+                var norm = 2 * Util.Normalise(heuristicEvaluation, -50, 50) - 1; // Note: this is a transformation from [0,1] to [-1,1]
+                return norm;
+            }
 
             var rootPlayerId = context.Source.CurrentPlayer();
             var rootPlayer = state.Player1.Id == rootPlayerId ? state.Player1 : state.Player2;

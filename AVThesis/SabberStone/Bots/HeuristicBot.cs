@@ -623,6 +623,29 @@ namespace AVThesis.SabberStone.Bots {
 
         #region Public Methods
 
+        public double EvaluateStateTransition(SabberStoneState before, SabberStoneState after) {
+            // These min and max values have been empirically determined and should be checked and re-set when it matters that they are correct.
+            if (after.Game.CurrentOpponent.Hero.Health <= 0) {
+                return 50;
+            }
+            if (after.Game.CurrentPlayer.Hero.Health <= 0) {
+                return -50;
+            }
+
+            double enemyPoints = calculateScoreHero(before.Game.CurrentOpponent, after.Game.CurrentOpponent);
+
+            double myPoints = calculateScoreHero(before.Game.CurrentPlayer, after.Game.CurrentPlayer);
+
+            double scoreEnemyMinions = calculateScoreMinions(before.Game.CurrentOpponent.BoardZone, after.Game.CurrentOpponent.BoardZone);
+
+            double scoreMyMinions = calculateScoreMinions(before.Game.CurrentPlayer.BoardZone, after.Game.CurrentPlayer.BoardZone);
+
+            int usedMana = before.Game.CurrentPlayer.RemainingMana - after.Game.CurrentPlayer.RemainingMana;
+            double scoreManaUsed = usedMana * weights[MANA_REDUCED];
+
+            return enemyPoints - myPoints + scoreEnemyMinions - scoreMyMinions - scoreManaUsed;
+        }
+
         public SabberStoneAction Act(SabberStoneState state) {
             var timer = System.Diagnostics.Stopwatch.StartNew();
             var gameState = (SabberStoneState)state.Copy();
