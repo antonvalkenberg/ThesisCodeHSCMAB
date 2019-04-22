@@ -199,6 +199,7 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="playoutTurnCutoff">[Optional] The amount of turns after which to stop a simulation. Default value is <see cref="Constants.DEFAULT_PLAYOUT_TURN_CUTOFF"/>.</param>
         /// <param name="globalPolicy">[Optional] The exploration-threshold for the e-greedy global policy. Default value is <see cref="Constants.DEFAULT_NMCTS_GLOBAL_POLICY"/>.</param>
         /// <param name="localPolicy">[Optional] The exploration-threshold for the e-greedy local policy. Default value is <see cref="Constants.DEFAULT_NMCTS_LOCAL_POLICY"/>.</param>
+        /// <param name="useHeuristicEvaluation">[Optional] Whether or not to use the HeuristicBot's evaluation function. Default value is false.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
         public NMCTSBot(Controller player,
             bool allowPerfectInformation = false,
@@ -211,8 +212,9 @@ namespace AVThesis.SabberStone.Bots {
             int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF,
             double globalPolicy = Constants.DEFAULT_NMCTS_GLOBAL_POLICY,
             double localPolicy = Constants.DEFAULT_NMCTS_LOCAL_POLICY,
+            bool useHeuristicEvaluation = false,
             bool debugInfoToConsole = false)
-            : this(allowPerfectInformation, ensembleSize, playoutBotType, mastSelectionType, budgetType, iterations, time, playoutTurnCutoff, globalPolicy, localPolicy, debugInfoToConsole) {
+            : this(allowPerfectInformation, ensembleSize, playoutBotType, mastSelectionType, budgetType, iterations, time, playoutTurnCutoff, globalPolicy, localPolicy, useHeuristicEvaluation, debugInfoToConsole) {
             SetController(player);
         }
 
@@ -229,6 +231,7 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="playoutTurnCutoff">[Optional] The amount of turns after which to stop a simulation. Default value is <see cref="Constants.DEFAULT_PLAYOUT_TURN_CUTOFF"/>.</param>
         /// <param name="globalPolicy">[Optional] The exploration-threshold for the e-greedy global policy. Default value is <see cref="Constants.DEFAULT_NMCTS_GLOBAL_POLICY"/>.</param>
         /// <param name="localPolicy">[Optional] The exploration-threshold for the e-greedy local policy. Default value is <see cref="Constants.DEFAULT_NMCTS_LOCAL_POLICY"/>.</param>
+        /// <param name="useHeuristicEvaluation">[Optional] Whether or not to use the HeuristicBot's evaluation function. Default value is false.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
         public NMCTSBot(bool allowPerfectInformation = false,
             int ensembleSize = 1,
@@ -240,6 +243,7 @@ namespace AVThesis.SabberStone.Bots {
             int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF,
             double globalPolicy = Constants.DEFAULT_NMCTS_GLOBAL_POLICY,
             double localPolicy = Constants.DEFAULT_NMCTS_LOCAL_POLICY,
+            bool useHeuristicEvaluation = false,
             bool debugInfoToConsole = false) {
             PerfectInformation = allowPerfectInformation;
             EnsembleSize = ensembleSize;
@@ -257,7 +261,7 @@ namespace AVThesis.SabberStone.Bots {
             Ensemble = new EnsembleStrategySabberStone(enableStateObfuscation: true, enablePerfectInformation: PerfectInformation);
 
             // Simulation will be handled by the Playout
-            var sabberStoneStateEvaluation = new EvaluationStrategyHearthStone();
+            var sabberStoneStateEvaluation = new EvaluationStrategyHearthStone(useHeuristicEvaluation);
             Playout = new PlayoutStrategySabberStone();
 
             // Set the playout bots

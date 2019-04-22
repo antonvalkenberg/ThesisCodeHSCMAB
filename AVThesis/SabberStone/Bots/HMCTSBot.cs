@@ -171,6 +171,7 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="playoutTurnCutoff">[Optional] The amount of turns after which to stop a simulation. Default value is <see cref="Constants.DEFAULT_PLAYOUT_TURN_CUTOFF"/>.</param>
         /// <param name="ucbConstantC">[Optional] Value for the c-constant in the UCB1 formula. Default value is <see cref="Constants.DEFAULT_UCB1_C"/>.</param>
         /// <param name="dimensionalOrdering">[Optional] The ordering for dimensions when using Hierarchical Expansion. Default value is <see cref="DimensionalOrderingType.None"/>.</param>
+        /// <param name="useHeuristicEvaluation">[Optional] Whether or not to use the HeuristicBot's evaluation function. Default value is false.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
         public HMCTSBot(Controller player,
             bool allowPerfectInformation = false,
@@ -186,8 +187,9 @@ namespace AVThesis.SabberStone.Bots {
             int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF,
             double ucbConstantC = Constants.DEFAULT_UCB1_C,
             DimensionalOrderingType dimensionalOrdering = DimensionalOrderingType.None,
+            bool useHeuristicEvaluation = false,
             bool debugInfoToConsole = false)
-            : this(allowPerfectInformation, ensembleSize, playoutBotType, mastSelectionType, retainTaskStatistics, budgetType, iterations, time, minimumVisitThresholdForExpansion, minimumVisitThresholdForSelection, playoutTurnCutoff, ucbConstantC, dimensionalOrdering, debugInfoToConsole) {
+            : this(allowPerfectInformation, ensembleSize, playoutBotType, mastSelectionType, retainTaskStatistics, budgetType, iterations, time, minimumVisitThresholdForExpansion, minimumVisitThresholdForSelection, playoutTurnCutoff, ucbConstantC, dimensionalOrdering, useHeuristicEvaluation, debugInfoToConsole) {
             SetController(player);
         }
 
@@ -207,6 +209,7 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="playoutTurnCutoff">[Optional] The amount of turns after which to stop a simulation. Default value is <see cref="Constants.DEFAULT_PLAYOUT_TURN_CUTOFF"/>.</param>
         /// <param name="ucbConstantC">[Optional] Value for the c-constant in the UCB1 formula. Default value is <see cref="Constants.DEFAULT_UCB1_C"/>.</param>
         /// <param name="dimensionalOrdering">[Optional] The ordering for dimensions when using Hierarchical Expansion. Default value is <see cref="DimensionalOrderingType.None"/>.</param>
+        /// <param name="useHeuristicEvaluation">[Optional] Whether or not to use the HeuristicBot's evaluation function. Default value is false.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
         public HMCTSBot(bool allowPerfectInformation = false,
             int ensembleSize = 1,
@@ -221,6 +224,7 @@ namespace AVThesis.SabberStone.Bots {
             int playoutTurnCutoff = Constants.DEFAULT_PLAYOUT_TURN_CUTOFF,
             double ucbConstantC = Constants.DEFAULT_UCB1_C,
             DimensionalOrderingType dimensionalOrdering = DimensionalOrderingType.None,
+            bool useHeuristicEvaluation = false,
             bool debugInfoToConsole = false) {
             PerfectInformation = allowPerfectInformation;
             EnsembleSize = ensembleSize;
@@ -241,7 +245,7 @@ namespace AVThesis.SabberStone.Bots {
             Ensemble = new EnsembleStrategySabberStone(enableStateObfuscation: true, enablePerfectInformation: PerfectInformation);
 
             // Simulation will be handled by the Playout.
-            var sabberStoneStateEvaluation = new EvaluationStrategyHearthStone();
+            var sabberStoneStateEvaluation = new EvaluationStrategyHearthStone(useHeuristicEvaluation);
             Playout = new PlayoutStrategySabberStone();
 
             // Set the playout bots

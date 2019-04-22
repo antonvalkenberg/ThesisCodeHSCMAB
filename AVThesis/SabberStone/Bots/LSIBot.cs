@@ -567,6 +567,7 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="time">[Optional] The budget for the amount of milliseconds LSI can spend on searching. Default value is <see cref="Constants.DEFAULT_COMPUTATION_TIME_BUDGET"/>.</param>
         /// <param name="generationBudgetPercentage">[Optional] The percentage of the budget that should be spent during the generation phase. Default value is <see cref="Constants.DEFAULT_LSI_BUDGET_GENERATION_PERCENTAGE"/>.</param>
         /// <param name="budgetEstimationType">[Optional] The type of strategy used to estimate the budget for LSI. Default value is <see cref="BudgetEstimationType.AverageSampleTime"/>.</param>
+        /// <param name="useHeuristicEvaluation">[Optional] Whether or not to use the HeuristicBot's evaluation function. Default value is false.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
         public LSIBot(Controller player,
             bool allowPerfectInformation = false,
@@ -579,8 +580,9 @@ namespace AVThesis.SabberStone.Bots {
             long time = Constants.DEFAULT_COMPUTATION_TIME_BUDGET,
             double generationBudgetPercentage = Constants.DEFAULT_LSI_BUDGET_GENERATION_PERCENTAGE,
             BudgetEstimationType budgetEstimationType = BudgetEstimationType.AverageSampleTime,
+            bool useHeuristicEvaluation = false,
             bool debugInfoToConsole = false)
-            : this(allowPerfectInformation, ensembleSize, playoutBotType, mastSelectionType, playoutTurnCutoff, budgetType, samples, time, generationBudgetPercentage, budgetEstimationType, debugInfoToConsole) {
+            : this(allowPerfectInformation, ensembleSize, playoutBotType, mastSelectionType, playoutTurnCutoff, budgetType, samples, time, generationBudgetPercentage, budgetEstimationType, useHeuristicEvaluation, debugInfoToConsole) {
             SetController(player);
         }
 
@@ -597,6 +599,7 @@ namespace AVThesis.SabberStone.Bots {
         /// <param name="time">[Optional] The budget for the amount of milliseconds LSI can spend on searching. Default value is <see cref="Constants.DEFAULT_COMPUTATION_TIME_BUDGET"/>.</param>
         /// <param name="generationBudgetPercentage">[Optional] The percentage of the budget that should be spent during the generation phase. Default value is <see cref="Constants.DEFAULT_LSI_BUDGET_GENERATION_PERCENTAGE"/>.</param>
         /// <param name="budgetEstimationType">[Optional] The type of strategy used to estimate the budget for LSI. Default value is <see cref="BudgetEstimationType.AverageSampleTime"/>.</param>
+        /// <param name="useHeuristicEvaluation">[Optional] Whether or not to use the HeuristicBot's evaluation function. Default value is false.</param>
         /// <param name="debugInfoToConsole">[Optional] Whether or not to write debug information to the console. Default value is false.</param>
         public LSIBot(bool allowPerfectInformation = false,
             int ensembleSize = 1,
@@ -608,6 +611,7 @@ namespace AVThesis.SabberStone.Bots {
             long time = Constants.DEFAULT_COMPUTATION_TIME_BUDGET,
             double generationBudgetPercentage = Constants.DEFAULT_LSI_BUDGET_GENERATION_PERCENTAGE,
             BudgetEstimationType budgetEstimationType = BudgetEstimationType.AverageSampleTime,
+            bool useHeuristicEvaluation = false,
             bool debugInfoToConsole = false) {
             PerfectInformation = allowPerfectInformation;
             EnsembleSize = ensembleSize;
@@ -640,7 +644,7 @@ namespace AVThesis.SabberStone.Bots {
             }
 
             // Simulation will be handled by the Playout.
-            var sabberStoneStateEvaluation = new EvaluationStrategyHearthStone();
+            var sabberStoneStateEvaluation = new EvaluationStrategyHearthStone(useHeuristicEvaluation);
             Playout = new PlayoutStrategySabberStone();
 
             // Set the playout bots
