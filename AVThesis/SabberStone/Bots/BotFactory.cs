@@ -162,6 +162,12 @@ namespace AVThesis.SabberStone.Bots {
                     return new NMCTSBot(allowPerfectInformation: false, ensembleSize: 5, playoutBotType: PlayoutBotType.MAST, mastSelectionType: MASTPlayoutBot.SelectionType.EGreedy, budgetType: BudgetType.Time, iterations: 0, time: 5000, playoutTurnCutoff: 2, globalPolicy: 0.75, localPolicy: 0.75);
                 case BotSetupType.HMCTS_FullInfo_Ti5s:
                     return new HMCTSBot(allowPerfectInformation: true, budgetType: BudgetType.Time, time: 5000);
+                case BotSetupType.HMCTS_Opt_Ti10s:
+                    return new HMCTSBot(allowPerfectInformation: false, ensembleSize: 1, playoutBotType: PlayoutBotType.MAST, mastSelectionType: MASTPlayoutBot.SelectionType.Random, retainTaskStatistics: false, budgetType: BudgetType.Time, iterations: 0, time: 10000, minimumVisitThresholdForExpansion: 0, minimumVisitThresholdForSelection: 0, playoutTurnCutoff: 4, ucbConstantC: 0.2, dimensionalOrdering: DimensionalOrderingType.EntropyDesc);
+                case BotSetupType.HMCTS_Opt_Ti30s:
+                    return new HMCTSBot(allowPerfectInformation: false, ensembleSize: 1, playoutBotType: PlayoutBotType.MAST, mastSelectionType: MASTPlayoutBot.SelectionType.Random, retainTaskStatistics: false, budgetType: BudgetType.Time, iterations: 0, time: 30000, minimumVisitThresholdForExpansion: 0, minimumVisitThresholdForSelection: 0, playoutTurnCutoff: 4, ucbConstantC: 0.2, dimensionalOrdering: DimensionalOrderingType.EntropyDesc);
+                case BotSetupType.HMCTS_Opt_Ti60s:
+                    return new HMCTSBot(allowPerfectInformation: false, ensembleSize: 1, playoutBotType: PlayoutBotType.MAST, mastSelectionType: MASTPlayoutBot.SelectionType.Random, retainTaskStatistics: false, budgetType: BudgetType.Time, iterations: 0, time: 60000, minimumVisitThresholdForExpansion: 0, minimumVisitThresholdForSelection: 0, playoutTurnCutoff: 4, ucbConstantC: 0.2, dimensionalOrdering: DimensionalOrderingType.EntropyDesc);
                 default:
                     throw new InvalidEnumArgumentException($"BotSetupType `{botType}' is not supported.");
             }

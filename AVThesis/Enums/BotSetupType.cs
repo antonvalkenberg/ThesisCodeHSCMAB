@@ -390,6 +390,25 @@ namespace AVThesis.Enums {
 
         #endregion
 
+        #region Extended time
+
+        /// <summary>
+        /// H-MCTS bot with optimal settings and a time budget of 10 seconds.
+        /// </summary>
+        HMCTS_Opt_Ti10s,
+
+        /// <summary>
+        /// H-MCTS bot with optimal settings and a time budget of 30 seconds.
+        /// </summary>
+        HMCTS_Opt_Ti30s,
+
+        /// <summary>
+        /// H-MCTS bot with optimal settings and a time budget of 60 seconds.
+        /// </summary>
+        HMCTS_Opt_Ti60s,
+
+        #endregion
+
         #region Full information bots
 
         /// <summary>
