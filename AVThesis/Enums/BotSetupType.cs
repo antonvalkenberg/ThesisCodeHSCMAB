@@ -415,6 +415,16 @@ namespace AVThesis.Enums {
         /// </summary>
         HMCTS_Opt_HeuEval_Ti5s,
 
+        /// <summary>
+        /// LSI bot with optimal settings, using the HeuristicBot's evaluation function and a time budget of 5 seconds.
+        /// </summary>
+        LSI_Opt_HeuEval_Ti5s,
+
+        /// <summary>
+        /// N-MCTS bot with optimal settings, using the HeuristicBot's evaluation function and a time budget of 5 seconds.
+        /// </summary>
+        NMCTS_Opt_HeuEval_Ti5s,
+
         #endregion
 
         #region Full information bots
