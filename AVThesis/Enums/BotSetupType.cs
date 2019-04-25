@@ -389,26 +389,7 @@ namespace AVThesis.Enums {
 
         #endregion
 
-        #region Extended time
-
-        /// <summary>
-        /// H-MCTS bot with optimal settings and a time budget of 10 seconds.
-        /// </summary>
-        HMCTS_Opt_Ti10s,
-
-        /// <summary>
-        /// H-MCTS bot with optimal settings and a time budget of 30 seconds.
-        /// </summary>
-        HMCTS_Opt_Ti30s,
-
-        /// <summary>
-        /// H-MCTS bot with optimal settings and a time budget of 60 seconds.
-        /// </summary>
-        HMCTS_Opt_Ti60s,
-
-        #endregion
-
-        #region Heuristic evaluation function
+        #region HeuristicBot evaluation function
 
         /// <summary>
         /// H-MCTS bot with optimal settings, using the HeuristicBot's evaluation function and a time budget of 5 seconds.
@@ -427,12 +408,17 @@ namespace AVThesis.Enums {
 
         #endregion
 
-        #region Full information bots
+        #region Extended time
 
         /// <summary>
-        /// H-MCTS bot with default settings, full information (no obfuscation and determinisation) and a time budget of 5 seconds.
+        /// H-MCTS bot with optimal settings, using the HeuristicBot's evaluation function and a time budget of 10 seconds.
         /// </summary>
-        HMCTS_FullInfo_Ti5s,
+        HMCTS_Opt_HeuEval_Ti10s,
+
+        /// <summary>
+        /// N-MCTS bot with optimal settings, using the HeuristicBot's evaluation function and a time budget of 10 seconds.
+        /// </summary>
+        NMCTS_Opt_HeuEval_Ti10s,
 
         #endregion
 
