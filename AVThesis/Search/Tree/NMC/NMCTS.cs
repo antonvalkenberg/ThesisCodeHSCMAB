@@ -153,7 +153,7 @@ namespace AVThesis.Search.Tree.NMC {
                 it++;
 
                 // SelectAndExpand, reference the iteration counter because it might be updated in the recursive call
-                var selectedNode = NaïveSelectAndExpand(context, root, gMAB, ref it);
+                var selectedNode = NaïveSelectAndExpand(context, root, gMAB, endTime, ref it);
 
                 // Keep track of the maximum depth we reach
                 var nodeDepth = selectedNode.CalculateDepth();
@@ -182,9 +182,10 @@ namespace AVThesis.Search.Tree.NMC {
         /// <param name="context">The current search context.</param>
         /// <param name="node">The node from which to expand the tree.</param>
         /// <param name="gMAB">The global Multi-Armed-Bandit collection.</param>
+        /// <param name="endTime">When running on a time budget, this indicates when the search should stop.</param>
         /// <param name="it">The iteration count of the main search.</param>
         /// <returns>A <see cref="TreeSearchNode{S,A}"/> from which represents the selected node for the Simulation phase.</returns>
-        private TreeSearchNode<P, A> NaïveSelectAndExpand(SearchContext<D, P, A, S, Sol> context, TreeSearchNode<P, A> node, IDictionary<long, Dictionary<int, LocalArm>> gMAB, ref int it) {
+        private TreeSearchNode<P, A> NaïveSelectAndExpand(SearchContext<D, P, A, S, Sol> context, TreeSearchNode<P, A> node, IDictionary<long, Dictionary<int, LocalArm>> gMAB, DateTime endTime, ref int it) {
             // a = NaïveSampling(node.state, node.state.currentPlayer)
             // if `a' leads to a child of `node'
             // then
@@ -201,11 +202,11 @@ namespace AVThesis.Search.Tree.NMC {
             // Check if any of the children of the current node have the sampled action as their payload
             var existingChild = node.Children.FirstOrDefault(i => i.PayloadHash == actionHash);
             if (existingChild != null) {
-                // Move down the tree unless we have reached a terminal node
-                if (existingChild.State.IsTerminal()) return existingChild;
+                // Move down the tree unless we have reached a terminal node, or are out of time
+                if (existingChild.State.IsTerminal() || (Time != Constants.NO_LIMIT_ON_THINKING_TIME && DateTime.Now >= endTime)) return existingChild;
                 // Increase the iteration count, since we'll be doing more sampling and simulating
                 it++;
-                return NaïveSelectAndExpand(context, existingChild, gMAB, ref it);
+                return NaïveSelectAndExpand(context, existingChild, gMAB, endTime, ref it);
             }
 
             // If none of the current children on the node have the action as payload, create a new child
