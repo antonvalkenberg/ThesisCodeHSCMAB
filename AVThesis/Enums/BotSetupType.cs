@@ -411,21 +411,6 @@ namespace AVThesis.Enums {
         #region Adjusted time budget
 
         /// <summary>
-        /// H-MCTS bot with optimal settings, using the HeuristicBot's evaluation function and a time budget of 10 seconds.
-        /// </summary>
-        HMCTS_Opt_HeuEval_Ti10s,
-
-        /// <summary>
-        /// N-MCTS bot with optimal settings, using the HeuristicBot's evaluation function and a time budget of 10 seconds.
-        /// </summary>
-        NMCTS_Opt_HeuEval_Ti10s,
-
-        /// <summary>
-        /// N-MCTS bot with optimal settings, using the HeuristicBot's evaluation function and a time budget of 30 seconds.
-        /// </summary>
-        NMCTS_Opt_HeuEval_Ti30s,
-
-        /// <summary>
         /// H-MCTS bot with optimal settings, using the HeuristicBot's evaluation function and a time budget of 1 second.
         /// </summary>
         HMCTS_Opt_HeuEval_Ti1s,
@@ -436,9 +421,34 @@ namespace AVThesis.Enums {
         NMCTS_Opt_HeuEval_Ti1s,
 
         /// <summary>
+        /// H-MCTS bot with optimal settings, using the HeuristicBot's evaluation function and a time budget of 10 seconds.
+        /// </summary>
+        HMCTS_Opt_HeuEval_Ti10s,
+
+        /// <summary>
+        /// N-MCTS bot with optimal settings, using the HeuristicBot's evaluation function and a time budget of 10 seconds.
+        /// </summary>
+        NMCTS_Opt_HeuEval_Ti10s,
+
+        /// <summary>
+        /// H-MCTS bot with optimal settings, using the HeuristicBot's evaluation function and a time budget of 30 seconds.
+        /// </summary>
+        HMCTS_Opt_HeuEval_Ti30s,
+
+        /// <summary>
+        /// N-MCTS bot with optimal settings, using the HeuristicBot's evaluation function and a time budget of 30 seconds.
+        /// </summary>
+        NMCTS_Opt_HeuEval_Ti30s,
+
+        /// <summary>
         /// H-MCTS bot with optimal settings, using the HeuristicBot's evaluation function and a time budget of 60 seconds.
         /// </summary>
         HMCTS_Opt_HeuEval_Ti60s,
+
+        /// <summary>
+        /// N-MCTS bot with optimal settings, using the HeuristicBot's evaluation function and a time budget of 60 seconds.
+        /// </summary>
+        NMCTS_Opt_HeuEval_Ti60s,
 
         #endregion
 
